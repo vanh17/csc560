@@ -284,8 +284,7 @@ Status HFPage::returnRecord(RID rid, char*& recPtr, int& recLen)
 {
     // fill in the body
     if ((rid.slotNo < 0) | (rid.slotNo > slotCnt) | (rid.pageNo != curPage)) {
-    cout << "##returnRecord() -> slot number " << rid.slotNo << " pageId " << rid.pageNo << endl; 
-    return FAIL;
+        return FAIL;
     }
     recLen = slot[rid.slotNo].length;
     recPtr = data + slot[rid.slotNo].offset;
