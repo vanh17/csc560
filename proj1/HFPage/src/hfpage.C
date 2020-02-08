@@ -302,14 +302,14 @@ int HFPage::available_space(void)
 {
     // fill in the body
     // free space is equal to what we have left minus the less than one slotCnt with the size of each slot
-    space = usedPtr - (slotCnt - 1) * (sizeof(slot_t));
+    freeSpace = usedPtr - (slotCnt - 1) * (sizeof(slot_t));
     for (int i = 0; i < slotCnt; i++) {
         if (slot[i].offset == -1)
         {
-            return space;
+            return freeSpace;
         }
     }
-    return space - sizeof(slot_t);
+    return freeSpace - sizeof(slot_t);
 }
 
 // **********************************************************
