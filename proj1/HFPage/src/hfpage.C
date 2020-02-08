@@ -321,8 +321,10 @@ bool HFPage::empty(void)
     int i = 0;
     bool result = true;
     while (i <= slotCnt - 1) {
-        if (slot[i].offset != -1)
+        if (slot[i].offset != -1) {
             result = false;
+        }
+        i++;
     }
     return result;
 }
