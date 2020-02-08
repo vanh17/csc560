@@ -216,23 +216,32 @@ Status HFPage::deleteRecord(const RID& rid)
 Status HFPage::firstRecord(RID& firstRid)
 {
     // fill in the body
-    if ((firstRid.pageNo != curPage))
-    {
-        return FAIL;
-    }
+    // if ((firstRid.pageNo != curPage))
+    // {
+    //     return FAIL;
+    // }
 
-    for (int i = 0; i < slotCnt; i++)
-    {
-        //check for record offset that is not -1
-        if (slot[i].offset != -1)
-        {
+    // for (int i = 0; i < slotCnt; i++)
+    // {
+    //     //check for record offset that is not -1
+    //     if (slot[i].offset != -1)
+    //     {
+    //         firstRid.slotNo = i;
+    //         firstRid.pageNo = curPage;
+    //         return OK;
+    //     }
+    // }
+
+    return DONE;
+    int i;
+    for(i=0; i < slotCnt; i++){
+        if(slot[i].length != EMPTY_SLOT){
             firstRid.slotNo = i;
             firstRid.pageNo = curPage;
             return OK;
         }
     }
-
-    return DONE;
+    return DONE; 
 }
 
 // **********************************************************
