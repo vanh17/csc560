@@ -143,72 +143,102 @@ Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
 Status HFPage::deleteRecord(const RID& rid)
 {
     // fill in the body
-    if (rid.pageNo == curPage && rid.slotNo >= 0)
-    {
-        int offset_memadd = slot[rid.slotNo].offset;
-        int mem_len = slot[rid.slotNo].length;
-        int slot_number = rid.slotNo;
-        if (rid.slotNo < (slotCnt - 1))
-        {
-
-            slot[rid.slotNo].offset = -1;
-            slot[rid.slotNo].length = 0;
-            //delete the entry in the slot and the memory
-            //update the slot arrays with the new address
-            for (int i = rid.slotNo + 1; i < (slotCnt); i++)
-            {
-                if (slot[i].offset != -1)
-                {
-                    slot[i].offset = slot[i].offset + mem_len;
-                }
-            }
-            //destination to copy
-            int dest = offset_memadd + (slot_number) * sizeof(slot_t);
-            //source to copy from
-            int source = dest - mem_len;
-            //number of bytes to be copied
-            int no_bytes = source - usedPtr;
-            //compact the memory
-            memmove(&data[usedPtr + mem_len], &data[usedPtr], no_bytes * sizeof(char));
-            usedPtr = usedPtr + mem_len;
-            return OK;
-        }
-        else if (rid.slotNo == (slotCnt - 1))
-        {
-            //delete the slot
-            slotCnt = slotCnt - 1;
-            usedPtr = usedPtr + mem_len;
-
-            //check if this current slot is empty if yes than delete it
-            while (slot[(slotCnt - 1)].offset == -1)
-            {
-
-                slotCnt = slotCnt - 1;
-            }
-
-            return OK;
-        }
-        else
-        {
-            return FAIL;
-        }
-        /*
-        if (slotCnt != 0)
-        {
-            //destination to copy
-            int dest = offset_memadd + (slot_number) * sizeof(slot_t);
-            //source to copy from
-            int source = dest - mem_len;
-            //number of bytes to be copied
-            int no_bytes = source - usedPtr;
-            //compact the memory
-            memmove(&data[usedPtr + mem_len], &data[usedPtr], no_bytes * sizeof(char));
-        }
-        */
-        //usedptr modify
-    }
-
+    /*
+    testdata:
+      slot0.offset 58
+      slot0.len = 2
+      slot1.offset = 56
+      slot1.len = 2
+      slot2.offset = 54
+      slot2.len = 2
+      
+    goal:
+      slot0.offset = -1
+      slot0.len = -1
+      slot1.offset = 58
+      slot1.len = 2
+      slot2.offset = 56
+      slot2.len = 2 
+      
+      increase the amount of free space by slot0.length (before getting rid of the value)
+      update usedPtr with the new value    
+  */
+    if ((rid.slotNo < 0) | (rid.slotNo >= slotCnt) | (rid.pageNo != curPage)) {
     return FAIL;
+  } 
+  int slotToBeDeleted = rid.slotNo;
+  int i;
+  // if the record being deleted corresponds to the last slot
+  // compact the slot
+  if(slotToBeDeleted == (slotCnt-1)) {
+    //printf("**\n compacting slots \n ** \n");
+    //## delete data
+    // increment free space
+    freeSpace = freeSpace + slot[slotToBeDeleted].length;
+    // reposition usedPtr
+    usedPtr = usedPtr + slot[slotToBeDeleted].length;
+    // delete slot
+    slot[slotToBeDeleted].length = (short) EMPTY_SLOT;
+    slot[slotToBeDeleted].offset = (short) INVALID_SLOT;
+    // compact slots
+    i = slotToBeDeleted;
+    // scan the slots from end to beginning and delete the ones marked as empty
+    while(slot[i].length == EMPTY_SLOT){
+      // there will be always one slot pre-alocated
+      if(i<1){
+        break;
+      }
+      // free space
+      freeSpace = freeSpace + sizeof(slot_t);
+      // decrease number of slots
+      slotCnt = slotCnt - 1;
+      i = i - 1;
+    }
+    return OK;
+  }
+
+  // else
+  // compact the data 
+
+  // calculate how much space is going to be needed
+  int lastSlotWithData;
+  // find the last slot of data.
+  // this for has to find lastSlotWith data
+  // and lastSlotWith data will be greater than slotToBeDeleted bc when deleting the last slot
+  // this function coalesce the records
+  for(i=0; i < slotCnt; i++) {
+    if(slot[i].length != EMPTY_SLOT){
+      lastSlotWithData = i; 
+    }
+  }
+  // find the length of the records that are going to be moved
+  // it is important to know that the slots grow from the beggining of the page to the end
+  // and the data grows from the end of the page to the beggining
+  int lengthRecordsToMove = slot[slotToBeDeleted].offset - slot[lastSlotWithData].offset;
+  // allocate new pointer with the size of the space
+  char * tmpData = (char *) malloc(lengthRecordsToMove);
+  // copy existing records to a tmp space
+  memcpy(tmpData, data + slot[lastSlotWithData].offset, lengthRecordsToMove); 
+  // copy the records from tmp space back to data to fill the hole left by the deleted record
+  memcpy(data + slot[lastSlotWithData].offset + slot[slotToBeDeleted].length, tmpData, lengthRecordsToMove); 
+  // decrement the amount of space freed
+  freeSpace = freeSpace + slot[slotToBeDeleted].length; 
+  // change the metadata of the copied records to reflect the new offset (offset - length of the deleted record)
+  for(i=slotToBeDeleted+1; i < slotCnt; i++){
+    if(slot[i].length != EMPTY_SLOT){
+      slot[i].offset = (short) (slot[i].offset + slot[slotToBeDeleted].length);
+    }
+  }
+  
+  // set usedPtr correctly
+  usedPtr = usedPtr + slot[slotToBeDeleted].length; 
+
+  // change the metadata of the deleted record -- length = -1 and offset = -1
+  // TL;DR set the deleted slot to empty
+  slot[slotToBeDeleted].length = (short) EMPTY_SLOT;
+  slot[slotToBeDeleted].offset = (short) INVALID_SLOT;
+ 
+  return OK;
 }
 
 // **********************************************************
