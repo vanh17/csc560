@@ -19,7 +19,7 @@ void HFPage::init(PageId pageNo)
     curPage = pageNo;
     // usedPtr is the pointer to the first used byte in data
     // data grows from end to beginning
-    usedPtr = 1000;
+    usedPtr = MAX_SPACE;
     // slotCnt is the the number of slots in use
     slotCnt = 0;
     // set the first slot to default values
