@@ -13,20 +13,20 @@
 void HFPage::init(PageId pageNo)
 {
   // initiallize prev and next page with the constant recommended in the project description 
-    prevPage = INVALID_PAGE;
-    nextPage = INVALID_PAGE;
+    prevPage = -1;
+    nextPage = -1;
     // set current page to pageNo 
     curPage = pageNo;
     // usedPtr is the pointer to the first used byte in data
     // data grows from end to beginning
     usedPtr = MAX_SPACE;
     // slotCnt is the the number of slots in use
-    slotCnt = 1;
+    slotCnt = 0;
     // set the first slot to default values
-    // length is -1 bc there are no values stored
-    slot[0].length = EMPTY_SLOT;
+    // length is 0 bc there are no values stored
+    slot[1].length = 0;
     // set the offset to -1 to indicate that the slot is empty 
-    slot[0].offset = INVALID_SLOT;
+    slot[1].offset = 1002;
     
     // freeSpace on the data array is goint to be
     // MAX_SPACE - DP_FIXED
@@ -36,7 +36,7 @@ void HFPage::init(PageId pageNo)
     // usedPtr = 1 byte
     // freeSpace = 1 byte
     // type = 1 byte -- an arbitrary value used by subclasses as needed
-    freeSpace = MAX_SPACE - DPFIXED;
+    freeSpace = DPFIXED + sizeof(slot_t) * (1 - slotCnt);
 }
 
 // **********************************************************
