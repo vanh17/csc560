@@ -283,7 +283,7 @@ Status HFPage::getRecord(RID rid, char* recPtr, int& recLen)
 Status HFPage::returnRecord(RID rid, char*& recPtr, int& recLen)
 {
     // fill in the body
-    if ((rid.slotNo < 0) | (rid.slotNo >= slotCnt) | (rid.pageNo != curPage)) {
+    if ((rid.slotNo < 0) | (rid.slotNo > slotCnt) | (rid.pageNo != curPage)) {
     cout << "##returnRecord() -> slot number " << rid.slotNo << " pageId " << rid.pageNo << endl; 
     return FAIL;
     }
