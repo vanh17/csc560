@@ -301,17 +301,15 @@ Status HFPage::returnRecord(RID rid, char*& recPtr, int& recLen)
 int HFPage::available_space(void)
 {
     // fill in the body
-    free = usedPtr + sizeof(slot_t) * (1 - slotCnt);
-    for (int i = 0; i < slotCnt; i++)
-    {
+    // free space is equal to what we have left minus the less than one slotCnt with the size of each slot
+    free = usedPtr - (slotCnt - 1) * sizeof(slot_t);
+    for (int i = 0; i < slotCnt; i++) {
         if (slot[i].offset == -1)
         {
-            //if there is empty space than
-            return freeSpace;
+            return free;
         }
     }
-
-    return (freeSpace - (sizeof(slot_t)));
+    return free - sizeof(slot_t);
 }
 
 // **********************************************************
