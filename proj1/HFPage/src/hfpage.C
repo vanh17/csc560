@@ -320,8 +320,8 @@ int HFPage::available_space(void)
 bool HFPage::empty(void)
 {
     // fill in the body
-    int i = 0
-    bool result = true
+    int i = 0;
+    bool result = true;
     while (i <= slotCnt - 1) {
         if (slot[i].offset != -1)
             result = false;
