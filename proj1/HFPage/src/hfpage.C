@@ -192,7 +192,7 @@ Status HFPage::deleteRecord(const RID& rid)
                 }
             }
             //created additonal variable to specify where we should to return the deleted record
-            int final_address = additional_memmory + (slotID) * sizeof(slot_t);
+            int final_address = additional_memory + (slotID) * sizeof(slot_t);
             //address where the deleteing file will be copy from
             int origin = final_address - length;
             //size of the file to be copied
