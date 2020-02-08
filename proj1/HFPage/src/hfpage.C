@@ -12,16 +12,31 @@
 
 void HFPage::init(PageId pageNo)
 {
-  // fill in the body
-  prevPage = -1;
-  nextPage = -1;
-  curPage = pageNo;
-  usedPtr = 1000;
-  slotCnt = 0;
-  slot[1].length = 0;
-  slot[1].offset = 1002;
-      
-  freeSpace = DPFIXED + sizeof(slot_t) * (1 - slotCnt);
+  // initiallize prev and next page with the constant recommended in the project description 
+    prevPage = INVALID_PAGE;
+    nextPage = INVALID_PAGE;
+    // set current page to pageNo 
+    curPage = pageNo;
+    // usedPtr is the pointer to the first used byte in data
+    // data grows from end to beginning
+    usedPtr = MAX_SPACE;
+    // slotCnt is the the number of slots in use
+    slotCnt = 1;
+    // set the first slot to default values
+    // length is -1 bc there are no values stored
+    slot[0].length = EMPTY_SLOT;
+    // set the offset to -1 to indicate that the slot is empty 
+    slot[0].offset = INVALID_SLOT;
+    
+    // freeSpace on the data array is goint to be
+    // MAX_SPACE - DP_FIXED
+    // MAX_SPACE = 1024 -- default size of a page
+    // DPFIXED = size of one slot + size of page_id + 4 bytes:
+    // slotCnt = 1 byte
+    // usedPtr = 1 byte
+    // freeSpace = 1 byte
+    // type = 1 byte -- an arbitrary value used by subclasses as needed
+    freeSpace = MAX_SPACE - DPFIXED;
 }
 
 // **********************************************************
@@ -286,7 +301,7 @@ Status HFPage::returnRecord(RID rid, char*& recPtr, int& recLen)
 int HFPage::available_space(void)
 {
     // fill in the body
-    freeSpace = usedPtr + sizeof(slot_t) * (1 - slotCnt);
+    free = usedPtr + sizeof(slot_t) * (1 - slotCnt);
     for (int i = 0; i < slotCnt; i++)
     {
         if (slot[i].offset == -1)
@@ -305,12 +320,13 @@ int HFPage::available_space(void)
 bool HFPage::empty(void)
 {
     // fill in the body
-    for (int i = 0; i < slotCnt; i++)
-    {
+    int i = 0
+    bool result = true
+    while (i <= slotCnt - 1) {
         if (slot[i].offset != -1)
-            return false;
+            result = false;
     }
-    return true;
+    return result;
 }
 
 
