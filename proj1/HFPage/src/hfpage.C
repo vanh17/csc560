@@ -263,15 +263,27 @@ Status HFPage::nextRecord (RID curRid, RID& nextRid)
 Status HFPage::getRecord(RID rid, char* recPtr, int& recLen)
 {
     // fill in the body
-    if ((rid.slotNo < 0) | (rid.slotNo > slotCnt) | (rid.pageNo != curPage))
-    {
+    // if ((rid.slotNo < 0) | (rid.slotNo > slotCnt) | (rid.pageNo != curPage))
+    // {
+    //     return FAIL;
+    // }
+    // recLen = slot[rid.slotNo].length;
+    // memcpy(&recPtr, &data[usedPtr - recLen], recLen * sizeof(char));
+    // //  int offset_ptr=(slot[rid.slotNo].offset + sizeof(slot_t)*rid.slotNo);
+    // //  *recPtr=data[offset_ptr-slot[rid.slotNo].length];
+    // //  *recPtr = data[(slot[rid.slotNo].offset + sizeof(slot_t)*rid.slotNo)];
+    // return OK;
+    // checks
+    // if slotNo is out of bondaries
+    // trying to get a record from another page
+    if ((rid.slotNo < 0) | (rid.slotNo >= slotCnt) | (rid.pageNo != curPage)) {
         return FAIL;
-    }
+    } 
+    // write reclen (passed by reference)j
     recLen = slot[rid.slotNo].length;
-    memcpy(&recPtr, &data[usedPtr - recLen], recLen * sizeof(char));
-    //  int offset_ptr=(slot[rid.slotNo].offset + sizeof(slot_t)*rid.slotNo);
-    //  *recPtr=data[offset_ptr-slot[rid.slotNo].length];
-    //  *recPtr = data[(slot[rid.slotNo].offset + sizeof(slot_t)*rid.slotNo)];
+    // this is safe bc conditions were checked before
+    // copy data[offset] -> recPtr of size recLen
+    memcpy(recPtr, data + slot[rid.slotNo].offset, recLen);
     return OK;
 }
 
@@ -283,10 +295,14 @@ Status HFPage::getRecord(RID rid, char* recPtr, int& recLen)
 Status HFPage::returnRecord(RID rid, char*& recPtr, int& recLen)
 {
     // fill in the body
-    if ((rid.slotNo < 0) | (rid.slotNo > slotCnt) | (rid.pageNo != curPage)) {
+    // it should FAIL if the slotNo of the current rid is bigger than the slotCnt - something not mismatched
+    // if slotNo of that rid is not a valid one 
+    // if the PageNo is not at the currPage then we cannot retrieive them at all
+    if ((rid.slotNo > slotCnt) | (rid.slotNo < 0) | (rid.pageNo != curPage)) {
         return FAIL;
     }
     recLen = slot[rid.slotNo].length;
+    // else just simply return the refernce to the update data slot for returning the Recods
     recPtr = &data[slot[rid.slotNo].offset + sizeof(slot_t) * rid.slotNo - recLen];
     return OK;
 }
