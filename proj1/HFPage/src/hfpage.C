@@ -96,10 +96,10 @@ Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
     // set to true
     bool available_slot = false;
     // check if there is enough space store the record
-    if(spaceRequired > freeSpace){
+    if(reclen > available_space()){
         return DONE;
     }
-    if (available_space() >= (recLen)) {
+    else {
         // copy recPtr to data[offSet]
         memcpy(&data[usedPtr - recLen], recPtr, recLen * sizeof(char));
 
@@ -139,7 +139,6 @@ Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
         usedPtr = usedPtr - recLen;
         return OK;
     }
-    // return DONE;
 }
 
 // **********************************************************
