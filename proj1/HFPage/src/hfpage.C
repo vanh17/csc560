@@ -96,7 +96,7 @@ Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
     // set to true
     bool available_slot = false;
     // check if there is enough space store the record
-    if(reclen > available_space()){
+    if(recLen > available_space()){
         return DONE;
     }
     else {
