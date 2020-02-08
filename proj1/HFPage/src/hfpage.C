@@ -287,7 +287,7 @@ Status HFPage::returnRecord(RID rid, char*& recPtr, int& recLen)
         return FAIL;
     }
     recLen = slot[rid.slotNo].length;
-    recPtr = data + slot[rid.slotNo].offset;
+    recPtr = &data[slot[rid.slotNo].offset + sizeof(slot_t) * rid.slotNo - recLen];
     return OK;
 }
 
