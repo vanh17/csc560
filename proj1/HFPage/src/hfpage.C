@@ -241,19 +241,19 @@ Status HFPage::firstRecord(RID& firstRid)
 Status HFPage::nextRecord (RID curRid, RID& nextRid)
 {
     // fill in the body
-
-    if ((curRid.slotNo < 0) | (curRid.slotNo > slotCnt) | (curRid.pageNo != curPage))
-    {
-        return FAIL;
+    // sanity check
+    if((curRid.slotNo < 0) | (curRid.pageNo != curPage) | empty() ) {
+          return FAIL;
     }
-    for (int i = curRid.slotNo + 1; i < slotCnt; i++)
-    {
-        if (slot[i].offset != -1)
-        {
-            nextRid.slotNo = i;
-            nextRid.pageNo = curPage;
+
+    int i;
+    // note that we start from the next record after the current one
+    for(i=curRid.slotNo + 1; i < slotCnt; i++){
+        if(slot[i].length != EMPTY_SLOT){
+            nextRid.slotNo = (short) i;
+            nextRid.pageNo = (short) curPage;
             return OK;
-        }
+        } 
     }
     return DONE;
 }
@@ -263,19 +263,10 @@ Status HFPage::nextRecord (RID curRid, RID& nextRid)
 Status HFPage::getRecord(RID rid, char* recPtr, int& recLen)
 {
     // fill in the body
-    // if ((rid.slotNo < 0) | (rid.slotNo > slotCnt) | (rid.pageNo != curPage))
-    // {
-    //     return FAIL;
-    // }
-    // recLen = slot[rid.slotNo].length;
-    // memcpy(&recPtr, &data[usedPtr - recLen], recLen * sizeof(char));
-    // //  int offset_ptr=(slot[rid.slotNo].offset + sizeof(slot_t)*rid.slotNo);
-    // //  *recPtr=data[offset_ptr-slot[rid.slotNo].length];
-    // //  *recPtr = data[(slot[rid.slotNo].offset + sizeof(slot_t)*rid.slotNo)];
-    // return OK;
-    // checks
-    // if slotNo is out of bondaries
-    // trying to get a record from another page
+    /* checks
+       if slotNo is out of bondaries
+       trying to get a record from another page
+    */
     if ((rid.slotNo < 0) | (rid.slotNo >= slotCnt) | (rid.pageNo != curPage)) {
         return FAIL;
     } 
