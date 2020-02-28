@@ -5,24 +5,24 @@
 
 static const char *hfErrMsgs[] = {
     "bad record id",
-    "bad record pointer", 
+    "bad record pointer",
     "end of file encountered",
     "invalid update operation",
-    "no space on page for record", 
+    "no space on page for record",
     "page is empty - no records",
     "last record on page",
     "invalid slot number",
     "file has already been deleted",
 };
 
-static error_string_table hfTable( HEAPFILE, hfErrMsgs );
+static error_string_table hfTable(HEAPFILE, hfErrMsgs);
 
 // ********************************************************
 // Constructor
-HeapFile::HeapFile( const char *name, Status& returnStatus )
+HeapFile::HeapFile(const char *name, Status &returnStatus)
 {
-   
-    // fill in the body
+    // MINIBASE_DB->dump_space_map();
+
     Status state;
     // check if the file already exists else add a new page
     if (MINIBASE_DB->get_file_entry(name, firstDirPageId) == OK)
@@ -42,27 +42,25 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
         hfp.init(firstDirPageId);
         memcpy(&(*firstPage), &hfp, 1024);
         state = MINIBASE_BM->unpinPage(firstDirPageId, TRUE, fileName);
-    }  
+    }
 }
 
 // ******************
 // Destructor
 HeapFile::~HeapFile()
 {
-   // fill in the body
-   Status state;
+    // fill in the body
+    Status state;
     state = MINIBASE_BM->flushAllPages();
-    if (fileName == NULL) {
-      deleteFile();
-    }
+    if (fileName == NULL)
+        deleteFile();
 }
 
 // *************************************
 // Return number of records in heap file
 int HeapFile::getRecCnt()
 {
-   // fill in the body
-   struct DataPageInfo *temp_DataPageInfo = new struct DataPageInfo;
+    struct DataPageInfo *temp_DataPageInfo = new struct DataPageInfo;
     Page *t_page;                    //, *t1_page;
     PageId curr_pageid, next_pageid; // allocDirPageId,
     int record_count, t_recLen;
@@ -97,13 +95,14 @@ int HeapFile::getRecCnt()
         curr_pageid = next_pageid;
     }
     return -1;
+    //return OK;
 }
 
 // *****************************
 // Insert a record into the file
-Status HeapFile::insertRecord(char *recPtr, int recLen, RID& outRid)
+Status HeapFile::insertRecord(char *recPtr, int recLen, RID &outRid)
 {
-    // fill in the body
+    // cout<<"In insert record";
     struct DataPageInfo Dummy = {0, 0, 0};
 
     struct DataPageInfo *temp_DataPageInfo; // = new struct DataPageInfo;
@@ -176,15 +175,13 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID& outRid)
     state = allocateDirSpace(temp_DataPageInfo, allocDirPageId, allocDataPageRid);
     // delete temp_DataPageInfo;
     return OK;
-} 
-
+}
 
 // ***********************
 // delete record from file
-Status HeapFile::deleteRecord (const RID& rid)
+Status HeapFile::deleteRecord(const RID &rid)
 {
-  // fill in the body
-  Status state;
+    Status state;
     char *t_recPtr;
     int t_len;
     PageId DirPageId, DataPageId;
@@ -209,10 +206,10 @@ Status HeapFile::deleteRecord (const RID& rid)
 
 // *******************************************
 // updates the specified record in the heapfile.
-Status HeapFile::updateRecord (const RID& rid, char *recPtr, int recLen)
+Status HeapFile::updateRecord(const RID &rid, char *recPtr, int recLen)
 {
-  // fill in the body
-  Status state;
+    // fill in the body
+    Status state;
     char *t_recPtr;
     int t_len;
     PageId DirPageId, DataPageId;
@@ -244,10 +241,10 @@ Status HeapFile::updateRecord (const RID& rid, char *recPtr, int recLen)
 
 // ***************************************************
 // read record from file, returning pointer and length
-Status HeapFile::getRecord (const RID& rid, char *recPtr, int& recLen)
+Status HeapFile::getRecord(const RID &rid, char *recPtr, int &recLen)
 {
-  // fill in the body 
-  Status state;
+    // fill in the body
+    Status state;
     char *t_recPtr;
     int t_len;
     PageId DirPageId, DataPageId;
@@ -266,15 +263,16 @@ Status HeapFile::getRecord (const RID& rid, char *recPtr, int& recLen)
 
 // **************************
 // initiate a sequential scan
-Scan *HeapFile::openScan(Status& status)
+Scan *HeapFile::openScan(Status &status)
 {
-  // fill in the body 
-  Scan *t_scan = new Scan(this, status);
+    // fill in the body
+    Scan *t_scan = new Scan(this, status);
     return t_scan;
+    //return NULL;
 }
 
 // ****************************************************
-// Wipes out the heapfile from the database permanently. 
+// Wipes out the heapfile from the database permanently.
 Status HeapFile::deleteFile()
 {
     // fill in the body
@@ -347,6 +345,7 @@ Status HeapFile::deleteFile()
 Status HeapFile::newDataPage(DataPageInfo *dpinfop)
 {
     // fill in the body
+    //look into directory and see if any empty page if yes than bring them on
     Page *newpage;
     int t_pageid;
     Status state;
@@ -365,21 +364,19 @@ Status HeapFile::newDataPage(DataPageInfo *dpinfop)
     }
     return OK;
 }
-
 // ************************************************************************
 // Internal HeapFile function (used in getRecord and updateRecord): returns
 // pinned directory page and pinned data page of the specified user record
 // (rid).
 //
-// If the user record cannot be found, rpdirpage and rpdatapage are 
+// If the user record cannot be found, rpdirpage and rpdatapage are
 // returned as NULL pointers.
 //
-Status HeapFile::findDataPage(const RID& rid,
-                    PageId &rpDirPageId, HFPage *&rpdirpage,
-                    PageId &rpDataPageId,HFPage *&rpdatapage,
-                    RID &rpDataPageRid)
+Status HeapFile::findDataPage(const RID &rid,
+                              PageId &rpDirPageId, HFPage *&rpdirpage,
+                              PageId &rpDataPageId, HFPage *&rpdatapage,
+                              RID &rpDataPageRid)
 {
-    // fill in the body
     Page *t_page, *t1_page;
     HFPage hfp, t_hfp;
     struct RID t_first, temp_data;
@@ -456,13 +453,12 @@ Status HeapFile::findDataPage(const RID& rid,
 }
 
 // *********************************************************************
-// Allocate directory space for a heap file page 
+// Allocate directory space for a heap file page
 
-Status allocateDirSpace(struct DataPageInfo * dpinfop,
-                            PageId &allocDirPageId,
-                            RID &allocDataPageRid)
+Status HeapFile::allocateDirSpace(struct DataPageInfo *dpinfop,
+                                  PageId &allocDirPageId,
+                                  RID &allocDataPageRid)
 {
-    // fill in the body
     Page *t_page, *t1_page;
     HFPage hfp;
     struct RID t_first, cur_RID;

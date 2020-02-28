@@ -15,11 +15,9 @@
 // *******************************************
 // The constructor pins the first page in the file
 // and initializes its private data members from the private data members from hf
-Scan::Scan (HeapFile *hf, Status& status)
+Scan::Scan(HeapFile *hf, Status &status)
 {
-  // put your code here
   status = init(hf);
-  
 }
 
 // *******************************************
@@ -28,14 +26,17 @@ Scan::~Scan()
 {
   // put your code here
   Status state;
+
+  //cout<<numMINIBASE_BM->getNumBuffers();
+  //state = MINIBASE_BM->unpinPage(dataPageId, FALSE, _hf->fileName);
+  //state = MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
 }
 
 // *******************************************
 // Retrieve the next record in a sequential scan.
 // Also returns the RID of the retrieved record.
-Status Scan::getNext(RID& rid, char *recPtr, int& recLen)
+Status Scan::getNext(RID &rid, char *recPtr, int &recLen)
 {
-  // put your code here
   Status state;
   Page *t_page;
   char *t_recPtr;
@@ -85,7 +86,8 @@ Status Scan::getNext(RID& rid, char *recPtr, int& recLen)
 // Do all the constructor work.
 Status Scan::init(HeapFile *hf)
 {
-  // put your code here
+  // Initializing all the values
+
   Page *t_page;
   Status state;
   _hf = hf;
@@ -109,7 +111,6 @@ Status Scan::init(HeapFile *hf)
 // Reset everything and unpin all pages.
 Status Scan::reset()
 {
-  // put your code here
   return OK;
 }
 
@@ -117,7 +118,7 @@ Status Scan::reset()
 // Copy data about first page in the file.
 Status Scan::firstDataPage()
 {
-  // put your code here
+  // scan for the first page and pin it
   Status state;
   struct DataPageInfo *temp;
   char *t_recPtr;
@@ -138,8 +139,10 @@ Status Scan::firstDataPage()
 
 // *******************************************
 // Retrieve the next data page.
-Status Scan::nextDataPage(){
-  // put your code here
+Status Scan::nextDataPage()
+{
+  //scan for the next page and pin it
+
   Status state;
   struct DataPageInfo *temp;
   char *t_recPtr;
@@ -160,8 +163,8 @@ Status Scan::nextDataPage(){
 
 // *******************************************
 // Retrieve the next directory page.
-Status Scan::nextDirPage() {
-  // put your code here
+Status Scan::nextDirPage()
+{
   PageId next_id;
   Status state;
   Page *t_page;
