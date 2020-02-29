@@ -11,18 +11,30 @@
 
 void HFPage::init(PageId pageNo)
 {
-    // fill in the body
-    
+    // set the first slot to default values
+    // length is 0 bc there are no values stored
+    slot[1].length = 0;
+    // set the offset to -1 to indicate that the slot is empty 
+    slot[1].offset = 1002;
+    // set current page to pageNo 
+    curPage = pageNo;
+    // usedPtr is the pointer to the first used byte in data
+    // data grows from end to beginning
+    usedPtr = 1000;
+    // initiallize prev and next page with the constant recommended in the project description 
     prevPage = -1;
     nextPage = -1;
-    curPage = pageNo;
-    usedPtr = 1000;
+    // slotCnt is the the number of slots in use
     slotCnt = 0;
-    slot[1].length = 0;
-    slot[1].offset = 1002;
     
-
-    
+    // freeSpace on the data array is goint to be
+    // MAX_SPACE - DP_FIXED
+    // MAX_SPACE = 1024 -- default size of a page
+    // DPFIXED = size of one slot + size of page_id + 4 bytes:
+    // slotCnt = 1 byte
+    // usedPtr = 1 byte
+    // freeSpace = 1 byte
+    // type = 1 byte -- an arbitrary value used by subclasses as needed
     freeSpace = DPFIXED + sizeof(slot_t) * (1 - slotCnt);
 }
 
@@ -80,48 +92,54 @@ void HFPage::setNextPage(PageId pageNo)
 Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid)
 {
     // fill in the body
-    int space_available = available_space();
-    bool slot_found = false;
+    // initiall set no slot to free, if later we can find a free slot this
+    // set to true
+    bool available_slot = false;
+    // check if there is enough space store the record
+    if(recLen > available_space()){
+        return DONE;
+    }
     if (space_available >= (recLen))
     {
-        //place the data into the usedPtr
-        //data[usedPtr] = *recPtr;
-        //data[usedPtr-recLen]=*recPtr;
+        /// copy recPtr to data[offSet]
         memcpy(&data[usedPtr - recLen], recPtr, recLen * sizeof(char));
 
-        //place the page No in the rid
+        // rid was passed by reference
         rid.pageNo = curPage;
-        //Check if any slot has empty offset indicating there is no record
-        for (int i = 0; i < slotCnt; i++)
-        {
+        int i = 0
+        while (i <= slotCnt - 1){
             //find an empty slot with -1 offset
             if (slot[i].offset == -1)
             {
-                //empty slot found... place the offset into this position that is usedPtrt -(bytes taken from usedPtr by the slots)
-                slot[i].offset = usedPtr - (sizeof(slot_t)) * i;
+                // calculate where to put the record
+                // Remark: we have to know that it populates starting from the end
                 slot[i].length = recLen;
-                //slot founc
-                slot_found = true;
+                slot[i].offset = usedPtr - (sizeof(slot_t)) * i;
+                
                 //insert the slot No in the rid
                 rid.slotNo = i;
+                //there is place to store what we need
+                available_slot = true;
             }
+            i++
         }
-        if (slot_found == false)
+        if (available_slot == false)
         {
-            //we need a new slot
-            //enter the new slot number into the rid
+            // fill rid and slot info
+            // rid was passed by reference 
             rid.slotNo = slotCnt;
+            // slotCnt is equivalent to currentSlot + 1
+            // slot info
+            // using slotId here is safe bc in the worst case we already created
+            // another slot previously
             slot[slotCnt].offset = usedPtr - sizeof(slot_t) * slotCnt;
             slot[slotCnt].length = recLen;
+            // increment the number of slots
             slotCnt++;
         }
-
-        //decrease the usedptr pointer value
         usedPtr = usedPtr - recLen;
         return OK;
     }
-    else
-        return DONE;
 }
 
 // **********************************************************
