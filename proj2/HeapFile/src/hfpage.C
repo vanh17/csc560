@@ -220,10 +220,9 @@ Status HFPage::deleteRecord(const RID &rid)
 // returns RID of first record on page
 Status HFPage::firstRecord(RID &firstRid) {
     // check if the firstRecod is at our current page
-    if (firstRid.pageNo != curPage) {
+    if ((firstRid.pageNo != curPage)) {
         return FAIL;
     }
-    else {
         int i;
         while (i <= slotCnt - 1){
             if(slot[i].length != EMPTY_SLOT){
@@ -235,7 +234,6 @@ Status HFPage::firstRecord(RID &firstRid) {
             }
             i++;
         }
-    }
     return DONE;
 }
 
