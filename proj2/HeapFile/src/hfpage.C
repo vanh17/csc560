@@ -265,8 +265,7 @@ Status HFPage::nextRecord(RID curRid, RID &nextRid)
 
 // **********************************************************
 // returns length and copies out record with RID rid
-Status HFPage::getRecord(RID rid, char *recPtr, int &recLen)
-{
+Status HFPage::getRecord(RID rid, char *recPtr, int &recLen) {
     // fill in the body
     /* checks
        if slotNo is out of bondaries
@@ -288,51 +287,45 @@ Status HFPage::getRecord(RID rid, char *recPtr, int &recLen)
 // between this and getRecord is that getRecord copies out the record
 // into recPtr, while this function returns a pointer to the record
 // in recPtr.
-Status HFPage::returnRecord(RID rid, char *&recPtr, int &recLen)
-{
+Status HFPage::returnRecord(RID rid, char *&recPtr, int &recLen) {
     // fill in the body
-       if ((rid.slotNo < 0) | (rid.slotNo > slotCnt) | (rid.pageNo != curPage))
-    {
+    // it should FAIL if the slotNo of the current rid is bigger than the slotCnt - something not mismatched
+    // if slotNo of that rid is not a valid one 
+    // if the PageNo is not at the currPage then we cannot retrieive them at all
+    if ((rid.slotNo > slotCnt) | (rid.slotNo < 0) | (rid.pageNo != curPage)) {
         return FAIL;
     }
-
     recLen = slot[rid.slotNo].length;
+    // else just simply return the refernce to the update data slot for returning the Recods
     recPtr = &data[slot[rid.slotNo].offset + sizeof(slot_t) * rid.slotNo - recLen];
-    //   memcpy( recPtr,&data[usedPtr-recLen], slot[rid.slotNo].length * sizeof(char));
-    // recPtr = &data[(slot[rid.slotNo].offset + sizeof(slot_t)*rid.slotNo)];
-
     return OK;
 }
 
 // **********************************************************
 // Returns the amount of available space on the heap file page
-int HFPage::available_space(void)
-{
-    // fill in the body
-    //check the Number of empty slots
-    freeSpace = usedPtr + sizeof(slot_t) * (1 - slotCnt);
-    for (int i = 0; i < slotCnt; i++)
-    {
+int HFPage::available_space(void) {
+    // free space is equal to what we have left minus the less than one slotCnt with the size of each slot
+    freeSpace = usedPtr - (slotCnt - 1) * (sizeof(slot_t));
+    for (int i = 0; i < slotCnt; i++) {
         if (slot[i].offset == -1)
         {
-            //if there is empty space than
             return freeSpace;
         }
     }
-
-    return (freeSpace - (sizeof(slot_t)));
+    return freeSpace - sizeof(slot_t);
 }
 
 // **********************************************************
 // Returns 1 if the HFPage is empty, and 0 otherwise.
 // It scans the slot directory looking for a non-empty slot.
-bool HFPage::empty(void)
-{
-    // fill in the body
-        for (int i = 0; i < slotCnt; i++)
-    {
-        if (slot[i].offset != -1)
-            return false;
+bool HFPage::empty(void) {
+    int i = 0;
+    bool result = true;
+    while (i <= slotCnt - 1) {
+        if (slot[i].offset != -1) {
+            result = false;
+        }
+        i++;
     }
-    return true;
+    return result;
 }
