@@ -236,7 +236,7 @@ Status HFPage::firstRecord(RID &firstRid) {
             i++;
         }
     }      
-    return status;
+    return DONE;
 }
 
 // **********************************************************
