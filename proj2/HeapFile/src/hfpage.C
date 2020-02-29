@@ -9,8 +9,7 @@
 // **********************************************************
 // page class constructor
 
-void HFPage::init(PageId pageNo)
-{
+void HFPage::init(PageId pageNo) {
     // set the first slot to default values
     // length is 0 bc there are no values stored
     slot[1].length = 0;
@@ -40,8 +39,7 @@ void HFPage::init(PageId pageNo)
 
 // **********************************************************
 // dump page utlity
-void HFPage::dumpPage()
-{
+void HFPage::dumpPage() {
     int i;
 
     cout << "dumpPage, this: " << this << endl;
@@ -99,14 +97,12 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid)
     if(recLen > available_space()){
         return DONE;
     }
-    if (space_available >= (recLen))
-    {
         /// copy recPtr to data[offSet]
         memcpy(&data[usedPtr - recLen], recPtr, recLen * sizeof(char));
 
         // rid was passed by reference
         rid.pageNo = curPage;
-        int i = 0
+        int i = 0;
         while (i <= slotCnt - 1){
             //find an empty slot with -1 offset
             if (slot[i].offset == -1)
@@ -139,7 +135,6 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid)
         }
         usedPtr = usedPtr - recLen;
         return OK;
-    }
 }
 
 // **********************************************************
