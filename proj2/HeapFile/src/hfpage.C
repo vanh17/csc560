@@ -218,8 +218,7 @@ Status HFPage::deleteRecord(const RID &rid)
 
 // **********************************************************
 // returns RID of first record on page
-Status HFPage::firstRecord(RID &firstRid)
-{
+Status HFPage::firstRecord(RID &firstRid) {
     // check if the firstRecod is at our current page
     status = DONE;
     if (firstRid.pageNo != curPage) {
@@ -233,6 +232,7 @@ Status HFPage::firstRecord(RID &firstRid)
                 firstRid.pageNo = curPage;
                 status =  OK;
             }
+            i++;
         }
     }
     return status;
