@@ -246,7 +246,7 @@ Status HFPage::nextRecord(RID curRid, RID &nextRid)
 {
     // fill in the body
     // sanity check
-    if(curRid.slotNo < 0 | curRid.pageNo != curPage | curRid.slotNo > slotCnt) {
+    if((curRid.slotNo < 0) | (curRid.pageNo != curPage) | (curRid.slotNo > slotCnt)) {
           return FAIL;
     }
 
