@@ -143,73 +143,77 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid)
 // Use memmove() rather than memcpy() as space may overlap.
 Status HFPage::deleteRecord(const RID &rid)
 {
-    // fill in the body
-    if (rid.pageNo == curPage && rid.slotNo >= 0)
-    {
-        int offset_memadd = slot[rid.slotNo].offset;
-        int mem_len = slot[rid.slotNo].length;
-        int slot_number = rid.slotNo;
-        if (rid.slotNo < (slotCnt - 1))
-        {
+    /*
+    testdata:
+      slot0.offset 58
+      slot0.len = 2
+      slot1.offset = 56
+      slot1.len = 2
+      slot2.offset = 54
+      slot2.len = 2
+      
+    goal:
+      slot0.offset = -1
+      slot0.len = -1
+      slot1.offset = 58
+      slot1.len = 2
+      slot2.offset = 56
+      slot2.len = 2 
+      
+      increase the amount of free space by slot0.length (before getting rid of the value)
+      update usedPtr with the new value    
+    */
+        // if all of these conditional fail simply return FAIL nothing to check here
+    if ((rid.slotNo < 0) | (rid.pageNo != curPage)) {
+        return FAIL;
+    } 
+        int length = slot[rid.slotNo].length;
+        // if the record being deleted corresponds to the last slot
+        // compact the slot
+        int slotID = rid.slotNo;
+        // created additional variable to hold the current offset before deleting the records
+        int additional_memory = slot[rid.slotNo].offset;
+        if (rid.slotNo < (slotCnt - 1)) {
 
             slot[rid.slotNo].offset = -1;
             slot[rid.slotNo].length = 0;
-            //delete the entry in the slot and the memory
-            //update the slot arrays with the new address
+            /// if the record being deleted corresponds to the last slot
+            // compact the slot
             for (int i = rid.slotNo + 1; i < (slotCnt); i++)
             {
                 if (slot[i].offset != -1)
                 {
-                    slot[i].offset = slot[i].offset + mem_len;
+                    slot[i].offset = slot[i].offset + length;
                 }
             }
-            //destination to copy
-            int dest = offset_memadd + (slot_number) * sizeof(slot_t);
-            //source to copy from
-            int source = dest - mem_len;
-            //number of bytes to be copied
-            int no_bytes = source - usedPtr;
-            //compact the memory
-            memmove(&data[usedPtr + mem_len], &data[usedPtr], no_bytes * sizeof(char));
-            usedPtr = usedPtr + mem_len;
+            //created additonal variable to specify where we should to return the deleted record
+            int final_address = additional_memory + (slotID) * sizeof(slot_t);
+            //address where the deleteing file will be copy from
+            int origin = final_address - length;
+            //size of the file to be copied
+            int size = origin - usedPtr;
+            // free space
+            memmove(&data[usedPtr + length], &data[usedPtr], size * sizeof(char));
+            // reposition usedPtr
+            usedPtr = usedPtr + length;
             return OK;
         }
-        else if (rid.slotNo == (slotCnt - 1))
-        {
+        else if (rid.slotNo == (slotCnt - 1)) {
             //delete the slot
             slotCnt = slotCnt - 1;
-            usedPtr = usedPtr + mem_len;
+            usedPtr = usedPtr + length;
 
-            //check if this current slot is empty if yes than delete it
-            while (slot[(slotCnt - 1)].offset == -1)
+            // scan the slots from end to beginning and delete the ones marked as empty
+            while (slot[(slotCnt - 1)].offset == EMPTY_SLOT)
             {
-
                 slotCnt = slotCnt - 1;
             }
 
             return OK;
         }
-        else
-        {
+        else {
             return FAIL;
         }
-        /*
-        if (slotCnt != 0)
-        {
-            //destination to copy
-            int dest = offset_memadd + (slot_number) * sizeof(slot_t);
-            //source to copy from
-            int source = dest - mem_len;
-            //number of bytes to be copied
-            int no_bytes = source - usedPtr;
-            //compact the memory
-            memmove(&data[usedPtr + mem_len], &data[usedPtr], no_bytes * sizeof(char));
-        }
-        */
-        //usedptr modify
-    }
-
-    return FAIL;
 }
 
 // **********************************************************
