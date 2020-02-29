@@ -258,7 +258,7 @@ Status HFPage::nextRecord(RID curRid, RID &nextRid)
             nextRid.pageNo = (short) curPage;
             return OK;
         } 
-        i++
+        i++;
     }
     return DONE;
 }
