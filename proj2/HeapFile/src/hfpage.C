@@ -117,7 +117,7 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid)
                 //there is place to store what we need
                 available_slot = true;
             }
-            i++
+            i++;
         }
         if (available_slot == false)
         {
