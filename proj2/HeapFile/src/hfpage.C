@@ -253,7 +253,7 @@ Status HFPage::nextRecord(RID curRid, RID &nextRid)
     int i = curRid.slotNo + 1;
     // note that we start from the next record after the current one
     while (i <= slotCnt - 1) {
-        if(slot[i].length != -1){
+        if(slot[i].offset != -1){
             nextRid.slotNo = i;
             nextRid.pageNo = curPage;
             return OK;
@@ -268,15 +268,18 @@ Status HFPage::nextRecord(RID curRid, RID &nextRid)
 Status HFPage::getRecord(RID rid, char *recPtr, int &recLen)
 {
     // fill in the body
-       if ((rid.slotNo < 0) | (rid.slotNo > slotCnt) | (rid.pageNo != curPage))
-    {
+    /* checks
+       if slotNo is out of bondaries
+       trying to get a record from another page
+    */
+    if ((rid.slotNo >= slotCnt) | (rid.slotNo < 0) |  (rid.pageNo != curPage)) {
         return FAIL;
-    }
+    } 
+    // write reclen (passed by reference)j
     recLen = slot[rid.slotNo].length;
-    memcpy(&recPtr, &data[usedPtr - recLen], recLen * sizeof(char));
-    //  int offset_ptr=(slot[rid.slotNo].offset + sizeof(slot_t)*rid.slotNo);
-    //  *recPtr=data[offset_ptr-slot[rid.slotNo].length];
-    //  *recPtr = data[(slot[rid.slotNo].offset + sizeof(slot_t)*rid.slotNo)];
+    // this is safe bc conditions were checked before
+    // copy data[offset] -> recPtr of size recLen
+    memcpy(recPtr, data + slot[rid.slotNo].offset, recLen);
     return OK;
 }
 
