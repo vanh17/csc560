@@ -245,19 +245,20 @@ Status HFPage::firstRecord(RID &firstRid) {
 Status HFPage::nextRecord(RID curRid, RID &nextRid)
 {
     // fill in the body
-
-    if ((curRid.slotNo < 0) | (curRid.slotNo > slotCnt) | (curRid.pageNo != curPage))
-    {
-        return FAIL;
+    // sanity check
+    if(curRid.slotNo < 0 | curRid.pageNo != curPage | curRid.slotNo > slotCnt) {
+          return FAIL;
     }
-    for (int i = curRid.slotNo + 1; i < slotCnt; i++)
-    {
-        if (slot[i].offset != -1)
-        {
-            nextRid.slotNo = i;
-            nextRid.pageNo = curPage;
+
+    int i = curRid.slotNo + 1;
+    // note that we start from the next record after the current one
+    while (i < slotCnt) {
+        if(slot[i].length != -1){
+            nextRid.slotNo = (short) i;
+            nextRid.pageNo = (short) curPage;
             return OK;
-        }
+        } 
+        i++
     }
     return DONE;
 }
