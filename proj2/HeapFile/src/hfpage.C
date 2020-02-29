@@ -252,10 +252,10 @@ Status HFPage::nextRecord(RID curRid, RID &nextRid)
 
     int i = curRid.slotNo + 1;
     // note that we start from the next record after the current one
-    while (i < slotCnt) {
+    while (i <= slotCnt - 1) {
         if(slot[i].length != -1){
-            nextRid.slotNo = (short) i;
-            nextRid.pageNo = (short) curPage;
+            nextRid.slotNo = i;
+            nextRid.pageNo = curPage;
             return OK;
         } 
         i++;
