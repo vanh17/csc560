@@ -36,6 +36,41 @@ static error_string_table bufTable(BUFMGR,bufErrMsgs);
 
 BufMgr::BufMgr (int numbuf, Replacer *replacer) {
   // put your code here
+  numBuffers = numbuf;
+  bufPool = new Page[numbuf];
+  frmeTable = new FrameDesc[numbuf];
+  hashTable = (struct hash_table *)calloc(HTSIZE, sizeof(struct hash_table));
+  //initialize the pages in hastable to invalid
+  for (int i = 0; i < HTSIZE; i++)
+  {
+    hashTable[i].page_number = INVALID_PAGE;
+    hashTable[i].frame_number = INVALID_PAGE;
+    hashTable[i].next = NULL;
+  }
+
+  //put all the pages in the hate list
+  MRU_hated_head = NULL;
+  LRU_loved_head = NULL;
+
+  struct MRU_hated *t_MRU = MRU_hated_head;
+
+  for (unsigned int i = 0; i < numBuffers; i++)
+  {
+    if (t_MRU == NULL)
+    {
+      MRU_hated_head = new MRU_hated;
+      t_MRU = MRU_hated_head;
+      t_MRU->next = NULL;
+      t_MRU->frame_number = i;
+    }
+    else
+    {
+      t_MRU->next = new MRU_hated;
+      t_MRU = t_MRU->next;
+      t_MRU->next = NULL;
+      t_MRU->frame_number = i;
+    }
+  }
 }
 
 //*************************************************************
