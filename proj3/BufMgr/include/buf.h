@@ -30,7 +30,6 @@ class BufMgr {
 
 private: 
    unsigned int    numBuffers;
-   Page            *bufPool;
    FrameDesc       *frmeTable;
    Replacer        *replacer;
    // fill in this area
