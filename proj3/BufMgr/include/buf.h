@@ -30,6 +30,9 @@ class BufMgr {
 
 private: 
    unsigned int    numBuffers;
+   Page            *bufPool;
+   FrameDesc       *frmeTable;
+   Replacer        *replacer;
    // fill in this area
 public:
     Page* bufPool; // The actual buffer pool
