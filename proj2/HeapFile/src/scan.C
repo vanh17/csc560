@@ -25,11 +25,8 @@ Scan::Scan(HeapFile *hf, Status &status)
 Scan::~Scan()
 {
   // put your code here
-  Status state;
+  Status currentState;
 
-  //cout<<numMINIBASE_BM->getNumBuffers();
-  //state = MINIBASE_BM->unpinPage(dataPageId, FALSE, _hf->fileName);
-  //state = MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
 }
 
 // *******************************************
@@ -37,33 +34,32 @@ Scan::~Scan()
 // Also returns the RID of the retrieved record.
 Status Scan::getNext(RID &rid, char *recPtr, int &recLen)
 {
-  Status state;
-  Page *t_page;
-  char *t_recPtr;
+  Status currentState;
+  Page *currentTempPage;
   userRid.pageNo = dataPageId;
+  char *currentTempRecordPtr;
+  
 
-  // if slot is empty get first record else get the next record
   if (userRid.slotNo == -1)
   {
-    state = dataPage->firstRecord(userRid);
+    currentState = dataPage->firstRecord(userRid);
   }
   else
   {
-    state = dataPage->nextRecord(userRid, userRid);
+    currentState = dataPage->nextRecord(userRid, userRid);
   }
 
-  // if sufficient space does not exist, we unpin the page and check for the next
-  if (state == DONE)
+  if (currentState == DONE)
   {
-  //  state = MINIBASE_BM->unpinPage(dataPageId, FALSE, _hf->fileName);
-    state = nextDataPage();
-    if (state == DONE)
+  
+    currentState = nextDataPage();
+    if (currentState == DONE)
     {
-      state = nextDirPage();
-      if (state == DONE)
+      currentState = nextDirPage();
+      if (currentState == DONE)
       {
-       // state = MINIBASE_BM->unpinPage(dataPageId, FALSE, _hf->fileName);
-        state = MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
+       
+        currentState = MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
         return DONE;
       }
       else
@@ -73,11 +69,11 @@ Status Scan::getNext(RID &rid, char *recPtr, int &recLen)
     }
     userRid.pageNo = dataPageId;
 
-    state = dataPage->firstRecord(userRid);
+    currentState = dataPage->firstRecord(userRid);
   }
 
-  state = dataPage->returnRecord(userRid, t_recPtr, recLen);
-  memcpy(recPtr, t_recPtr, recLen);
+  currentState = dataPage->returnRecord(userRid, currentTempRecordPtr, recLen);
+  memcpy(recPtr, currentTempRecordPtr, recLen);
   rid = userRid;
   return OK;
 }
@@ -86,24 +82,28 @@ Status Scan::getNext(RID &rid, char *recPtr, int &recLen)
 // Do all the constructor work.
 Status Scan::init(HeapFile *hf)
 {
-  // Initializing all the values
+ 
+Status currentState;
 
-  Page *t_page;
-  Status state;
+  Page *currentTempPage;
+  
   _hf = hf;
   dirPageId = hf->firstDirPageId;
-  state = MINIBASE_BM->pinPage(dirPageId, t_page, 0, hf->fileName);
-  dirPage = reinterpret_cast<HFPage *>(t_page);
-  // state = MINIBASE_BM->unpinPage(dirPageId, FALSE, hf->fileName);
+  currentState = MINIBASE_BM->pinPage(dirPageId, currentTempPage, 0, hf->fileName);
+  dirPage = reinterpret_cast<HFPage *>(currentTempPage);
+  // currentState = MINIBASE_BM->unpinPage(dirPageId, FALSE, hf->fileName);
   dataPageId = -1;
-  dataPageRid.pageNo = -1;
   dataPageRid.slotNo = -1;
+  dataPageRid.pageNo = -1;
+  
   dataPage = NULL;
-  state = firstDataPage();
-  userRid.pageNo = -1;
+  currentState = firstDataPage();
+  // MUSA currentState = MINIBASE_BM->unpinPage(dirPageId, FALSE, hf->fileName);
   userRid.slotNo = -1;
+  userRid.pageNo = -1;
+ nxtUserStatus = -1;
   scanIsDone = -1;
-  nxtUserStatus = -1;
+  
   return OK;
 }
 
@@ -119,21 +119,31 @@ Status Scan::reset()
 Status Scan::firstDataPage()
 {
   // scan for the first page and pin it
-  Status state;
-  struct DataPageInfo *temp;
-  char *t_recPtr;
-  Page *t_page;
+  Status currentState;
+  struct DataPageInfo *currentTempDPInfo;
+  char *currentTempRecordPtr;
+  Page *currentTempPage;
   int len;
   dataPageRid.pageNo = dirPageId;
-  state = dirPage->firstRecord(dataPageRid);
-  if (state == DONE)
+  currentState = dirPage->firstRecord(dataPageRid);
+ 
+
+  if (currentState == DONE)
+  {
+    currentState = MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
     return DONE;
-  state = dirPage->returnRecord(dataPageRid, t_recPtr, len);
-  temp = reinterpret_cast<struct DataPageInfo *>(t_recPtr);
-  dataPageId = temp->pageId;
-  state = MINIBASE_BM->pinPage(dataPageId, t_page, 0, _hf->fileName);
-  dataPage = reinterpret_cast<HFPage *>(t_page);
-  state = MINIBASE_BM->unpinPage(dataPageId, FALSE, _hf->fileName);
+  }
+
+ // printf("Here");
+  currentState = dirPage->returnRecord(dataPageRid, currentTempRecordPtr, len);
+  currentTempDPInfo = reinterpret_cast<struct DataPageInfo *>(currentTempRecordPtr);
+ 
+  dataPageId = currentTempDPInfo->pageId;
+  currentState = MINIBASE_BM->pinPage(dataPageId, currentTempPage, 0, _hf->fileName);
+ 
+  dataPage = reinterpret_cast<HFPage *>(currentTempPage);
+  currentState = MINIBASE_BM->unpinPage(dataPageId, FALSE, _hf->fileName);
+  // currentState = MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
   return OK;
 }
 
@@ -141,23 +151,25 @@ Status Scan::firstDataPage()
 // Retrieve the next data page.
 Status Scan::nextDataPage()
 {
-  //scan for the next page and pin it
 
-  Status state;
-  struct DataPageInfo *temp;
-  char *t_recPtr;
-  Page *t_page;
+  Status currentState;
+  struct DataPageInfo *currentTempDPInfo;
+  char *currentTempRecordPtr;
+  Page *currentTempPage;
   int len;
 
-  state = dirPage->nextRecord(dataPageRid, dataPageRid);
-  if (state == DONE)
+  currentState = dirPage->nextRecord(dataPageRid, dataPageRid);
+  if (currentState == DONE)
     return DONE;
-  state = dirPage->returnRecord(dataPageRid, t_recPtr, len);
-  temp = reinterpret_cast<struct DataPageInfo *>(t_recPtr);
-  dataPageId = temp->pageId;
-  state = MINIBASE_BM->pinPage(dataPageId, t_page, 0, _hf->fileName);
-  dataPage = reinterpret_cast<HFPage *>(t_page);
-  state = MINIBASE_BM->unpinPage(dataPageId, FALSE, _hf->fileName);
+  currentState = dirPage->returnRecord(dataPageRid, currentTempRecordPtr, len);
+  currentTempDPInfo = reinterpret_cast<struct DataPageInfo *>(currentTempRecordPtr);
+  
+  dataPageId = currentTempDPInfo->pageId;
+  currentState = MINIBASE_BM->pinPage(dataPageId, currentTempPage, 0, _hf->fileName);
+  
+  dataPage = reinterpret_cast<HFPage *>(currentTempPage);
+  currentState = MINIBASE_BM->unpinPage(dataPageId, FALSE, _hf->fileName);
+  
   return OK;
 }
 
@@ -165,15 +177,20 @@ Status Scan::nextDataPage()
 // Retrieve the next directory page.
 Status Scan::nextDirPage()
 {
+  Status currentState;
   PageId next_id;
-  Status state;
-  Page *t_page;
+  
+  Page *currentTempPage;
   next_id = dirPage->getNextPage();
+  
+
   if (next_id == -1)
     return DONE;
-  state = MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
-  state = MINIBASE_BM->pinPage(next_id, t_page, 0, _hf->fileName);
-  dirPage = reinterpret_cast<HFPage *>(t_page);
+  currentState = MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
+  currentState = MINIBASE_BM->pinPage(next_id, currentTempPage, 0, _hf->fileName);
+ 
+
+  dirPage = reinterpret_cast<HFPage *>(currentTempPage);
   dirPageId = next_id;
   return OK;
 }
