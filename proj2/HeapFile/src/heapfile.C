@@ -119,7 +119,8 @@ int HeapFile::getRecCnt()
         MINIBASE_BM->pinPage(curr_page, temp_page, 0, fileName);
         memcpy(&hf, &(*temp_page), 1024);
         cur_RID.pageNo = curr_page;
-        while (hf.firstRecord(cur_RID) != DONE)
+        Status curr_state = hf.firstRecord(cur_RID);
+        while (curr_state != DONE)
         {
             hf.returnRecord(cur_RID, t_recPtr, rec_len);
             data_page_info = reinterpret_cast<struct DataPageInfo *>(t_recPtr);
