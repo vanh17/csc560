@@ -24,27 +24,23 @@ static error_string_table hfTable(HEAPFILE, hfErrMsgs);
 // Constructor
 HeapFile::HeapFile(const char *name, Status &returnStatus)
 {
-    // MINIBASE_DB->dump_space_map();
-
-    Status currentState;
-    // base case , entry already there
-
-    if (MINIBASE_DB->get_file_entry(name, firstDirPageId) == OK)
-    {
+    // check if the HeapFile is already constructed
+    if (MINIBASE_DB->get_file_entry(name, firstDirPageId) == OK) {
+        // simply return nothing here and exit the function
         return;
-    }
+    } else {
+        // new page variable declaration
+        Page *new_page;
+        MINIBASE_BM->newPage(firstDirPageId, new_page, TrueValue);
+        MINIBASE_DB->add_file_entry(name, firstDirPageId);
+        MINIBASE_DB->get_file_entry(name, firstDirPageId);
 
-    else
-    {
-        Page *createdPage;
-        currentState = MINIBASE_BM->newPage(firstDirPageId, createdPage, TrueValue);
-        currentState = MINIBASE_DB->add_file_entry(name, firstDirPageId);
-        currentState = MINIBASE_DB->get_file_entry(name, firstDirPageId);
-
-        HFPage heapfilePage;
-        heapfilePage.init(firstDirPageId);
-        memcpy(&(*createdPage), &heapfilePage, MY_SIZE);
-        currentState = MINIBASE_BM->unpinPage(firstDirPageId, TRUE, fileName);
+        HFPage hf;
+        hf.init(firstDirPageId);
+        // write it to memory
+        memcpy(&(*createdPage), &hf, MY_SIZE);
+        // unpin the page so we know that we are done with it for now
+        MINIBASE_BM->unpinPage(firstDirPageId, TRUE, fileName);
     }
 }
 
