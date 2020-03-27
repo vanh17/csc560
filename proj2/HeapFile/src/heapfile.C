@@ -115,7 +115,7 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID &outRid)
     struct DataPageInfo *data_info; 
     data_info = &empty_data;
     Page *temp_page;
-    PageId allocDirPageId, curr_page_id, next_page_id;
+    PageId allocated_dir_id, curr_page_id, next_page_id;
     int temp_len;
     HFPage hf;
     struct RID curr_id, allocDataPageRid;
