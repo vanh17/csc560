@@ -6,29 +6,6 @@
 // Define buffer manager error messages here
 //enum bufErrCodes  {...};
 
-typedef struct LinkList
-{
-  int PageId;
-  int frameID;
-} * List;
-typedef list<LinkList> *Linkhash;
-#define INT_MAX 4294967200
-#define BuckSize 2
-vector<Linkhash> hash_table(8, NULL);
-int a = 1, b = 0;
-int Next = 0, level = 2;
-int partion_flag = 1;
-int hashbuf = HTSIZE + 1;
-void hash_build(PageId PageNo, int frameNo);
-void hash_remove(int page);
-int hash_search(int pageID, int &frameNo);
-void print_hash();
-void Hash_delte();
-vector<PageId> disk_page;
-stack<int> Hated_Frame;
-queue<int> Loved_Frame;
-vector<int> copy_stack;
-int flag_buf_full;
 // Define error message here
 static const char *bufErrMsgs[] = {
     // error message strings go here
@@ -66,7 +43,7 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer)
   while (!Loved_Frame.empty())
     Loved_Frame.pop();
   Hash_delte();
-  init_frame(-1);
+  numBuffers = -1;
   flag_buf_full = 0;
 
   //    cout<<"bufmgr "<<this->numBuffers<<endl;
