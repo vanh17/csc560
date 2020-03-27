@@ -50,7 +50,8 @@ HeapFile::HeapFile(const char *name, Status &returnStatus) {
 HeapFile::~HeapFile() {
     // fill in the body
     // Flush all the Pages in Minipages and delte Filename
-    MINIBASE_BM->flushAllPages();
+    State curr_state
+    curr_state = MINIBASE_BM->flushAllPages();
     if (fileName == NULL)
         deleteFile();
 }
