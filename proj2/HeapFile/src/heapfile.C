@@ -128,8 +128,7 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID &outRid)
         return HEAPFILE;
     }
 
-    while (1)
-    {
+    while (1) {
         // pin the page here
         MINIBASE_BM->pinPage(myCurrPageId, myTempPage1, 0, fileName);
         memcpy(&myHFpage, &(*myTempPage1), MY_SIZE);
@@ -137,8 +136,8 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID &outRid)
         // find first record
         Status curr_state = myHFpage.firstRecord(myCurrentRid);
         // if find nothing then move to inserting
-        while ( curr_state != DONE && data_info->availspace < recLen) {
-            curr_state = myHFpage.returnRecord(myCurrentRid, myTempRecPointer, myTempRecLength);
+        while (curr_state != DONE && data_info->availspace < recLen) {
+            myHFpage.returnRecord(myCurrentRid, myTempRecPointer, myTempRecLength);
             data_info = reinterpret_cast<struct DataPageInfo *>(myTempRecPointer);
             curr_state = myHFpage.nextRecord(myCurrentRid, myCurrentRid);
         }
@@ -159,8 +158,7 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID &outRid)
         
 
 
-        if (myNextPageId == -1) 
-        {
+        if (myNextPageId == -1) {
             newDataPage(data_info);
             allocateDirSpace(data_info, allocDirPageId, allocDataPageRid);
             MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
@@ -176,7 +174,7 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID &outRid)
     {
         HFPage newInsertedHFPage;
         memcpy(&newInsertedHFPage, &(*newInsertedPage), MY_SIZE);
-        curr_state = newInsertedHFPage.insertRecord(recPtr, recLen, outRid);
+        newInsertedHFPage.insertRecord(recPtr, recLen, outRid);
         data_info->recct = data_info->recct + 1;
         data_info->availspace = newInsertedHFPage.available_space();
         memcpy(&(*newInsertedPage), &newInsertedHFPage, MY_SIZE);
