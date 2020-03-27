@@ -11,6 +11,7 @@
 #include "new_error.h"
 #include<list>
 #include<vector>
+#include<algorithm>
 #include<stack>
 #include<deque>
 #include<queue>
