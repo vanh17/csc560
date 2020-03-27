@@ -117,7 +117,7 @@ int HeapFile::getRecCnt()
     while (1)
     {
         curr_state = MINIBASE_BM->pinPage(curr_page, temp_page, 0, fileName);
-        memcpy(&hfp, &(*temp_page), 1024);
+        memcpy(&hf, &(*temp_page), 1024);
         cur_RID.pageNo = curr_page;
         curr_state = hf.firstRecord(cur_RID);
         while (curr_state != DONE)
@@ -130,7 +130,7 @@ int HeapFile::getRecCnt()
         next_page = hf.getNextPage();
         if (next_page == -1) {
             curr_state = MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
-            return record_count;
+            return num_recs;
         }
         curr_state = MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
         curr_page = next_page;
