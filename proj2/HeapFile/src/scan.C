@@ -85,7 +85,7 @@ Status Scan::init(HeapFile *hf) {
    // set dirPageID to the first page in hf
    dirPageId = hf->firstDirPageId;
    // pin the state and set curr_state to return value from pinPage function
-   MINIBASE_BM->pinPage(dirPageId, temp_, 0, hf->fileName);
+   Status curr_state = MINIBASE_BM->pinPage(dirPageId, temp_, 0, hf->fileName);
    dirPage = reinterpret_cast<HFPage *>(temp_);
 
    // update other private variable as we finised pinning the page
@@ -96,7 +96,7 @@ Status Scan::init(HeapFile *hf) {
    // init so scan just started set this to false
    scanIsDone = -1;
    // set everything to firstDataPage
-   firstDataPage();
+   curr_status = firstDataPage();
    // just init nothing to scan yet.
    nxtUserStatus = -1;
    userRid.slotNo = -1;
@@ -125,13 +125,7 @@ Status Scan::firstDataPage() {
    Status curr_state = dirPage->firstRecord(dataPageRid);
 
    // check if there is no more to get
-   if (curr_state == DONE) {
-      // unpin the page so it won't fail test 5
-      // print("curr_state is Done")
-      MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
-      // exit the function
-      return DONE;
-   } else {
+   if (curr_state != DONE) {
       curr_state = dirPage->returnRecord(dataPageRid, temp_ptr, len);
       temp_ = reinterpret_cast<struct DataPageInfo *>(temp_ptr);
  
@@ -140,9 +134,14 @@ Status Scan::firstDataPage() {
  
       dataPage = reinterpret_cast<HFPage *>(temp_page);
       // unpin page so that it will pass test case 5
-      MINIBASE_BM->unpinPage(dataPageId, FALSE, _hf->fileName);
+      curr_state = MINIBASE_BM->unpinPage(dataPageId, FALSE, _hf->fileName);
       return OK;
    }
+   // unpin the page so it won't fail test 5
+   // print("curr_state is Done")
+   curr_state = MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
+   // exit the function
+   return DONE;
 }
 
 // *******************************************
@@ -162,10 +161,10 @@ Status Scan::nextDataPage() {
    temp_ = reinterpret_cast<struct DataPageInfo *>(temp_ptr);
   
    dataPageId = temp_->pageId;
-   MINIBASE_BM->pinPage(dataPageId, temp_page, 0, _hf->fileName);
+   curr_state = MINIBASE_BM->pinPage(dataPageId, temp_page, 0, _hf->fileName);
   
    dataPage = reinterpret_cast<HFPage *>(temp_page);
-   MINIBASE_BM->unpinPage(dataPageId, FALSE, _hf->fileName);
+   curr_state = MINIBASE_BM->unpinPage(dataPageId, FALSE, _hf->fileName);
   
    return OK;
 }
@@ -183,8 +182,8 @@ Status Scan::nextDirPage() {
    }
    // now we are at the next Dir Page 
    // unpin the old Dir Page
-   MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
-   MINIBASE_BM->pinPage(curr_dir, temp_page, 0, _hf->fileName);
+   Status curr_state = MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
+   curr_state = MINIBASE_BM->pinPage(curr_dir, temp_page, 0, _hf->fileName);
  
    // change dirPage to new page, and set dirID to current dir
    dirPageId = curr_dir;
