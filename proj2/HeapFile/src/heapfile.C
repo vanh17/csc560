@@ -144,7 +144,7 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID &outRid)
         // set the rest after intersting
         if (data_info->availspace > recLen) {
             // unpin this so it wont fail test case 5
-            curr_state = MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
+            MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
             break;
         }
         if (curr_state == DONE && myHFpage.available_space() > sizeof(struct DataPageInfo)) {
@@ -170,8 +170,7 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID &outRid)
     
 
     Page *newInsertedPage;
-    if (MINIBASE_BM->pinPage(data_info->pageId, newInsertedPage, 0, fileName) == OK)
-    {
+    if (MINIBASE_BM->pinPage(data_info->pageId, newInsertedPage, 0, fileName) == OK) {
         HFPage newInsertedHFPage;
         memcpy(&newInsertedHFPage, &(*newInsertedPage), MY_SIZE);
         newInsertedHFPage.insertRecord(recPtr, recLen, outRid);
@@ -211,7 +210,7 @@ Status HeapFile::deleteRecord(const RID &rid) {
     memcpy(myTempRecPointer, currentDPInfo, sizeof(struct DataPageInfo))
     // dont' forget to unpin the page or else test 5 will not pass
     MINIBASE_BM->unpinPage(DataPageId, TRUE, fileName);
-    MINIBASE_BM->unpinPage(DirPageId, TRUE, fileName);
+    Status curr_state = MINIBASE_BM->unpinPage(DirPageId, TRUE, fileName);
 
     return OK;
 }
