@@ -59,79 +59,46 @@ HeapFile::~HeapFile() {
 // Return number of records in heap file
 int HeapFile::getRecCnt()
 {
-    // struct DataPageInfo *data_page_info = new struct DataPageInfo;
-    
-    // // initialized local variables
-    // Status curr_state;
-    // HFPage hf;
-    // Page *temp_page;   
-    // char *temp_ptr;
-    // int num_recs, temp_rec_len;        
-    // PageId curr_page, next_page; 
-    // struct RID curr_rid; 
-    // curr_page = firstDirPageId;
-    // num_recs = 0;
-    
-
-
-    // while (1) {
-    //     // pin the page so that we can use it for getting Record
-    //     curr_state = MINIBASE_BM->pinPage(curr_page, temp_page, 0, fileName);
-    //     curr_rid.pageNo = curr_page;
-    //     memcpy(&hf, &(*temp_page), MY_SIZE);
-        
-    //     // check if there is no record, then move to next Dir Page
-    //     curr_state = hf.firstRecord(curr_rid);
-    //     while (curr_state != DONE)
-    //     {
-    //         hf.returnRecord(curr_rid, temp_ptr, temp_rec_len);
-    //         // if there are records to be returned, update data page info
-    //         data_page_info = reinterpret_cast<struct DataPageInfo *>(temp_ptr);
-    //         num_recs = num_recs + data_page_info->recct;
-    //         hf.nextRecord(curr_rid, curr_rid);
-    //     }
-        
-    //     next_page = hf.getNextPage();
-    //     if (next_page == -1) {
-    //         // unpin here so it will not fail test case 5
-    //         curr_state =  MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
-    //         //number of recrod ret
-    //         return num_recs;
-    //     }
-    //     // after getting the record, unpin the page so it can be free
-    //     curr_state = MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
-    //     curr_page = next_page;
-    // }
-    // return -1;
     struct DataPageInfo *data_page_info = new struct DataPageInfo;
-    Page *temp_page;
-    PageId curr_page, next_page;
-    int num_recs, rec_len;
+    
+    // initialized local variables
+    Status curr_state;
     HFPage hf;
-    struct RID cur_RID;
-    char *t_recPtr;
-    Status curr_state = OK;
+    Page *temp_page;   
+    char *temp_ptr;
+    int num_recs, temp_rec_len;        
+    PageId curr_page, next_page; 
+    struct RID curr_rid; 
     curr_page = firstDirPageId;
     num_recs = 0;
+    
 
-    while (1)
-    {
+
+    while (1) {
+        // pin the page so that we can use it for getting Record
         curr_state = MINIBASE_BM->pinPage(curr_page, temp_page, 0, fileName);
-        memcpy(&hf, &(*temp_page), 1024);
-        cur_RID.pageNo = curr_page;
-        curr_state = hf.firstRecord(cur_RID);
+        curr_rid.pageNo = curr_page;
+        memcpy(&hf, &(*temp_page), MY_SIZE);
+        
+        // check if there is no record, then move to next Dir Page
+        curr_state = hf.firstRecord(curr_rid);
         while (curr_state != DONE)
         {
-            hf.returnRecord(cur_RID, t_recPtr, rec_len);
-            data_page_info = reinterpret_cast<struct DataPageInfo *>(t_recPtr);
+            hf.returnRecord(curr_rid, temp_ptr, temp_rec_len);
+            // if there are records to be returned, update data page info
+            data_page_info = reinterpret_cast<struct DataPageInfo *>(temp_ptr);
             num_recs = num_recs + data_page_info->recct;
-            curr_state = hf.nextRecord(cur_RID, cur_RID);
+            curr_state = hf.nextRecord(curr_rid, curr_rid);
         }
+        
         next_page = hf.getNextPage();
         if (next_page == -1) {
-            curr_state = MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
+            // unpin here so it will not fail test case 5
+            curr_state =  MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
+            //number of recrod ret
             return num_recs;
         }
+        // after getting the record, unpin the page so it can be free
         curr_state = MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
         curr_page = next_page;
     }
