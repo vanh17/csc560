@@ -207,10 +207,10 @@ Status HeapFile::deleteRecord(const RID &rid) {
     // update avalilabe space of curretn Data page
     currentDPInfo->availspace = DataPage->available_space();
     
-    memcpy(myTempRecPointer, currentDPInfo, sizeof(struct DataPageInfo))
+    memcpy(myTempRecPointer, currentDPInfo, sizeof(struct DataPageInfo));
     // dont' forget to unpin the page or else test 5 will not pass
-    Status curr_state = MINIBASE_BM->unpinPage(DataPageId, TRUE, fileName);
-    curr_state = MINIBASE_BM->unpinPage(DirPageId, TRUE, fileName);
+    MINIBASE_BM->unpinPage(DataPageId, TRUE, fileName);
+    MINIBASE_BM->unpinPage(DirPageId, TRUE, fileName);
 
     return OK;
 }
