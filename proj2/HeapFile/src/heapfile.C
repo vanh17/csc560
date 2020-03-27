@@ -62,7 +62,6 @@ int HeapFile::getRecCnt()
     struct DataPageInfo *data_page_info = new struct DataPageInfo;
     
     // initialized local variables
-    Status curr_state;
     HFPage hf;
     Page *temp_page;   
     char *temp_ptr;
@@ -76,12 +75,12 @@ int HeapFile::getRecCnt()
 
     while (1) {
         // pin the page so that we can use it for getting Record
-        curr_state = MINIBASE_BM->pinPage(curr_page, temp_page, 0, fileName);
+        MINIBASE_BM->pinPage(curr_page, temp_page, 0, fileName);
         curr_rid.pageNo = curr_page;
         memcpy(&hf, &(*temp_page), MY_SIZE);
         
         // check if there is no record, then move to next Dir Page
-        curr_state = hf.firstRecord(curr_rid);
+        Status curr_state = hf.firstRecord(curr_rid);
         while (curr_state != DONE)
         {
             hf.returnRecord(curr_rid, temp_ptr, temp_rec_len);
@@ -94,12 +93,12 @@ int HeapFile::getRecCnt()
         next_page = hf.getNextPage();
         if (next_page == -1) {
             // unpin here so it will not fail test case 5
-            curr_state =  MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
+            MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
             //number of recrod ret
             return num_recs;
         }
         // after getting the record, unpin the page so it can be free
-        curr_state = MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
+        MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
         curr_page = next_page;
     }
     return -1;
@@ -266,7 +265,6 @@ Status HeapFile::updateRecord(const RID &rid, char *recPtr, int recLen)
 Status HeapFile::getRecord(const RID &rid, char *recPtr, int &recLen)
 {
     // fill in the body
-    Status currentState;
     PageId DirPageId, DataPageId;
 
     char *myTempRecPointer;
@@ -276,13 +274,13 @@ Status HeapFile::getRecord(const RID &rid, char *recPtr, int &recLen)
     
     HFPage *DirPage, *DataPage;
     
-    currentState = findDataPage(rid, DirPageId, DirPage, DataPageId, DataPage, dirPage_rid);
+    findDataPage(rid, DirPageId, DirPage, DataPageId, DataPage, dirPage_rid);
     //update the record in data page
-    currentState = DataPage->returnRecord(rid, myTempRecPointer, recLen);
+    DataPage->returnRecord(rid, myTempRecPointer, recLen);
     memcpy(recPtr, myTempRecPointer, recLen);
     //unpin both the pages
-    currentState = MINIBASE_BM->unpinPage(DataPageId, FALSE, fileName);
-    currentState = MINIBASE_BM->unpinPage(DirPageId, FALSE, fileName);
+    MINIBASE_BM->unpinPage(DataPageId, FALSE, fileName);
+    MINIBASE_BM->unpinPage(DirPageId, FALSE, fileName);
 
     return OK;
 }
@@ -301,7 +299,7 @@ Scan *HeapFile::openScan(Status &status)
 Status HeapFile::deleteFile()
 {
     // fill in the body
-  Status currentState = OK;
+    Status curr_state = OK;
     struct DataPageInfo *myDPInfo = new struct DataPageInfo;
     Page *myTempPage1, *temp_page;        
     int numberOfRecords, myTempRecLength;
@@ -315,19 +313,19 @@ Status HeapFile::deleteFile()
     
     myCurrPageId = firstDirPageId;
     numberOfRecords = 0;
-    currentState = MINIBASE_BM->flushAllPages();
+    curr_state = MINIBASE_BM->flushAllPages();
     while (1)
     {
-        currentState = MINIBASE_BM->pinPage(myCurrPageId, myTempPage1, 0, fileName);
+        curr_state = MINIBASE_BM->pinPage(myCurrPageId, myTempPage1, 0, fileName);
         memcpy(&myHFpage, &(*myTempPage1), MY_SIZE);
         myCurrentRid.pageNo = myCurrPageId;
-        currentState = myHFpage.firstRecord(myCurrentRid);
-        while (currentState != DONE)
+        curr_state = myHFpage.firstRecord(myCurrentRid);
+        while (curr_state != DONE)
         {
-            currentState = myHFpage.returnRecord(myCurrentRid, myTempRecPointer, myTempRecLength);
+            curr_state = myHFpage.returnRecord(myCurrentRid, myTempRecPointer, myTempRecLength);
             myDPInfo = reinterpret_cast<struct DataPageInfo *>(myTempRecPointer);
-          currentState = MINIBASE_BM->freePage(myDPInfo->pageId);
-           currentState = myHFpage.nextRecord(myCurrentRid, myCurrentRid);
+            curr_state = MINIBASE_BM->freePage(myDPInfo->pageId);
+            curr_state = myHFpage.nextRecord(myCurrentRid, myCurrentRid);
         }
         
 
@@ -335,32 +333,25 @@ Status HeapFile::deleteFile()
         
         if (myNextPageId == -1) 
         {
-            currentState = MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
+            MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
             break;
         }
 
-        currentState = MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
+        MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
         myCurrPageId = myNextPageId;
     }
     myCurrPageId = firstDirPageId;
     while (1)
     {
-        currentState = MINIBASE_BM->pinPage(myCurrPageId, myTempPage1, 0, fileName);
+        MINIBASE_BM->pinPage(myCurrPageId, myTempPage1, 0, fileName);
         memcpy(&myHFpage, &(*myTempPage1), 1024);
         myNextPageId = myHFpage.getNextPage();
-       
-        currentState = MINIBASE_BM->freePage(myCurrPageId);
-      
-
-        if (myNextPageId == -1) 
-        {
+        MINIBASE_BM->freePage(myCurrPageId);
+        if (myNextPageId == -1) {
             break;
         }
-        
-         myCurrPageId = myNextPageId;
-    }
-
-    
+        myCurrPageId = myNextPageId;
+    }   
     return OK;
 }
 
