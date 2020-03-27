@@ -6,6 +6,13 @@
 #ifndef BUF_H
 #define BUF_H
 
+#include<list>
+#include<vector>
+#include<algorithm>
+#include<stack>
+#include<deque>
+#include<queue>
+#include<math.h>
 #include "db.h"
 #include "page.h"
 #include "new_error.h"
@@ -24,14 +31,66 @@
 enum bufErrCodes  {HASHMEMORY, HASHDUPLICATEINSERT, HASHREMOVEERROR, HASHNOTFOUND, QMEMORYERROR, QEMPTY, INTERNALERROR, 
 			BUFFERFULL, BUFMGRMEMORYERROR, BUFFERPAGENOTFOUND, BUFFERPAGENOTPINNED, BUFFERPAGEPINNED};
 
+// copy this from proj1
+class HashTable{
+    friend BufMgr;
+private:
+    int a,b;
+    int Next,level;
+    int partion_flag;
+    int hashbuf;
+    typedef struct LinkList
+    {
+    int PageId;
+    int frameID;
+    }*List;
+    typedef list<LinkList> *Linkhash;
+    vector<Linkhash> hash_table;
+public:
+         HashTable(int size);
+        void hash_build(PageId PageNo,int frameNo);
+        void hash_remove(int page);
+        int hash_search(int pageID,int &frameNo);
+        void print_hash();
+        void Hash_delte();
+};
+// copy this from proj2
+class FrameDesc {
+
+  friend class BufMgr;
+
+  private:
+    int    pageNo;     // the page within file, or INVALID_PAGE if
+                       // the frame is empty.
+
+    unsigned int pin_cnt;  // The pin count for the page in this frame
+    bool dirtybit;
+
+
+    FrameDesc() {
+        pageNo  = INVALID_PAGE;
+        pin_cnt = 0;
+    }
+
+   ~FrameDesc() {}
+
+  public:
+    int pin_count() { return(pin_cnt); }
+    int pin() { return(++pin_cnt); }
+    int unpin() {
+        pin_cnt = (pin_cnt <= 0) ? 0 : pin_cnt - 1;
+        return(pin_cnt);
+    }
+};
+
 class Replacer; // may not be necessary as described below in the constructor
 
 class BufMgr {
 
 private: 
    unsigned int    numBuffers;
-   FrameDesc       *frmeTable;
-   Replacer        *replacer;
+   FrameDesc       *bufDescr;
+   Replacer        *hash;
    // fill in this area
 public:
     Page* bufPool; // The actual buffer pool
