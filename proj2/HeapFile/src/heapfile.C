@@ -202,11 +202,11 @@ Status HeapFile::deleteRecord(const RID &rid)
     char *myTempRecPointer;
     int myTempLength;
     
-    curr_state = findDataPage(rid, DirPageId, DirPage, DataPageId, DataPage, dirPage_rid);
+    findDataPage(rid, DirPageId, DirPage, DataPageId, DataPage, dirPage_rid);
     
-    curr_state = DataPage->deleteRecord(rid);
+    DataPage->deleteRecord(rid);
     
-    curr_state = DirPage->returnRecord(dirPage_rid, myTempRecPointer, myTempLength);
+    DirPage->returnRecord(dirPage_rid, myTempRecPointer, myTempLength);
 
     struct DataPageInfo *currentDPInfo = reinterpret_cast<struct DataPageInfo *>(myTempRecPointer);
     currentDPInfo->recct = currentDPInfo->recct - 1;
@@ -214,8 +214,8 @@ Status HeapFile::deleteRecord(const RID &rid)
     
     memcpy(myTempRecPointer, currentDPInfo, sizeof(struct DataPageInfo));
     
-    curr_state = MINIBASE_BM->unpinPage(DataPageId, TRUE, fileName);
-    curr_state = MINIBASE_BM->unpinPage(DirPageId, TRUE, fileName);
+    MINIBASE_BM->unpinPage(DataPageId, TRUE, fileName);
+    MINIBASE_BM->unpinPage(DirPageId, TRUE, fileName);
 
     return OK;
 }
