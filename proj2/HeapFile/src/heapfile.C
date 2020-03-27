@@ -115,57 +115,57 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID &outRid)
     struct DataPageInfo *data_info; 
     data_info = &empty_data;
     Page *temp_page;
-    PageId allocDirPageId, myCurrPageId, myNextPageId;
+    PageId allocDirPageId, curr_page_id, next_page_id;
     int temp_len;
-    HFPage myHFpage;
+    HFPage hf;
     struct RID curr_id, allocDataPageRid;
     char *temp_rec_ptr;
-    myCurrPageId = firstDirPageId;
+    curr_page_id = firstDirPageId;
     if (recLen > (MY_SIZE-24))
     {
         MINIBASE_FIRST_ERROR(HEAPFILE, *hfErrMsgs[4]);
-        MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
+        MINIBASE_BM->unpinPage(curr_page_id, FALSE, fileName);
         return HEAPFILE;
     }
 
     while (1) {
         // pin the page here
-        MINIBASE_BM->pinPage(myCurrPageId, temp_page, 0, fileName);
-        memcpy(&myHFpage, &(*temp_page), MY_SIZE);
-        curr_id.pageNo = myCurrPageId;
+        MINIBASE_BM->pinPage(curr_page_id, temp_page, 0, fileName);
+        memcpy(&hf, &(*temp_page), MY_SIZE);
+        curr_id.pageNo = curr_page_id;
         // find first record
-        Status curr_state = myHFpage.firstRecord(curr_id);
+        Status curr_state = hf.firstRecord(curr_id);
         // if find nothing then move to inserting
         while (curr_state != DONE && data_info->availspace < recLen) {
-            myHFpage.returnRecord(curr_id, temp_rec_ptr, temp_len);
+            hf.returnRecord(curr_id, temp_rec_ptr, temp_len);
             data_info = reinterpret_cast<struct DataPageInfo *>(temp_rec_ptr);
-            curr_state = myHFpage.nextRecord(curr_id, curr_id);
+            curr_state = hf.nextRecord(curr_id, curr_id);
         }
         // set the rest after intersting
         if (data_info->availspace > recLen) {
             // unpin this so it wont fail test case 5
-            MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
+            MINIBASE_BM->unpinPage(curr_page_id, FALSE, fileName);
             break;
         }
-        if (curr_state == DONE && myHFpage.available_space() > sizeof(struct DataPageInfo)) {
+        if (curr_state == DONE && hf.available_space() > sizeof(struct DataPageInfo)) {
             newDataPage(data_info);
             allocateDirSpace(data_info, allocated_dir_id, allocDataPageRid);
-            MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
+            MINIBASE_BM->unpinPage(curr_page_id, FALSE, fileName);
             break;
         }
         
-        myNextPageId = myHFpage.getNextPage();
+        next_page_id = hf.getNextPage();
         
 
 
-        if (myNextPageId == -1) {
+        if (next_page_id == -1) {
             newDataPage(data_info);
             allocateDirSpace(data_info, allocated_dir_id, allocDataPageRid);
-            MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
+            MINIBASE_BM->unpinPage(curr_page_id, FALSE, fileName);
             break;
         }
-        MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
-        myCurrPageId = myNextPageId;
+        MINIBASE_BM->unpinPage(curr_page_id, FALSE, fileName);
+        curr_page_id = next_page_id;
     }
     
 
@@ -202,12 +202,12 @@ Status HeapFile::deleteRecord(const RID &rid) {
     DataPage->deleteRecord(rid);
     // return the reccord page for checking
     DirPage->returnRecord(dirPage_rid, temp_rec_ptr, myTempLength);
-    struct DataPageInfo *currentDPInfo = reinterpret_cast<struct DataPageInfo *>(temp_rec_ptr);
-    currentDPInfo->recct = currentDPInfo->recct - 1;
+    struct DataPageInfo *curr_data_info = reinterpret_cast<struct DataPageInfo *>(temp_rec_ptr);
+    curr_data_info->recct = curr_data_info->recct - 1;
     // update avalilabe space of curretn Data page
-    currentDPInfo->availspace = DataPage->available_space();
+    curr_data_info->availspace = DataPage->available_space();
     
-    memcpy(temp_rec_ptr, currentDPInfo, sizeof(struct DataPageInfo));
+    memcpy(temp_rec_ptr, curr_data_info, sizeof(struct DataPageInfo));
     // dont' forget to unpin the page or else test 5 will not pass
     MINIBASE_BM->unpinPage(DataPageId, TRUE, fileName);
     MINIBASE_BM->unpinPage(DirPageId, TRUE, fileName);
@@ -241,11 +241,11 @@ Status HeapFile::updateRecord(const RID &rid, char *recPtr, int recLen) {
     // load back to recpoitner to datapage
     memcpy(temp_rec_ptr, recPtr, recLen);
     DirPage->returnRecord(dirPage_rid, temp_rec_ptr, myTempLength);
-    struct DataPageInfo *currentDPInfo = reinterpret_cast<struct DataPageInfo *>(temp_rec_ptr);
+    struct DataPageInfo *curr_data_info = reinterpret_cast<struct DataPageInfo *>(temp_rec_ptr);
 
-    currentDPInfo->availspace = DataPage->available_space();
+    curr_data_info->availspace = DataPage->available_space();
     //write changes to the Data Page
-    memcpy(temp_rec_ptr, currentDPInfo, sizeof(struct DataPageInfo));
+    memcpy(temp_rec_ptr, curr_data_info, sizeof(struct DataPageInfo));
     
     MINIBASE_BM->unpinPage(DataPageId, TRUE, fileName);
     MINIBASE_BM->unpinPage(DirPageId, TRUE, fileName);
@@ -297,53 +297,53 @@ Status HeapFile::deleteFile()
     Page *temp_page, *temp_page;        
     int numberOfRecords, temp_len;
 
-    PageId myCurrPageId, myNextPageId; 
+    PageId curr_page_id, next_page_id; 
      char *temp_rec_ptr;
-    HFPage myHFpage;
+    HFPage hf;
 
     struct RID curr_id; 
    
     
-    myCurrPageId = firstDirPageId;
+    curr_page_id = firstDirPageId;
     numberOfRecords = 0;
     MINIBASE_BM->flushAllPages();
     while (1)
     {
-        MINIBASE_BM->pinPage(myCurrPageId, temp_page, 0, fileName);
-        memcpy(&myHFpage, &(*temp_page), MY_SIZE);
-        curr_id.pageNo = myCurrPageId;
-        Status curr_state = myHFpage.firstRecord(curr_id);
+        MINIBASE_BM->pinPage(curr_page_id, temp_page, 0, fileName);
+        memcpy(&hf, &(*temp_page), MY_SIZE);
+        curr_id.pageNo = curr_page_id;
+        Status curr_state = hf.firstRecord(curr_id);
         while (curr_state != DONE)
         {
-            curr_state = myHFpage.returnRecord(curr_id, temp_rec_ptr, temp_len);
+            curr_state = hf.returnRecord(curr_id, temp_rec_ptr, temp_len);
             myDPInfo = reinterpret_cast<struct DataPageInfo *>(temp_rec_ptr);
             curr_state = MINIBASE_BM->freePage(myDPInfo->pageId);
-            curr_state = myHFpage.nextRecord(curr_id, curr_id);
+            curr_state = hf.nextRecord(curr_id, curr_id);
         }
         
 
-        myNextPageId = myHFpage.getNextPage();
+        next_page_id = hf.getNextPage();
         
-        if (myNextPageId == -1) 
+        if (next_page_id == -1) 
         {
-            MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
+            MINIBASE_BM->unpinPage(curr_page_id, FALSE, fileName);
             break;
         }
 
-        MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
-        myCurrPageId = myNextPageId;
+        MINIBASE_BM->unpinPage(curr_page_id, FALSE, fileName);
+        curr_page_id = next_page_id;
     }
-    myCurrPageId = firstDirPageId;
+    curr_page_id = firstDirPageId;
     while (1)
     {
-        MINIBASE_BM->pinPage(myCurrPageId, temp_page, 0, fileName);
-        memcpy(&myHFpage, &(*temp_page), 1024);
-        myNextPageId = myHFpage.getNextPage();
-        MINIBASE_BM->freePage(myCurrPageId);
-        if (myNextPageId == -1) {
+        MINIBASE_BM->pinPage(curr_page_id, temp_page, 0, fileName);
+        memcpy(&hf, &(*temp_page), 1024);
+        next_page_id = hf.getNextPage();
+        MINIBASE_BM->freePage(curr_page_id);
+        if (next_page_id == -1) {
             break;
         }
-        myCurrPageId = myNextPageId;
+        curr_page_id = next_page_id;
     }   
     return OK;
 }
@@ -358,14 +358,14 @@ Status HeapFile::newDataPage(DataPageInfo *dpinfop)
     
     if (MINIBASE_BM->newPage(t_pageid, newpage, 1) == OK)
     {
-        HFPage myHFpage;
-        myHFpage.init(t_pageid);
-        dpinfop->availspace = myHFpage.available_space();
+        HFPage hf;
+        hf.init(t_pageid);
+        dpinfop->availspace = hf.available_space();
         
         dpinfop->recct = 0;
         dpinfop->pageId = t_pageid;
 
-        memcpy(&(*newpage), &myHFpage, MY_SIZE);
+        memcpy(&(*newpage), &hf, MY_SIZE);
         MINIBASE_BM->unpinPage(t_pageid, TRUE, fileName);
 
         
@@ -385,59 +385,59 @@ Status HeapFile::findDataPage(const RID &rid,
                               PageId &rpDirPageId, HFPage *&rpdirpage,
                               PageId &rpDataPageId, HFPage *&rpdatapage,
                               RID &rpDataPageRid) {
-    Page *temp_page, *t1_page;
+    Page *temp_page, *t_page;
     struct RID t_first, temp_data;
-    HFPage myHFpage, t_hfp;
-    PageId myCurrPageId = firstDirPageId;
+    HFPage hf, t_hf;
+    PageId curr_page_id = firstDirPageId;
     
-    PageId myNextPageId, data_pageid;
+    PageId next_page_id, data_pageid;
     
     rpDirPageId = firstDirPageId;
     
     char *temp_rec_ptr;
-    struct DataPageInfo *currentDPInfo;
+    struct DataPageInfo *curr_data_info;
     int temp_len;
     
     while (1) {
         if (MINIBASE_BM->pinPage(rpDirPageId, temp_page, 0, fileName) == OK) {
-            memcpy(&myHFpage, &(*temp_page), MY_SIZE);
+            memcpy(&hf, &(*temp_page), MY_SIZE);
             rpDataPageRid.pageNo = rpDirPageId;
-            Status curr_state = myHFpage.firstRecord(rpDataPageRid);
+            Status curr_state = hf.firstRecord(rpDataPageRid);
             if (curr_state != OK) {
                 MINIBASE_BM->unpinPage(rpDirPageId, FALSE, fileName);
                 return DONE;
             } else {
                 while (curr_state == OK) {
-                    curr_state = myHFpage.returnRecord(rpDataPageRid, temp_rec_ptr, temp_len);
-                    currentDPInfo = reinterpret_cast<struct DataPageInfo *>(temp_rec_ptr);
-                    curr_state = MINIBASE_BM->pinPage(currentDPInfo->pageId, t1_page, 0, fileName);
-                    memcpy(&t_hfp, &(*t1_page), 1024);
-                    temp_data.pageNo = currentDPInfo->pageId;
-                    curr_state = t_hfp.firstRecord(temp_data);
+                    curr_state = hf.returnRecord(rpDataPageRid, temp_rec_ptr, temp_len);
+                    curr_data_info = reinterpret_cast<struct DataPageInfo *>(temp_rec_ptr);
+                    curr_state = MINIBASE_BM->pinPage(curr_data_info->pageId, t_page, 0, fileName);
+                    memcpy(&t_hf, &(*t_page), 1024);
+                    temp_data.pageNo = curr_data_info->pageId;
+                    curr_state = t_hf.firstRecord(temp_data);
                     while (curr_state == OK) {
                         if (temp_data.pageNo == rid.pageNo) {
                             if (temp_data.slotNo == rid.slotNo) {
                                 
-                                rpDataPageId = currentDPInfo->pageId;
-                                rpdatapage = reinterpret_cast<HFPage *>(t1_page);
+                                rpDataPageId = curr_data_info->pageId;
+                                rpdatapage = reinterpret_cast<HFPage *>(t_page);
                                 rpdirpage = reinterpret_cast<HFPage *>(temp_page);
                                 return OK;
                             }
                         }
-                        curr_state = t_hfp.nextRecord(temp_data, temp_data);
+                        curr_state = t_hf.nextRecord(temp_data, temp_data);
                     }
                     
-                    MINIBASE_BM->unpinPage(currentDPInfo->pageId, FALSE, fileName);
+                    MINIBASE_BM->unpinPage(curr_data_info->pageId, FALSE, fileName);
                     
-                    curr_state = myHFpage.nextRecord(rpDataPageRid, rpDataPageRid);
+                    curr_state = hf.nextRecord(rpDataPageRid, rpDataPageRid);
                 }
             }
         }
         else {
             return DONE;
         }
-        myNextPageId = myHFpage.getNextPage();
-        if (myNextPageId == -1) {
+        next_page_id = hf.getNextPage();
+        if (next_page_id == -1) {
             rpDirPageId = 0;
             rpDataPageId = 0;
             rpdatapage = NULL;
@@ -447,7 +447,7 @@ Status HeapFile::findDataPage(const RID &rid,
         }
 
         MINIBASE_BM->unpinPage(rpDirPageId, FALSE, fileName);
-        rpDirPageId = myNextPageId;
+        rpDirPageId = next_page_id;
     }
     return DONE;
 }
@@ -458,89 +458,89 @@ Status HeapFile::findDataPage(const RID &rid,
 Status HeapFile::allocateDirSpace(struct DataPageInfo *dpinfop,
                                   PageId &allocDirPageId,
                                   RID &allocDataPageRid) {
-    Page *temp_page, *t1_page;
-    HFPage myHFpage;
+    Page *temp_page, *t_page;
+    HFPage hf;
     struct RID t_first, curr_id;
-    PageId myNextPageId;
+    PageId next_page_id;
     char *d, *temp_rec_ptr;
     int i, temp_len;
 
-    PageId myCurrPageId = firstDirPageId;
+    PageId curr_page_id = firstDirPageId;
     
      
     
-    struct DataPageInfo *currentDPInfo;
+    struct DataPageInfo *curr_data_info;
     while (1) 
     {
-        MINIBASE_BM->pinPage(myCurrPageId, temp_page, 0, fileName);
-        memcpy(&myHFpage, &(*temp_page), 1024);
-        curr_id.pageNo = myCurrPageId;
-        Status curr_state = myHFpage.firstRecord(curr_id);
+        MINIBASE_BM->pinPage(curr_page_id, temp_page, 0, fileName);
+        memcpy(&hf, &(*temp_page), 1024);
+        curr_id.pageNo = curr_page_id;
+        Status curr_state = hf.firstRecord(curr_id);
         while (curr_state == OK)
         {
-            curr_state = myHFpage.returnRecord(curr_id, temp_rec_ptr, temp_len);
-            currentDPInfo = reinterpret_cast<struct DataPageInfo *>(temp_rec_ptr);
-            if (currentDPInfo->pageId == dpinfop->pageId)
+            curr_state = hf.returnRecord(curr_id, temp_rec_ptr, temp_len);
+            curr_data_info = reinterpret_cast<struct DataPageInfo *>(temp_rec_ptr);
+            if (curr_data_info->pageId == dpinfop->pageId)
             {
               allocDataPageRid = curr_id;
 
-                allocDirPageId = myCurrPageId;
+                allocDirPageId = curr_page_id;
                 
-                currentDPInfo->recct = dpinfop->recct;
+                curr_data_info->recct = dpinfop->recct;
 
-                currentDPInfo->availspace = dpinfop->availspace;
+                curr_data_info->availspace = dpinfop->availspace;
                 
-                memcpy(temp_rec_ptr, currentDPInfo, sizeof(struct DataPageInfo));
-                memcpy(&(*temp_page), &myHFpage, MY_SIZE);
-                curr_state = MINIBASE_BM->unpinPage(myCurrPageId, TRUE, fileName);
+                memcpy(temp_rec_ptr, curr_data_info, sizeof(struct DataPageInfo));
+                memcpy(&(*temp_page), &hf, MY_SIZE);
+                curr_state = MINIBASE_BM->unpinPage(curr_page_id, TRUE, fileName);
                 return OK;
             }
-            curr_state = myHFpage.nextRecord(curr_id, curr_id);
+            curr_state = hf.nextRecord(curr_id, curr_id);
         }
-        myNextPageId = myHFpage.getNextPage();
-        if (myNextPageId == -1) //the page doesn't exist hence exit
+        next_page_id = hf.getNextPage();
+        if (next_page_id == -1) //the page doesn't exist hence exit
         {
-            curr_state = MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
+            curr_state = MINIBASE_BM->unpinPage(curr_page_id, FALSE, fileName);
             break;
         }
-        curr_state = MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
-        myCurrPageId = myNextPageId;
+        curr_state = MINIBASE_BM->unpinPage(curr_page_id, FALSE, fileName);
+        curr_page_id = next_page_id;
     }
 
-    myCurrPageId = firstDirPageId;
+    curr_page_id = firstDirPageId;
     while (1)
     {
-        if (MINIBASE_BM->pinPage(myCurrPageId, temp_page, 0, fileName) == OK)
+        if (MINIBASE_BM->pinPage(curr_page_id, temp_page, 0, fileName) == OK)
         {
-            memcpy(&myHFpage, &(*temp_page), 1024);
-            if (myHFpage.available_space() > sizeof(*dpinfop))
+            memcpy(&hf, &(*temp_page), 1024);
+            if (hf.available_space() > sizeof(*dpinfop))
             {
                 char *recPtr = reinterpret_cast<char *>(dpinfop);
-                myHFpage.insertRecord(recPtr, sizeof(struct DataPageInfo), t_first);
+                hf.insertRecord(recPtr, sizeof(struct DataPageInfo), t_first);
                
-                myHFpage.returnRecord(t_first, d, i);
+                hf.returnRecord(t_first, d, i);
                 struct DataPageInfo *temp = reinterpret_cast<struct DataPageInfo *>(d);
                
-                myHFpage.firstRecord(allocDataPageRid);
-                memcpy(&(*temp_page), &(myHFpage), MY_SIZE);
-                MINIBASE_BM->unpinPage(myCurrPageId, TRUE, fileName);
+                hf.firstRecord(allocDataPageRid);
+                memcpy(&(*temp_page), &(hf), MY_SIZE);
+                MINIBASE_BM->unpinPage(curr_page_id, TRUE, fileName);
                 return OK;
             }
             else
             {
-                myNextPageId = myHFpage.getNextPage();
-                if (myNextPageId == -1) 
+                next_page_id = hf.getNextPage();
+                if (next_page_id == -1) 
                 {
-                    HFPage t_hfp;
-                    MINIBASE_BM->newPage(myNextPageId, t1_page, 1);
-                    t_hfp.init(myNextPageId);
-                    memcpy(&(*t1_page), &t_hfp, MY_SIZE);
-                    MINIBASE_BM->unpinPage(myNextPageId, TRUE, fileName);
-                    myHFpage.setNextPage(myNextPageId);
+                    HFPage t_hf;
+                    MINIBASE_BM->newPage(next_page_id, t_page, 1);
+                    t_hf.init(next_page_id);
+                    memcpy(&(*t_page), &t_hf, MY_SIZE);
+                    MINIBASE_BM->unpinPage(next_page_id, TRUE, fileName);
+                    hf.setNextPage(next_page_id);
                 }
-                memcpy(&(*temp_page), &(myHFpage), MY_SIZE);
-                MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
-                myCurrPageId = myNextPageId;
+                memcpy(&(*temp_page), &(hf), MY_SIZE);
+                MINIBASE_BM->unpinPage(curr_page_id, FALSE, fileName);
+                curr_page_id = next_page_id;
             }
         }
     }
