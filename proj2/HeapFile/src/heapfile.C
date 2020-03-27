@@ -63,6 +63,7 @@ int HeapFile::getRecCnt()
     struct DataPageInfo *data_page_info = new struct DataPageInfo;
     
     // initialized local variables
+    Status curr_state;
     HFPage hf;
     Page *temp_page;   
     char *temp_ptr;
@@ -76,12 +77,13 @@ int HeapFile::getRecCnt()
 
     while (1) {
         // pin the page so that we can use it for getting Record
-        MINIBASE_BM->pinPage(curr_page, temp_page, 0, fileName);
+        curr_state = MINIBASE_BM->pinPage(curr_page, temp_page, 0, fileName);
         curr_rid.pageNo = curr_page;
         memcpy(&hf, &(*temp_page), MY_SIZE);
         
         // check if there is no record, then move to next Dir Page
-        while (hf.firstRecord(curr_rid) != DONE)
+        curr_state = hf.firstRecord(curr_rid);
+        while (curr_state != DONE)
         {
             hf.returnRecord(curr_rid, temp_ptr, temp_rec_len);
             // if there are records to be returned, update data page info
@@ -93,12 +95,12 @@ int HeapFile::getRecCnt()
         next_page = hf.getNextPage();
         if (next_page == -1) {
             // unpin here so it will not fail test case 5
-            MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
+            curr_state =  MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
             //number of recrod ret
             return num_recs;
         }
         // after getting the record, unpin the page so it can be free
-        MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
+        curr_state = MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
         curr_page = next_page;
     }
     return -1;
