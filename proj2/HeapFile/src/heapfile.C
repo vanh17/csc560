@@ -80,8 +80,8 @@ int HeapFile::getRecCnt()
         memcpy(&hf, &(*temp_page), MY_SIZE);
         
         // check if there is no record, then move to next Dir Page
-        Status status = hf.firstRecord(curr_rid) 
-        while (status != DONE)
+        Status curr_state = hf.firstRecord(curr_rid); 
+        while (curr_state != DONE)
         {
             hf.returnRecord(curr_rid, temp_ptr, temp_rec_len);
             // if there are records to be returned, update data page info
