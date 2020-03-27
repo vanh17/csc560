@@ -5,7 +5,7 @@
 #include "buf.h"
 #include <list>
 #include <vector>
-#include <algorithm>
+// #include <algorithm>
 #include <stack>
 #include <deque>
 #include <queue>
