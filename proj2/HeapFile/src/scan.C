@@ -67,10 +67,11 @@ Status Scan::getNext(RID &rid, char *recPtr, int &recLen) {
       userRid.pageNo = dataPageId;
       curr_state = dataPage->firstRecord(userRid);
    }
-   rid = userRid;
-   memcpy(recPtr, temp_ptr, recLen);
    // store the returned Record and then return good to go
    curr_state = dataPage->returnRecord(userRid, temp_ptr, recLen);
+   memcpy(recPtr, temp_ptr, recLen);
+   rid = userRid;
+   // store the returned Record and then return good to go
    return OK;
 }
 
@@ -93,14 +94,14 @@ Status Scan::init(HeapFile *hf) {
    dataPageRid.pageNo = -1;
    dataPageId = -1;
    dataPageRid.slotNo = -1;
-   // init so scan just started set this to false
-   scanIsDone = -1;
    // set everything to firstDataPage
    curr_state = firstDataPage();
    // just init nothing to scan yet.
    nxtUserStatus = -1;
    userRid.slotNo = -1;
-   userRid.pageNo = -1;  
+   userRid.pageNo = -1;
+   // init so scan just started set this to false
+   scanIsDone = -1;
    // just return OK because nothing go wrong in the init
    return OK;
 }
