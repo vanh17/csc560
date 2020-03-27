@@ -145,7 +145,7 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID &outRid)
         // set the rest after intersting
         if (data_info->availspace > recLen) {
             // unpin this so it wont fail test case 5
-            MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
+            curr_state = MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
             break;
         }
         if (curr_state == DONE && myHFpage.available_space() > sizeof(struct DataPageInfo)) {
