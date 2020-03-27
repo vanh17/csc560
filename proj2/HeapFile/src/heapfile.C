@@ -110,29 +110,28 @@ int HeapFile::getRecCnt()
     HFPage hf;
     struct RID cur_RID;
     char *t_recPtr;
-    Status curr_state = OK;
+    // Status curr_state = OK;
     curr_page = firstDirPageId;
     num_recs = 0;
 
     while (1)
     {
-        curr_state = MINIBASE_BM->pinPage(curr_page, temp_page, 0, fileName);
+        MINIBASE_BM->pinPage(curr_page, temp_page, 0, fileName);
         memcpy(&hf, &(*temp_page), 1024);
         cur_RID.pageNo = curr_page;
-        curr_state = hf.firstRecord(cur_RID);
-        while (curr_state != DONE)
+        while (hf.firstRecord(cur_RID) != DONE)
         {
-            curr_state = hf.returnRecord(cur_RID, t_recPtr, rec_len);
+            hf.returnRecord(cur_RID, t_recPtr, rec_len);
             data_page_info = reinterpret_cast<struct DataPageInfo *>(t_recPtr);
             num_recs = num_recs + data_page_info->recct;
-            curr_state = hf.nextRecord(cur_RID, cur_RID);
+            hf.nextRecord(cur_RID, cur_RID);
         }
         next_page = hf.getNextPage();
         if (next_page == -1) {
-            curr_state = MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
+            MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
             return num_recs;
         }
-        curr_state = MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
+        MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
         curr_page = next_page;
     }
     return -1;
