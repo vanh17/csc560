@@ -76,11 +76,8 @@ Status Scan::getNext(RID &rid, char *recPtr, int &recLen) {
 
 // *******************************************
 // Do all the constructor work.
-Status Scan::init(HeapFile *hf)
-{
+Status Scan::init(HeapFile *hf) {
    // initialized all neccessary variables
-   Status curr_state;
-   
    Page *temp_;
    // created new variable to hold initial hf value
    // because we will change the value later 
@@ -88,7 +85,7 @@ Status Scan::init(HeapFile *hf)
    // set dirPageID to the first page in hf
    dirPageId = hf->firstDirPageId;
    // pin the state and set curr_state to return value from pinPage function
-   curr_state = MINIBASE_BM->pinPage(dirPageId, temp_, 0, hf->fileName);
+   Status curr_state = MINIBASE_BM->pinPage(dirPageId, temp_, 0, hf->fileName);
    dirPage = reinterpret_cast<HFPage *>(temp_);
 
    // update other private variable as we finised pinning the page
@@ -109,17 +106,14 @@ Status Scan::init(HeapFile *hf)
 
 // *******************************************
 // Reset everything and unpin all pages.
-Status Scan::reset()
-{
+Status Scan::reset() {
   return OK;
 }
 
 // *******************************************
 // Copy data about first page in the file.
-Status Scan::firstDataPage()
-{
+Status Scan::firstDataPage() {
    // pin the first page if we can find it
-   Status curr_state;
    int len;
    struct DataPageInfo *temp_;
    char *temp_ptr;
@@ -127,7 +121,7 @@ Status Scan::firstDataPage()
    // set page number to the dir page id
    dataPageRid.pageNo = dirPageId;
    // get the first record of the DataPage.
-   curr_state = dirPage->firstRecord(dataPageRid);
+   Status curr_state = dirPage->firstRecord(dataPageRid);
 
    // check if there is no more to get
    if (curr_state == DONE) {
@@ -152,48 +146,49 @@ Status Scan::firstDataPage()
 
 // *******************************************
 // Retrieve the next data page.
-Status Scan::nextDataPage()
-{
+Status Scan::nextDataPage() {
+   // put your code here
+   struct DataPageInfo *temp_;
+   char *temp_ptr;
+   Page *temp_page;
+   int len;
 
-  Status currentState;
-  struct DataPageInfo *currentTempDPInfo;
-  char *currentTempRecordPtr;
-  Page *currentTempPage;
-  int len;
-
-  currentState = dirPage->nextRecord(dataPageRid, dataPageRid);
-  if (currentState == DONE)
-    return DONE;
-  currentState = dirPage->returnRecord(dataPageRid, currentTempRecordPtr, len);
-  currentTempDPInfo = reinterpret_cast<struct DataPageInfo *>(currentTempRecordPtr);
+   Status curr_state = dirPage->nextRecord(dataPageRid, dataPageRid);
+   if (curr_state == DONE) {
+      return DONE;      
+   }
+   dirPage->returnRecord(dataPageRid, temp_ptr, len);
+   temp_ = reinterpret_cast<struct DataPageInfo *>(temp_ptr);
   
-  dataPageId = currentTempDPInfo->pageId;
-  currentState = MINIBASE_BM->pinPage(dataPageId, currentTempPage, 0, _hf->fileName);
+   dataPageId = temp_->pageId;
+   MINIBASE_BM->pinPage(dataPageId, temp_page, 0, _hf->fileName);
   
-  dataPage = reinterpret_cast<HFPage *>(currentTempPage);
-  currentState = MINIBASE_BM->unpinPage(dataPageId, FALSE, _hf->fileName);
+   dataPage = reinterpret_cast<HFPage *>(temp_page);
+   MINIBASE_BM->unpinPage(dataPageId, FALSE, _hf->fileName);
   
-  return OK;
+   return OK;
 }
 
 // *******************************************
 // Retrieve the next directory page.
-Status Scan::nextDirPage()
-{
-  Status currentState;
-  PageId next_id;
+Status Scan::nextDirPage() { 
+   Page *temp_page;
+   // setting next_id to next Dir page
+   PageId curr_dir = dirPage->getNextPage();
   
-  Page *currentTempPage;
-  next_id = dirPage->getNextPage();
-  
-
-  if (next_id == -1)
-    return DONE;
-  currentState = MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
-  currentState = MINIBASE_BM->pinPage(next_id, currentTempPage, 0, _hf->fileName);
+   // if there is no next dir we are done
+   if (curr_id == -1) {
+      return DONE;
+   }
+   // now we are at the next Dir Page 
+   // unpin the old Dir Page
+   MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
+   MINIBASE_BM->pinPage(curr_dir, temp_page, 0, _hf->fileName);
  
-
-  dirPage = reinterpret_cast<HFPage *>(currentTempPage);
-  dirPageId = next_id;
-  return OK;
+   // change dirPage to new page, and set dirID to current dir
+   dirPageId = curr_dir;
+   dirPage = reinterpret_cast<HFPage *>(temp_page);
+   return OK;
 }
+
+// **************** End scan.C *****************
