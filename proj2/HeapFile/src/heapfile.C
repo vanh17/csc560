@@ -125,7 +125,7 @@ int HeapFile::getRecCnt()
             hf.returnRecord(cur_RID, t_recPtr, rec_len);
             data_page_info = reinterpret_cast<struct DataPageInfo *>(t_recPtr);
             num_recs = num_recs + data_page_info->recct;
-            hf.nextRecord(cur_RID, cur_RID);
+            curr_state = hf.nextRecord(cur_RID, cur_RID);
         }
         next_page = hf.getNextPage();
         if (next_page == -1) {
