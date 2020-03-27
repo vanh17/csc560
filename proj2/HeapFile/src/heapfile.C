@@ -194,7 +194,6 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID &outRid)
 // delete record from file
 Status HeapFile::deleteRecord(const RID &rid)
 {
-    Status curr_state;
     struct RID dirPage_rid;
 
     PageId DirPageId, DataPageId;
@@ -225,7 +224,6 @@ Status HeapFile::deleteRecord(const RID &rid)
 Status HeapFile::updateRecord(const RID &rid, char *recPtr, int recLen)
 {
     // fill in the body
-    Status currentState;
     PageId DirPageId, DataPageId;
     HFPage *DirPage, *DataPage;
 
@@ -235,18 +233,13 @@ Status HeapFile::updateRecord(const RID &rid, char *recPtr, int recLen)
     int myTempLength;
     
    
-    currentState = findDataPage(rid, DirPageId, DirPage, DataPageId, DataPage, dirPage_rid);
+    findDataPage(rid, DirPageId, DirPage, DataPageId, DataPage, dirPage_rid);
    
-    currentState = DataPage->returnRecord(rid, myTempRecPointer, myTempLength);
+    DataPage->returnRecord(rid, myTempRecPointer, myTempLength);
     if (myTempLength != recLen)
     {
-        
-        // MUSA
-       // printf("\nlen doesn't match -- M\n");
-        currentState = MINIBASE_BM->unpinPage(DataPageId, TRUE, fileName);
-        currentState = MINIBASE_BM->unpinPage(DirPageId, TRUE, fileName);
-        // currentState = MINIBASE_BM->unpinPage(DataPageId, TRUE, fileName);
-        // currentState = MINIBASE_BM->unpinPage(DirPageId, TRUE, fileName);
+        MINIBASE_BM->unpinPage(DataPageId, TRUE, fileName);
+        MINIBASE_BM->unpinPage(DirPageId, TRUE, fileName);
         MINIBASE_FIRST_ERROR(HEAPFILE, *hfErrMsgs[3]);
 
         return HEAPFILE;
@@ -255,15 +248,15 @@ Status HeapFile::updateRecord(const RID &rid, char *recPtr, int recLen)
    // printf("\nEikhane ashe nai - M\n");
     memcpy(myTempRecPointer, recPtr, recLen);
     //update the directory
-    currentState = DirPage->returnRecord(dirPage_rid, myTempRecPointer, myTempLength);
+    DirPage->returnRecord(dirPage_rid, myTempRecPointer, myTempLength);
     struct DataPageInfo *currentDPInfo = reinterpret_cast<struct DataPageInfo *>(myTempRecPointer);
 
     currentDPInfo->availspace = DataPage->available_space();
     //load back to DirPage
     memcpy(myTempRecPointer, currentDPInfo, sizeof(struct DataPageInfo));
     
-    currentState = MINIBASE_BM->unpinPage(DataPageId, TRUE, fileName);
-    currentState = MINIBASE_BM->unpinPage(DirPageId, TRUE, fileName);
+    MINIBASE_BM->unpinPage(DataPageId, TRUE, fileName);
+    MINIBASE_BM->unpinPage(DirPageId, TRUE, fileName);
 
     return OK;
 }
