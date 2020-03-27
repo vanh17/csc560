@@ -96,7 +96,7 @@ Status Scan::init(HeapFile *hf) {
    // init so scan just started set this to false
    scanIsDone = -1;
    // set everything to firstDataPage
-   curr_status = firstDataPage();
+   curr_state = firstDataPage();
    // just init nothing to scan yet.
    nxtUserStatus = -1;
    userRid.slotNo = -1;
