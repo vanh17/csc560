@@ -50,7 +50,7 @@ HeapFile::HeapFile(const char *name, Status &returnStatus) {
 HeapFile::~HeapFile() {
     // fill in the body
     // Flush all the Pages in Minipages and delte Filename
-    State curr_state
+    State curr_state;
     curr_state = MINIBASE_BM->flushAllPages();
     if (fileName == NULL)
         deleteFile();
@@ -81,8 +81,7 @@ int HeapFile::getRecCnt()
         memcpy(&hf, &(*temp_page), MY_SIZE);
         
         // check if there is no record, then move to next Dir Page
-        Status curr_state = hf.firstRecord(curr_rid); 
-        while (curr_state != DONE)
+        while (hf.firstRecord(curr_rid) != DONE)
         {
             hf.returnRecord(curr_rid, temp_ptr, temp_rec_len);
             // if there are records to be returned, update data page info
