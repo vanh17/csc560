@@ -6,6 +6,9 @@
 #ifndef BUF_H
 #define BUF_H
 
+#include "db.h"
+#include "page.h"
+#include "new_error.h"
 #include<list>
 #include<vector>
 #include<algorithm>
@@ -13,10 +16,6 @@
 #include<deque>
 #include<queue>
 #include<math.h>
-#include "db.h"
-#include "page.h"
-#include "new_error.h"
-
 #define NUMBUF 20   
 // Default number of frames, artifically small number for ease of debugging.
 
@@ -29,32 +28,10 @@
 
 // You could add more enums for internal errors in the buffer manager.
 enum bufErrCodes  {HASHMEMORY, HASHDUPLICATEINSERT, HASHREMOVEERROR, HASHNOTFOUND, QMEMORYERROR, QEMPTY, INTERNALERROR, 
-			BUFFERFULL, BUFMGRMEMORYERROR, BUFFERPAGENOTFOUND, BUFFERPAGENOTPINNED, BUFFERPAGEPINNED};
+            BUFFERFULL, BUFMGRMEMORYERROR, BUFFERPAGENOTFOUND, BUFFERPAGENOTPINNED, BUFFERPAGEPINNED};
 
-// copy this from proj1
-class HashTable{
-    friend BufMgr;
-private:
-    int a,b;
-    int Next,level;
-    int partion_flag;
-    int hashbuf;
-    typedef struct LinkList
-    {
-    int PageId;
-    int frameID;
-    }*List;
-    typedef list<LinkList> *Linkhash;
-    vector<Linkhash> hash_table;
-public:
-         HashTable(int size);
-        void hash_build(PageId PageNo,int frameNo);
-        void hash_remove(int page);
-        int hash_search(int pageID,int &frameNo);
-        void print_hash();
-        void Hash_delte();
-};
-// copy this from proj2
+class Replacer; // may not be necessary as described below in the constructor
+
 class FrameDesc {
 
   friend class BufMgr;
@@ -83,23 +60,47 @@ class FrameDesc {
     }
 };
 
-class Replacer; // may not be necessary as described below in the constructor
+
+
+class HashTable{
+
+    friend BufMgr;
+private:
+    int a,b;
+    int Next,level;
+    int partion_flag;
+    int hashbuf;
+    typedef struct LinkList
+    {
+    int PageId;
+    int frameID;
+    }*List;
+    typedef list<LinkList> *Linkhash;
+    vector<Linkhash> hash_table;
+public:
+         HashTable(int size);
+        void hash_build(PageId PageNo,int frameNo);
+        void hash_remove(int page);
+        int hash_search(int pageID,int &frameNo);
+        void print_hash();
+        void Hash_delte();
+};
+
 
 class BufMgr {
 
 private: 
    unsigned int    numBuffers;
-   FrameDesc       *bufDescr;
-   Replacer        *hash;
+   FrameDesc   *bufDescr;
+   HashTable *hash;
    // fill in this area
 public:
     Page* bufPool; // The actual buffer pool
-
     BufMgr (int numbuf, Replacer *replacer = 0); 
-   	// Initializes a buffer manager managing "numbuf" buffers.
-	// Disregard the "replacer" parameter for now. In the full 
-  	// implementation of minibase, it is a pointer to an object
-	// representing one of several buffer pool replacement schemes.
+    // Initializes a buffer manager managing "numbuf" buffers.
+    // Disregard the "replacer" parameter for now. In the full 
+    // implementation of minibase, it is a pointer to an object
+    // representing one of several buffer pool replacement schemes.
 
     ~BufMgr();           // Flush all valid dirty pages to disk
 
@@ -131,22 +132,23 @@ public:
         // Should call the write_page method of the DB class
 
     Status flushAllPages();
-	// Flush all pages of the buffer pool to disk, as per flushPage.
+    // Flush all pages of the buffer pool to disk, as per flushPage.
 
     /*** Methods for compatibility with project 1 ***/
     Status pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage, const char *filename);
-	// Should be equivalent to the above pinPage()
-	// Necessary for backward compatibility with project 1
+    // Should be equivalent to the above pinPage()
+    // Necessary for backward compatibility with project 1
 
     Status unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *filename);
-	// Should be equivalent to the above unpinPage()
-	// Necessary for backward compatibility with project 1
+    void init_frame(unsigned int  value) { numBuffers=value;};
+    // Should be equivalent to the above unpinPage()
+    // Necessary for backward compatibility with project 1
     
-    unsigned int getNumBuffers() const { return numBuffers; }
-	// Get number of buffers
+    unsigned int getNumBuffers() const { return numBuffers+1; }
+    // Get number of buffers
 
     unsigned int getNumUnpinnedBuffers();
-	// Get number of unpinned buffers
+    // Get number of unpinned buffers
 };
 
 #endif
