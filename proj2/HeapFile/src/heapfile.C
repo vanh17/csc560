@@ -1,15 +1,3 @@
-
-Skip to content
-Using University of Arizona Mail with screen readers
-Conversations
- 
-Using 5.83 GB
-Manage
-Program Policies
-Powered by Google
-Last account activity: 2 minutes ago
-Details
-
 #include "heapfile.h"
 
 // ******************************************************
@@ -606,3 +594,5 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo *dpinfop,
         }
     }
 }
+
+// *******************************************
