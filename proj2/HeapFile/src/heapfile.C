@@ -103,39 +103,37 @@ int HeapFile::getRecCnt()
     //     curr_page = next_page;
     // }
     // return -1;
-    struct DataPageInfo *temp_DataPageInfo = new struct DataPageInfo;
-    Page *t_page;                    //, *t1_page;
-    PageId curr_pageid, next_pageid; // allocDirPageId,
-    int record_count, t_recLen;
-    HFPage hfp;
-    struct RID cur_RID; //, allocDataPageRid, dirPage_rid;
+    struct DataPageInfo *data_page_info = new struct DataPageInfo;
+    Page *temp_page;
+    PageId curr_page, next_page;
+    int num_recs, rec_len;
+    HFPage hf;
+    struct RID cur_RID;
     char *t_recPtr;
-    Status state = OK;
-    curr_pageid = firstDirPageId;
-    record_count = 0;
+    Status curr_state = OK;
+    curr_page = firstDirPageId;
+    num_recs = 0;
 
     while (1)
     {
-        state = MINIBASE_BM->pinPage(curr_pageid, t_page, 0, fileName);
-        memcpy(&hfp, &(*t_page), 1024);
-        cur_RID.pageNo = curr_pageid;
-        state = hfp.firstRecord(cur_RID);
-        while (state != DONE)
+        curr_state = MINIBASE_BM->pinPage(curr_page, temp_page, 0, fileName);
+        memcpy(&hfp, &(*temp_page), 1024);
+        cur_RID.pageNo = curr_page;
+        curr_state = hf.firstRecord(cur_RID);
+        while (curr_state != DONE)
         {
-            state = hfp.returnRecord(cur_RID, t_recPtr, t_recLen);
-            temp_DataPageInfo = reinterpret_cast<struct DataPageInfo *>(t_recPtr);
-            record_count = record_count + temp_DataPageInfo->recct;
-            state = hfp.nextRecord(cur_RID, cur_RID);
+            curr_state = hf.returnRecord(cur_RID, t_recPtr, rec_len);
+            data_page_info = reinterpret_cast<struct DataPageInfo *>(t_recPtr);
+            num_recs = num_recs + data_page_info->recct;
+            curr_state = hf.nextRecord(cur_RID, cur_RID);
         }
-        //next directory page
-        next_pageid = hfp.getNextPage();
-        if (next_pageid == -1) //the page doesn't exist yet create it and than next page assignment
-        {
-            state = MINIBASE_BM->unpinPage(curr_pageid, FALSE, fileName);
+        next_page = hf.getNextPage();
+        if (next_page == -1) {
+            curr_state = MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
             return record_count;
         }
-        state = MINIBASE_BM->unpinPage(curr_pageid, FALSE, fileName);
-        curr_pageid = next_pageid;
+        curr_state = MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
+        curr_page = next_page;
     }
     return -1;
 }
