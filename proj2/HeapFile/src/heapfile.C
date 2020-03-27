@@ -22,8 +22,7 @@ static error_string_table hfTable(HEAPFILE, hfErrMsgs);
 
 // ********************************************************
 // Constructor
-HeapFile::HeapFile(const char *name, Status &returnStatus)
-{
+HeapFile::HeapFile(const char *name, Status &returnStatus) {
     // check if the HeapFile is already constructed
     if (MINIBASE_DB->get_file_entry(name, firstDirPageId) == OK) {
         // simply return nothing here and exit the function
@@ -36,6 +35,8 @@ HeapFile::HeapFile(const char *name, Status &returnStatus)
         MINIBASE_DB->get_file_entry(name, firstDirPageId);
 
         HFPage hf;
+        // before memcpy we need to init the HF page with our
+        // first Dir Page
         hf.init(firstDirPageId);
         // write it to memory
         memcpy(&(*new_page), &hf, MY_SIZE);
@@ -46,11 +47,10 @@ HeapFile::HeapFile(const char *name, Status &returnStatus)
 
 // ******************
 // Destructor
-HeapFile::~HeapFile()
-{
+HeapFile::~HeapFile() {
     // fill in the body
-    Status currentState;
-    currentState = MINIBASE_BM->flushAllPages();
+    // Flush all the Pages in Minipages and delte Filename
+    MINIBASE_BM->flushAllPages();
     if (fileName == NULL)
         deleteFile();
 }
@@ -59,44 +59,47 @@ HeapFile::~HeapFile()
 // Return number of records in heap file
 int HeapFile::getRecCnt()
 {
-    struct DataPageInfo *myDPInfo = new struct DataPageInfo;
+    struct DataPageInfo *data_page_info = new struct DataPageInfo;
     
+    // initialized local variables
+    HFPage hf;
+    Page *temp_page;   
+    char *temp_ptr;
+    int num_recs, temp_rec_len;        
+    PageId curr_page, next_page; 
+    struct RID curr_rid; 
+    curr_page = firstDirPageId;
+    num_recs = 0;
     
-    HFPage myHFpage;
-    Page *myTempPage1;           
-    PageId myCurrPageId, myNextPageId; 
-    struct RID myCurrentRid; 
-    char *myTempRecPointer;
-    int numberOfRecords, myTempRecLength;
-    Status currentState = OK;
-    
-    numberOfRecords = 0;
-    myCurrPageId = firstDirPageId;
 
 
     while (1)
     {
-        currentState = MINIBASE_BM->pinPage(myCurrPageId, myTempPage1, 0, fileName);
-        myCurrentRid.pageNo = myCurrPageId;
-        memcpy(&myHFpage, &(*myTempPage1), MY_SIZE);
+        // pin the page so that we can use it for getting Record
+        MINIBASE_BM->pinPage(curr_page, temp_page, 0, fileName);
+        curr_rid.pageNo = curr_page;
+        memcpy(&hf, &(*temp_page), MY_SIZE);
         
-        currentState = myHFpage.firstRecord(myCurrentRid);
-        while (currentState != DONE)
+        // check if there is no record, then move to next Dir Page
+        while (hf.firstRecord(curr_rid) != DONE)
         {
-            currentState = myHFpage.returnRecord(myCurrentRid, myTempRecPointer, myTempRecLength);
-            myDPInfo = reinterpret_cast<struct DataPageInfo *>(myTempRecPointer);
-            numberOfRecords = numberOfRecords + myDPInfo->recct;
-            currentState = myHFpage.nextRecord(myCurrentRid, myCurrentRid);
+            hf.returnRecord(curr_rid, temp_ptr, temp_rec_len);
+            // if there are records to be returned, update data page info
+            data_page_info = reinterpret_cast<struct DataPageInfo *>(temp_ptr);
+            num_recs = num_recs + data_page_info->recct;
+            hf.nextRecord(curr_rid, curr_rid);
         }
         
-        myNextPageId = myHFpage.getNextPage();
-        if (myNextPageId == -1) 
-        {
-            currentState = MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
-            return numberOfRecords;
+        next_page = hf.getNextPage();
+        if (next_page == -1) {
+            // unpin here so it will not fail test case 5
+            MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
+            //number of recrod ret
+            return num_recs;
         }
-        currentState = MINIBASE_BM->unpinPage(myCurrPageId, FALSE, fileName);
-        myCurrPageId = myNextPageId;
+        // after getting the record, unpin the page so it can be free
+        MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
+        curr_page = next_page;
     }
 
     return -1;
