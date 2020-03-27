@@ -38,7 +38,7 @@ HeapFile::HeapFile(const char *name, Status &returnStatus)
         HFPage hf;
         hf.init(firstDirPageId);
         // write it to memory
-        memcpy(&(*createdPage), &hf, MY_SIZE);
+        memcpy(&(*new_page), &hf, MY_SIZE);
         // unpin the page so we know that we are done with it for now
         MINIBASE_BM->unpinPage(firstDirPageId, TRUE, fileName);
     }
