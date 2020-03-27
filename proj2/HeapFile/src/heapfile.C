@@ -73,15 +73,15 @@ int HeapFile::getRecCnt()
     
 
 
-    while (1)
-    {
+    while (1) {
         // pin the page so that we can use it for getting Record
         MINIBASE_BM->pinPage(curr_page, temp_page, 0, fileName);
         curr_rid.pageNo = curr_page;
         memcpy(&hf, &(*temp_page), MY_SIZE);
         
         // check if there is no record, then move to next Dir Page
-        while (hf.firstRecord(curr_rid) != DONE)
+        Status status = hf.firstRecord(curr_rid) 
+        while (status != DONE)
         {
             hf.returnRecord(curr_rid, temp_ptr, temp_rec_len);
             // if there are records to be returned, update data page info
@@ -101,7 +101,6 @@ int HeapFile::getRecCnt()
         MINIBASE_BM->unpinPage(curr_page, FALSE, fileName);
         curr_page = next_page;
     }
-
     return -1;
 }
 
