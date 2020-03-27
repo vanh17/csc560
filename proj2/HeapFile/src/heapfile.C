@@ -294,8 +294,8 @@ Status HeapFile::deleteFile()
     // // fill in the body
     // Status curr_state = OK;
     struct DataPageInfo *myDPInfo = new struct DataPageInfo;
-    Page *temp_page, *temp_page;        
-    int numberOfRecords, temp_len;
+    Page *t1_page;        
+    int num_recs, temp_len;
 
     PageId curr_page_id, next_page_id; 
      char *temp_rec_ptr;
@@ -305,12 +305,12 @@ Status HeapFile::deleteFile()
    
     
     curr_page_id = firstDirPageId;
-    numberOfRecords = 0;
+    num_recs = 0;
     MINIBASE_BM->flushAllPages();
     while (1)
     {
-        MINIBASE_BM->pinPage(curr_page_id, temp_page, 0, fileName);
-        memcpy(&hf, &(*temp_page), MY_SIZE);
+        MINIBASE_BM->pinPage(curr_page_id, t1_page, 0, fileName);
+        memcpy(&hf, &(*t1_page), MY_SIZE);
         curr_id.pageNo = curr_page_id;
         Status curr_state = hf.firstRecord(curr_id);
         while (curr_state != DONE)
@@ -336,8 +336,8 @@ Status HeapFile::deleteFile()
     curr_page_id = firstDirPageId;
     while (1)
     {
-        MINIBASE_BM->pinPage(curr_page_id, temp_page, 0, fileName);
-        memcpy(&hf, &(*temp_page), 1024);
+        MINIBASE_BM->pinPage(curr_page_id, t1_page, 0, fileName);
+        memcpy(&hf, &(*t1_page), 1024);
         next_page_id = hf.getNextPage();
         MINIBASE_BM->freePage(curr_page_id);
         if (next_page_id == -1) {
