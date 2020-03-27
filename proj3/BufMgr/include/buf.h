@@ -9,15 +9,13 @@
 #include "db.h"
 #include "page.h"
 #include "new_error.h"
-
-// include basic C package
-#include<queue>
-#include<vector>
 #include<list>
-#include<deque>
-#include<math.h>
+#include<vector>
+#include<algorithm>
 #include<stack>
-/**************Ended including*****************/
+#include<deque>
+#include<queue>
+#include<math.h>
 #define NUMBUF 20   
 // Default number of frames, artifically small number for ease of debugging.
 

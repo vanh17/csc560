@@ -1,15 +1,15 @@
 /*****************************************************************************/
 /*************** Implementation of the Buffer Manager Layer ******************/
 /*****************************************************************************/
-// include basic C package
-#include<queue>
-#include<vector>
-#include<list>
-#include<deque>
-#include<math.h>
-#include<stack>
-/**************Ended including*****************/
+
 #include "buf.h"
+#include <list>
+#include <vector>
+#include <algorithm>
+#include <stack>
+#include <deque>
+#include <queue>
+#include <math.h>
 // Define buffer manager error messages here
 //enum bufErrCodes  {...};
 
