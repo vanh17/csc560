@@ -85,7 +85,7 @@ Status Scan::init(HeapFile *hf) {
    // set dirPageID to the first page in hf
    dirPageId = hf->firstDirPageId;
    // pin the state and set curr_state to return value from pinPage function
-   Status curr_state = MINIBASE_BM->pinPage(dirPageId, temp_, 0, hf->fileName);
+   MINIBASE_BM->pinPage(dirPageId, temp_, 0, hf->fileName);
    dirPage = reinterpret_cast<HFPage *>(temp_);
 
    // update other private variable as we finised pinning the page
@@ -177,7 +177,7 @@ Status Scan::nextDirPage() {
    PageId curr_dir = dirPage->getNextPage();
   
    // if there is no next dir we are done
-   if (curr_id == -1) {
+   if (curr_dir == -1) {
       return DONE;
    }
    // now we are at the next Dir Page 
