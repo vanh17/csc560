@@ -19,6 +19,17 @@
 #include<queue>
 #include<algorithm>
 /*******************End Package including***************************/
+#define NUMBUF 20   
+// Default number of frames, artifically small number for ease of debugging.
+
+#define BuckSize 2
+// Default size of the bucket
+#define HTSIZE 7
+// Hash Table size
+
+#define INT_MAX 4294967200
+// define largest integer for storage calcualtion
+
 /***************Global Variables**********************************/
 typedef struct LinkList
 {
@@ -26,8 +37,6 @@ typedef struct LinkList
   int frameID;
 } * List;
 typedef list<LinkList> *Linkhash;
-#define INT_MAX 4294967200
-#define BuckSize 2
 vector<Linkhash> hash_table(8, NULL);
 int a = 1, b = 0;
 int Next = 0, level = 2;
@@ -44,12 +53,6 @@ queue<int> Loved_Frame;
 vector<int> copy_stack;
 int flag_buf_full;
 /*****************************End Global Variables Declaration*****************/
-#define NUMBUF 20   
-// Default number of frames, artifically small number for ease of debugging.
-
-#define HTSIZE 7
-// Hash Table size
-
 
 /*****************************************************************/
 
