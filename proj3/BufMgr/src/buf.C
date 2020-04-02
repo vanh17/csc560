@@ -18,10 +18,6 @@ stack<int> Hated_Frame;
 // the copy 
 vector<int> copy_stack;
 int flag_buf_full;
-void Hash_delte();
-void hash_build(PageId PageNo, int frameNo);
-// void hash_remove(int page);
-int hash_search(int pageID, int &frameNo);
 /************************************************************/
 // Define buffer manager error messages here
 //enum bufErrCodes  {...};
