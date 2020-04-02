@@ -44,16 +44,13 @@ enum bufErrCodes  {HASHMEMORY, HASHDUPLICATEINSERT, HASHREMOVEERROR, HASHNOTFOUN
             BUFFERFULL, BUFMGRMEMORYERROR, BUFFERPAGENOTFOUND, BUFFERPAGENOTPINNED, BUFFERPAGEPINNED};
 
 class FrameDesc {
-
     friend class BufMgr;
-
         // to make sure the page is clean to unpin
         bool is_clean;
         // keep track if the pageNo is Invalid or not
         int pageNo; 
         //number of pin of the frame
-        unsigned int num_pin;  
-
+        unsigned int num_pin; 
         // constructor of FramDesc
         FrameDesc() {
             pageNo  = INVALID_PAGE;
@@ -65,7 +62,6 @@ class FrameDesc {
 class Replacer; // may not be necessary as described below in the constructor
 // HashTable Defnition 
 class HashTable{
-
     friend BufMgr;
         int a,b;
         int Next,level;
@@ -78,9 +74,11 @@ class HashTable{
 class BufMgr {
 
     private: 
-        unsigned int    numBuffers;
-        FrameDesc   *bufDescr;
-        // HashTable *hash;
+        unsigned int numBuffers;
+        // private variable to hold current frame for BufMgr
+        FrameDesc *bufFrame;
+        // hash table holder for this BufMgr
+        HashTable *hash_table_holder;
     public:
         Page* bufPool; // The actual buffer pool
         BufMgr (int numbuf, Replacer *replacer = 0); 
