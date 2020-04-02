@@ -33,16 +33,6 @@
 /****** Global Type ********************************/
 typedef struct LL {int frameID; int PageId;} * List;
 typedef list<LL> *HL;
-vector<HL> hash_table(8, NULL);
-int a = 1, b = 0;
-int Next = 0, level = 2;
-int partion_flag = 1;
-int hashbuf = HTSIZE + 1;
-vector<PageId> disk_page;
-stack<int> Hated_Frame;
-queue<int> Loved_Frame;
-vector<int> copy_stack;
-int flag_buf_full;
 /*****************************End Global Variables Declaration*****************/
 
 /*****************************************************************/
@@ -73,7 +63,7 @@ class Replacer; // may not be necessary as described below in the constructor
 // HashTable Defnition 
 class HashTable{
     friend BufMgr;
-        int a,b;
+        int next_ptr_value, prev_ptr_value;
         int Next,level;
         int partion_flag;
         int hashbuf;
