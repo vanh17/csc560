@@ -42,7 +42,184 @@ static error_string_table bufTable(BUFMGR, bufErrMsgs);
 //*************************************************************
 //** This is the implementation of BufMgr
 //************************************************************
+/**************************Global Helpers Definition*****************************/
+void hash_build(PageId PageNo, int frameNo) {
 
+  int Max_next = BuckSize * pow(2, level) - 1; // N*Pow(2,level)  number of Buck times two over level equal total current hash length above overflow page
+  int index = PageNo % hashbuf;      //get  key
+  LL frame;                              // pair<pageid, frameid> structure
+  frame.PageId = PageNo;
+  frame.frameID = frameNo;
+
+  if (!hash_table[index]) // no buck , insert
+  {
+    list<LL> *buck = new list<LL>;
+    buck->push_back(frame);
+    hash_table[index] = buck; // point to the buck
+  }
+  else // have buck, jude how many
+  {
+
+    list<LL> *buck = hash_table[index];
+    if (buck->size() < BuckSize) // less than bucksize
+      buck->push_back(frame);    // insert into the buck
+    else                         // bigger , overflow or partiion
+    {
+      if (partion_flag || Max_next == Next)
+      {
+        if (Max_next == Next)
+        {
+          level++;
+          hashbuf = 2 * hashbuf;
+        } // parition when next equal to Max_next
+        hash_table.resize(2 * (hashbuf), NULL);
+        partion_flag = 0; // first parition flag
+      }
+      // Added doubled_hashbuf April 2nd, 2020
+      int doubled_hashbuf = hashbuf * 2;
+      int hash_size = doubled_hashbuf;               // double length of hash table
+      int index1 = (PageNo) % hash_size; // find new index for insert record
+      int partion_index;
+      list<LL>::iterator it = buck->begin();
+      if (index1 <= Next) // if index less than next, parition
+      {
+        int overflow = 0;
+        while (it != buck->end())
+        {
+          //  cout<<"pade id "<<(*it).PageId<<endl;
+          partion_index = (*it).PageId;
+          partion_index = (partion_index) % hash_size; // find new index for insert record
+          if (index != partion_index)                          // if not the same , insert into new buck
+          {
+            LL frame1;
+            frame1.PageId = (*it).PageId;
+            frame1.frameID = (*it).frameID;
+            if (!hash_table[partion_index]) // no buck ,create a buck ,point to it
+            {
+              list<LL> *buck1 = new list<LL>;
+              buck1->push_back(frame1);
+              hash_table[partion_index] = buck1;
+            }
+            else
+              hash_table[partion_index]->push_back(frame1); // have buck , insert
+            it = buck->erase(it);                           // delete copy
+            overflow = 1;                                   // parition flag ,if all index is the same , then overflow
+          }
+
+          it++;
+        }
+
+        if (!hash_table[index1]) // find new index for new insert reocrd
+        {
+          list<LL> *buck2 = new list<LL>;
+          buck2->push_back(frame);
+          hash_table[index1] = buck2;
+        }
+        else
+          hash_table[index1]->push_back(frame);
+        if (!overflow) // no overflow ++
+          Next++;      // next move
+      }
+      else
+      {
+        buck->push_back(frame); // overflow
+      }
+    }
+  }
+}
+
+// global function defnition
+void hash_remove(int pageNo)
+{
+  int index = (pageNo) % hashbuf;     //key    find in the no partion page
+  list<LL> *buck = hash_table[index]; // get the buck
+  list<LL>::iterator it = buck->begin();
+  while (it != buck->end()) // find the element and remove it
+  {
+    if ((*it).PageId == pageNo)
+    {
+      buck->erase(it);
+      return;
+    }
+    it++;
+  }
+  // Added doubled_hashbuf April 2nd, 2020
+  int doubled_hashbuf = hashbuf * 2;
+  index = (pageNo) % (doubled_hashbuf); //key , find in the parition pages or overflow pages
+  if (index <= hash_table.size())
+  {
+    buck = hash_table[index];
+    it = buck->begin();
+    while (it != buck->end()) // find and delete
+    {
+      if ((*it).PageId == pageNo)
+      {
+        buck->erase(it);
+        break;
+      }
+      it++;
+    }
+  }
+}
+
+// search within the hash table to find the page we need 
+// this function will take frameID and pageID to better 
+// find the doc we need
+int hash_search(int pageID, int &frameNo)
+{
+  int index = (pageID) % hashbuf; //key  find in the no partion page
+  if (!hash_table[index])
+    return 0;
+  list<LL> *buck = hash_table[index];
+  list<LL>::iterator it = buck->begin();
+  while (it != buck->end())
+  {
+    if ((*it).PageId == pageID)
+    {
+      frameNo = (*it).frameID;
+      return 1;
+    }
+    it++;
+  }
+  // Added doubled_hashbuf April 2nd, 2020
+  int doubled_hashbuf = 2 * hashbuf;
+  index = (pageID) % (doubled_hashbuf); //key
+  if (index <= hash_table.size())           //key , find in the parition pages or overflow pages
+  {
+    if (!hash_table[index])
+      return 0;
+    buck = hash_table[index];
+    it = buck->begin();
+    while (it != buck->end())
+    {
+      if ((*it).PageId == pageID)
+      {
+        frameNo = (*it).frameID;
+        return 1;
+      }
+      it++;
+    }
+  }
+  return 0;
+};
+
+// delete the hastable we create and set everything back to their initial value
+void Hash_delte() {
+  for (int index = 0; index < hash_table.size(); index++)
+  {
+    if (!hash_table[index])
+      continue;
+    list<LL> *buck = hash_table[index];
+    hash_table[index] = NULL;
+    buck->~list<LL>();
+  }
+  Next = 0;
+  level = 2;
+  partion_flag = 1;
+  hashbuf = HTSIZE + 1;
+  // hash_table(7,NULL);
+}
+/************************************End Global Helpers Definition***********************/
 BufMgr::BufMgr(int numbuf, Replacer *replacer)
 {
 
@@ -426,32 +603,28 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
     this->bufFrame[frame].num_pin++;
     page = &this->bufPool[frame];
   }
-  else
-    cout << "can not pin this page  " << endl;
-         else if(!hash_search(PageId_in_a_DB,frame))
-          {
-             cout<<"max test"<<"pageid="<<PageId_in_a_DB<<endl;
-               Page *replace=new Page();
-              Status buf_read=MINIBASE_DB->read_page(PageId_in_a_DB,replace);
+  else if(!hash_search(PageId_in_a_DB,frame)) {
+    cout<<"max test"<<"pageid="<<PageId_in_a_DB<<endl;
+    Page *replace=new Page();
+    Status buf_read=MINIBASE_DB->read_page(PageId_in_a_DB,replace);
 
-            this->numBuffers++;
-            page=&this->bufPool[this->numBuffers];
-            memcpy(&this->bufPool[this->numBuffers],replace,sizeof(Page));
-            this->bufFrame[this->numBuffers].pageNo=PageId_in_a_DB;
-            this->bufFrame[this->numBuffers].num_pin++;
-            this->bufFrame[this->numBuffers].is_clean=false;
-            hash_build(PageId_in_a_DB,this->numBuffers); 
-          }
-         else 
-         {
-          //  this->numBuffers++;
-             page=&this->bufPool[frame];      // allocate into buf
-            this->bufFrame[frame].pageNo=PageId_in_a_DB;
-            this->bufFrame[frame].num_pin++;
-            this->bufFrame[frame].is_clean=false;
-           // hash_build(PageId_in_a_DB,this->numBuffers);   // insert into hash table
-         }
-  //put your code here
+    this->numBuffers++;
+    page=&this->bufPool[this->numBuffers];
+    memcpy(&this->bufPool[this->numBuffers],replace,sizeof(Page));
+    this->bufFrame[this->numBuffers].pageNo=PageId_in_a_DB;
+    this->bufFrame[this->numBuffers].num_pin++;
+    this->bufFrame[this->numBuffers].is_clean=false;
+    hash_build(PageId_in_a_DB,this->numBuffers); 
+  }
+  else {
+    page=&this->bufPool[frame];      // allocate into buf
+    this->bufFrame[frame].pageNo=PageId_in_a_DB;
+    // hash_build(PageId_in_a_DB,this->numBuffers);   // insert into hash table
+    this->bufFrame[frame].num_pin++;
+    //  this->numBuffers++;
+    this->bufFrame[frame].is_clean=false;
+    
+  }
   return OK;
 }
 
@@ -506,182 +679,4 @@ unsigned int BufMgr::getNumUnpinnedBuffers()
   }
   //put your code here
   return count;
-}
-
-/**************************Global Helpers Definition*****************************/
-void hash_build(PageId PageNo, int frameNo) {
-
-  int Max_next = BuckSize * pow(2, level) - 1; // N*Pow(2,level)  number of Buck times two over level equal total current hash length above overflow page
-  int index = PageNo % hashbuf;      //get  key
-  LL frame;                              // pair<pageid, frameid> structure
-  frame.PageId = PageNo;
-  frame.frameID = frameNo;
-
-  if (!hash_table[index]) // no buck , insert
-  {
-    list<LL> *buck = new list<LL>;
-    buck->push_back(frame);
-    hash_table[index] = buck; // point to the buck
-  }
-  else // have buck, jude how many
-  {
-
-    list<LL> *buck = hash_table[index];
-    if (buck->size() < BuckSize) // less than bucksize
-      buck->push_back(frame);    // insert into the buck
-    else                         // bigger , overflow or partiion
-    {
-      if (partion_flag || Max_next == Next)
-      {
-        if (Max_next == Next)
-        {
-          level++;
-          hashbuf = 2 * hashbuf;
-        } // parition when next equal to Max_next
-        hash_table.resize(2 * (hashbuf), NULL);
-        partion_flag = 0; // first parition flag
-      }
-      // Added doubled_hashbuf April 2nd, 2020
-      int doubled_hashbuf = hashbuf * 2;
-      int hash_size = doubled_hashbuf;               // double length of hash table
-      int index1 = (PageNo) % hash_size; // find new index for insert record
-      int partion_index;
-      list<LL>::iterator it = buck->begin();
-      if (index1 <= Next) // if index less than next, parition
-      {
-        int overflow = 0;
-        while (it != buck->end())
-        {
-          //  cout<<"pade id "<<(*it).PageId<<endl;
-          partion_index = (*it).PageId;
-          partion_index = (partion_index) % hash_size; // find new index for insert record
-          if (index != partion_index)                          // if not the same , insert into new buck
-          {
-            LL frame1;
-            frame1.PageId = (*it).PageId;
-            frame1.frameID = (*it).frameID;
-            if (!hash_table[partion_index]) // no buck ,create a buck ,point to it
-            {
-              list<LL> *buck1 = new list<LL>;
-              buck1->push_back(frame1);
-              hash_table[partion_index] = buck1;
-            }
-            else
-              hash_table[partion_index]->push_back(frame1); // have buck , insert
-            it = buck->erase(it);                           // delete copy
-            overflow = 1;                                   // parition flag ,if all index is the same , then overflow
-          }
-
-          it++;
-        }
-
-        if (!hash_table[index1]) // find new index for new insert reocrd
-        {
-          list<LL> *buck2 = new list<LL>;
-          buck2->push_back(frame);
-          hash_table[index1] = buck2;
-        }
-        else
-          hash_table[index1]->push_back(frame);
-        if (!overflow) // no overflow ++
-          Next++;      // next move
-      }
-      else
-      {
-        buck->push_back(frame); // overflow
-      }
-    }
-  }
-}
-
-// global function defnition
-void hash_remove(int pageNo)
-{
-  int index = (pageNo) % hashbuf;     //key    find in the no partion page
-  list<LL> *buck = hash_table[index]; // get the buck
-  list<LL>::iterator it = buck->begin();
-  while (it != buck->end()) // find the element and remove it
-  {
-    if ((*it).PageId == pageNo)
-    {
-      buck->erase(it);
-      return;
-    }
-    it++;
-  }
-  // Added doubled_hashbuf April 2nd, 2020
-  int doubled_hashbuf = hashbuf * 2;
-  index = (pageNo) % (doubled_hashbuf); //key , find in the parition pages or overflow pages
-  if (index <= hash_table.size())
-  {
-    buck = hash_table[index];
-    it = buck->begin();
-    while (it != buck->end()) // find and delete
-    {
-      if ((*it).PageId == pageNo)
-      {
-        buck->erase(it);
-        break;
-      }
-      it++;
-    }
-  }
-}
-
-// search within the hash table to find the page we need 
-// this function will take frameID and pageID to better 
-// find the doc we need
-int hash_search(int pageID, int &frameNo)
-{
-  int index = (pageID) % hashbuf; //key  find in the no partion page
-  if (!hash_table[index])
-    return 0;
-  list<LL> *buck = hash_table[index];
-  list<LL>::iterator it = buck->begin();
-  while (it != buck->end())
-  {
-    if ((*it).PageId == pageID)
-    {
-      frameNo = (*it).frameID;
-      return 1;
-    }
-    it++;
-  }
-  // Added doubled_hashbuf April 2nd, 2020
-  int doubled_hashbuf = 2 * hashbuf;
-  index = (pageID) % (doubled_hashbuf); //key
-  if (index <= hash_table.size())           //key , find in the parition pages or overflow pages
-  {
-    if (!hash_table[index])
-      return 0;
-    buck = hash_table[index];
-    it = buck->begin();
-    while (it != buck->end())
-    {
-      if ((*it).PageId == pageID)
-      {
-        frameNo = (*it).frameID;
-        return 1;
-      }
-      it++;
-    }
-  }
-  return 0;
-};
-
-// delete the hastable we create and set everything back to their initial value
-void Hash_delte() {
-  for (int index = 0; index < hash_table.size(); index++)
-  {
-    if (!hash_table[index])
-      continue;
-    list<LL> *buck = hash_table[index];
-    hash_table[index] = NULL;
-    buck->~list<LL>();
-  }
-  Next = 0;
-  level = 2;
-  partion_flag = 1;
-  hashbuf = HTSIZE + 1;
-  // hash_table(7,NULL);
 }
