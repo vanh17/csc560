@@ -47,7 +47,7 @@ static error_string_table bufTable(BUFMGR, bufErrMsgs);
 void hash_build(PageId PageNo, int frameNo) {
 
   // max_pages can be stored in this Frame
-  int max_pages = pow(2, depth) * 2 - 1; 
+  int max_page = pow(2, depth) * 2 - 1; 
   int index = PageNo % hash_size;      //get  key
   LL frame;                              // pair<pageid, frameid> structure
   frame.PageId = PageNo;
