@@ -4,12 +4,6 @@
 #include "buf.h"
 
 /***************Global Variables******************************/
-
-void hash_build(PageId PageNo, int frameNo);
-void hash_remove(int page);
-int hash_search(int pageID, int &frameNo);
-void print_hash();
-void Hash_delte();
 int a = 1, b = 0;
 int Next = 0, level = 2;
 int partion_flag = 1;
@@ -19,6 +13,11 @@ stack<int> Hated_Frame;
 queue<int> Loved_Frame;
 vector<int> copy_stack;
 int flag_buf_full;
+void hash_build(PageId PageNo, int frameNo);
+void hash_remove(int page);
+int hash_search(int pageID, int &frameNo);
+void print_hash();
+void Hash_delte();
 /************************************************************/
 // Define buffer manager error messages here
 //enum bufErrCodes  {...};
