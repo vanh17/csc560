@@ -53,25 +53,25 @@ class FrameDesc {
     private:
         // variable to show if the page is clean to move on to the next stage
         bool is_clean;
-        // The pin count for the page in this frame
-        unsigned int pin_cnt;  
+        // The number of pins in this frame
+        unsigned int num_pin;  
         // page No so we know if it is a valid page or invalid page
         int    pageNo;
 
 
         FrameDesc() {
             pageNo  = INVALID_PAGE;
-            pin_cnt = 0;
+            num_pin = 0;
         }
 
         ~FrameDesc() {}
 
     public:
-        int pin_count() { return(pin_cnt); }
-        int pin() { return(++pin_cnt); }
+        int pin_count() { return(num_pin); }
+        int pin() { return(++num_pin); }
         int unpin() {
-            pin_cnt = (pin_cnt <= 0) ? 0 : pin_cnt - 1;
-            return(pin_cnt);
+            num_pin = (num_pin <= 0) ? 0 : num_pin - 1;
+            return(num_pin);
         }
 };
 // HashTable Defnition 
