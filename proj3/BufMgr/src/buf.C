@@ -658,8 +658,6 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
   else
     cout << "can not pin this page  " << endl;
 
-    //   print_hash();
-
 #endif
 
 #if 0
