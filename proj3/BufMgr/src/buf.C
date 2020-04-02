@@ -4,12 +4,7 @@
 #include "buf.h"
 
 /***************Global Variables******************************/
-typedef struct LinkList
-{
-  int PageId;
-  int frameID;
-} * List;
-typedef list<LinkList> *Linkhash;
+
 vector<Linkhash> hash_table(8, NULL);
 int a = 1, b = 0;
 int Next = 0, level = 2;

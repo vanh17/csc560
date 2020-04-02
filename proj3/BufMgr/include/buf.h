@@ -30,6 +30,13 @@
 #define INT_MAX 4294967200
 // define largest integer for storage calcualtion
 
+/****** Global Type ********************************/
+typedef struct LinkList
+{
+  int PageId;
+  int frameID;
+} * List;
+typedef list<LinkList> *Linkhash;
 /*****************************End Global Variables Declaration*****************/
 
 /*****************************************************************/
