@@ -10,11 +10,11 @@ vector<HL> hash_table(8, NULL);
 //size of a buffer hash table
 unsigned int hash_size = HTSIZE + partion_id;
 // Loved Frame holder
-queue<int> Loved_Frame;
+queue<int> loved_queue;
 // disk holder
 vector<PageId> disk_page;
 // Hated Frame holder
-stack<int> Hated_Frame;
+stack<int> hated_stack;
 // the copy 
 vector<int> copy_stack;
 int flag_buf_full;
@@ -228,10 +228,10 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer)
   this->bufFrame = BufDesript;
   this->numBuffers = -1; // init 0   it from biggest number ++ become 0
                          //   cout<<"bufmgr "<<this->numBuffers<<endl;
-  while (!Hated_Frame.empty())
-    Hated_Frame.pop();
-  while (!Loved_Frame.empty())
-    Loved_Frame.pop();
+  while (!hated_stack.empty())
+    hated_stack.pop();
+  while (!loved_queue.empty())
+    loved_queue.pop();
   Hash_delte();
   init_frame(-1);
   flag_buf_full = 0;
@@ -279,16 +279,16 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
   if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers == (NUMBUF - 1)) //page  not in the buf pool and buf pool full
   {
     int i = 0;
-    if (!Hated_Frame.empty()) // love and hate replace policy
+    if (!hated_stack.empty()) // love and hate replace policy
     {
-      i = Hated_Frame.top(); //MRU.  use stack
-      Hated_Frame.pop();
+      i = hated_stack.top(); //MRU.  use stack
+      hated_stack.pop();
     }
-    else if (!Loved_Frame.empty())
+    else if (!loved_queue.empty())
     {
 
-      i = Loved_Frame.front(); // LRU   use queue
-      Loved_Frame.pop();
+      i = loved_queue.front(); // LRU   use queue
+      loved_queue.pop();
     }
     if (this->bufFrame[i].is_clean == true) // if it is dirty , write to disk
     {
@@ -319,7 +319,6 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
     }
 
     hash_build(PageId_in_a_DB, i); // insert new page record into hash table
-                                   //               flag_buf_full=1;
   }
   else if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1) || this->numBuffers > INT_MAX) // page not in the buf pool, not full
   {
@@ -378,11 +377,11 @@ Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE)
     {
       if (hate == FALSE)
       {
-        Loved_Frame.push(frameid);
+        loved_queue.push(frameid);
       } // hata and love replace policy
       else
       {
-        Hated_Frame.push(frameid);
+        hated_stack.push(frameid);
       }
     }
     //   cout<<"unpin a page  pageid="<<page_num<<endl;
@@ -527,19 +526,19 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
   {
 
     int i;
-    //    cout<<"size of hate "<<Hated_Frame.size()<<endl;
-    if (!Hated_Frame.empty())
+    //    cout<<"size of hate "<<hated_stack.size()<<endl;
+    if (!hated_stack.empty())
     {
-      i = Hated_Frame.top(); // file pin and unpin all use Hate replace policy
-                             //     cout<<"size of hate "<<Hated_Frame.size()<<" i="<<i<<endl;
-      Hated_Frame.pop();
+      i = hated_stack.top(); // file pin and unpin all use Hate replace policy
+                             //     cout<<"size of hate "<<hated_stack.size()<<" i="<<i<<endl;
+      hated_stack.pop();
       copy_stack.erase(copy_stack.end() - 1); // use a copy stack for search frame no in order to not let same frame to push into stack
     }
-    else if (!Loved_Frame.empty()) // miss love policy , no any paremeter indicate love may be in the future test case
+    else if (!loved_queue.empty()) // miss love policy , no any paremeter indicate love may be in the future test case
     {
 
-      i = Loved_Frame.front();
-      Loved_Frame.pop();
+      i = loved_queue.front();
+      loved_queue.pop();
     }
     // following code same as above pin function
     if (this->bufFrame[i].is_clean == true)
@@ -645,7 +644,7 @@ Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *fil
     this->bufFrame[frameid].num_pin--;
     if (this->bufFrame[frameid].num_pin == 0 && find(copy_stack.begin(), copy_stack.end(), frameid) == copy_stack.end())
     {
-      Hated_Frame.push(frameid);     // Hate policy
+      hated_stack.push(frameid);     // Hate policy
       copy_stack.push_back(frameid); // copy a stack for seach
     }
     //    cout<<"unpin file "<<globalPageId_in_a_DB<<" num_pin"<<this->bufFrame[frameid].num_pin<<endl;
