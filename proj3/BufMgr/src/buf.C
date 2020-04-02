@@ -4,10 +4,9 @@
 #include "buf.h"
 
 /***************Global Variables******************************/
+unsigned int next_id = 0, depth = 2, partion_id = 1;
+//Global Hash table to hold the key and pair value.
 vector<HL> hash_table(8, NULL);
-unsigned int next_id = 0
-unsigned depth = 2;
-unsigned int partion_id = 1;
 unsigned int hashbuf = HTSIZE + partion_id;
 vector<PageId> disk_page;
 stack<int> Hated_Frame;
