@@ -5,9 +5,10 @@
 
 /***************Global Variables******************************/
 vector<HL> hash_table(8, NULL);
-int  = 0, level = 2;
-int partion_flag = 1;
-int hashbuf = HTSIZE + 1;
+unsigned int next_id = 0
+unsigned depth = 2;
+unsigned int partion_id = 1;
+unsigned int hashbuf = HTSIZE + partion_id;
 vector<PageId> disk_page;
 stack<int> Hated_Frame;
 queue<int> Loved_Frame;
@@ -45,7 +46,7 @@ static error_string_table bufTable(BUFMGR, bufErrMsgs);
 /**************************Global Helpers Definition*****************************/
 void hash_build(PageId PageNo, int frameNo) {
 
-  int Max_next = BuckSize * pow(2, level) - 1; // N*Pow(2,level)  number of Buck times two over level equal total current hash length above overflow page
+  int Max_next = BuckSize * pow(2, depth) - 1; // N*Pow(2,depth)  number of Buck times two over depth equal total current hash length above overflow page
   int index = PageNo % hashbuf;      //get  key
   LL frame;                              // pair<pageid, frameid> structure
   frame.PageId = PageNo;
@@ -65,15 +66,15 @@ void hash_build(PageId PageNo, int frameNo) {
       buck->push_back(frame);    // insert into the buck
     else                         // bigger , overflow or partiion
     {
-      if (partion_flag || Max_next == next_id)
+      if (partion_id || Max_next == next_id)
       {
         if (Max_next == next_id)
         {
-          level++;
+          depth++;
           hashbuf = 2 * hashbuf;
         } // parition when next equal to Max_next
         hash_table.resize(2 * (hashbuf), NULL);
-        partion_flag = 0; // first parition flag
+        partion_id = 0; // first parition flag
       }
       // Added doubled_hashbuf April 2nd, 2020
       int doubled_hashbuf = hashbuf * 2;
@@ -214,8 +215,8 @@ void Hash_delte() {
     buck->~list<LL>();
   }
   next_id = 0;
-  level = 2;
-  partion_flag = 1;
+  depth = 2;
+  partion_id = 1;
   hashbuf = HTSIZE + 1;
   // hash_table(7,NULL);
 }
