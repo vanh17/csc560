@@ -43,8 +43,6 @@ typedef list<LL> *HL;
 enum bufErrCodes  {HASHMEMORY, HASHDUPLICATEINSERT, HASHREMOVEERROR, HASHNOTFOUND, QMEMORYERROR, QEMPTY, INTERNALERROR, 
             BUFFERFULL, BUFMGRMEMORYERROR, BUFFERPAGENOTFOUND, BUFFERPAGENOTPINNED, BUFFERPAGEPINNED};
 
-class Replacer; // may not be necessary as described below in the constructor
-
 class FrameDesc {
 
     friend class BufMgr;
@@ -57,14 +55,15 @@ class FrameDesc {
         //number of pin of the frame
         unsigned int num_pin;  
 
-
+        // constructor of FramDesc
         FrameDesc() {
             pageNo  = INVALID_PAGE;
             num_pin = 0;
         }
-
+        // Deconstruct the instance so that we wont have overflow 
         ~FrameDesc() {}
 };
+class Replacer; // may not be necessary as described below in the constructor
 // HashTable Defnition 
 class HashTable{
 
@@ -75,13 +74,6 @@ class HashTable{
         int partion_flag;
         int hashbuf;
         vector<HL> hash_table;
-    public:
-        HashTable(int size);
-        void hash_build(PageId PageNo,int frameNo);
-        void hash_remove(int page);
-        int hash_search(int pageID,int &frameNo);
-        void print_hash();
-        void Hash_delte();
 };
 
 
@@ -90,7 +82,7 @@ class BufMgr {
     private: 
         unsigned int    numBuffers;
         FrameDesc   *bufDescr;
-        HashTable *hash;
+        // HashTable *hash;
     public:
         Page* bufPool; // The actual buffer pool
         BufMgr (int numbuf, Replacer *replacer = 0); 
