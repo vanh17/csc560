@@ -80,15 +80,15 @@ BufMgr::~BufMgr()
   int i = 0;
   while (i <= this->numBuffers)
   {
-    if (this->bufDescr[i].is_clean == true)
+    if (this->bufDescr[i].dirtybit == true)
     {
       //   cout<<"write page to disk"<<endl;
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
-      Status buf_write = MINIBASE_DB->write_page(this->bufDescr[i].page_id, replace); //write disk
-      disk_page.push_back(this->bufDescr[i].num_pin);
+      Status buf_write = MINIBASE_DB->write_page(this->bufDescr[i].pageNo, replace); //write disk
+      disk_page.push_back(this->bufDescr[i].pageNo);
       if (buf_write != OK)
-        cout << "Error: write buf page " << this->bufDescr[i].page_id << "into to disk" << endl;
+        cout << "Error: write buf page " << this->bufDescr[i].pageNo << "into to disk" << endl;
     }
     i++;
   }
@@ -117,17 +117,17 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       i = Loved_Frame.front(); // LRU   use queue
       Loved_Frame.pop();
     }
-    if (this->bufDescr[i].is_clean == true) // if it is dirty , write to disk
+    if (this->bufDescr[i].dirtybit == true) // if it is dirty , write to disk
     {
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
-      Status buf_write = MINIBASE_DB->write_page(this->bufDescr[i].page_id, replace); //write disk
+      Status buf_write = MINIBASE_DB->write_page(this->bufDescr[i].pageNo, replace); //write disk
       disk_page.push_back(PageId_in_a_DB);
       if (buf_write != OK)
-        cout << "Error: write buf page " << this->bufDescr[i].page_id << "into to disk" << endl;
+        cout << "Error: write buf page " << this->bufDescr[i].pageNo << "into to disk" << endl;
     }
 
-    hash_remove(this->bufDescr[i].page_id); // remove from hash table
+    hash_remove(this->bufDescr[i].pageNo); // remove from hash table
 
     Page *replace = new Page();
     Status buf_read = MINIBASE_DB->read_page(PageId_in_a_DB, replace); // read page from disk , copy it to the buf pool
@@ -135,9 +135,14 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
     {
       memcpy(&this->bufPool[i], replace, sizeof(Page));
       page = &this->bufPool[i];
-      this->bufDescr[i].page_id = PageId_in_a_DB;
+      this->bufDescr[i].pageNo = PageId_in_a_DB;
+<<<<<<< HEAD
       this->bufDescr[i].num_pin = 1;
       this->bufDescr[i].is_clean = false;
+=======
+      this->bufDescr[i].pin_cnt = 1;
+      this->bufDescr[i].dirtybit = false;
+>>>>>>> parent of 3bec71e... Finished move include and Global declaration
     }
     else
     {
@@ -158,9 +163,14 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       this->numBuffers++;
       memcpy(&this->bufPool[this->numBuffers], replace, sizeof(Page));
       page = &this->bufPool[this->numBuffers]; // allocate into buf
-      this->bufDescr[this->numBuffers].page_id = PageId_in_a_DB;
+      this->bufDescr[this->numBuffers].pageNo = PageId_in_a_DB;
+<<<<<<< HEAD
       this->bufDescr[this->numBuffers].num_pin++;
       this->bufDescr[this->numBuffers].is_clean = false;
+=======
+      this->bufDescr[this->numBuffers].pin_cnt++;
+      this->bufDescr[this->numBuffers].dirtybit = false;
+>>>>>>> parent of 3bec71e... Finished move include and Global declaration
       hash_build(PageId_in_a_DB, this->numBuffers); // insert new page record into hash table
       if (this->numBuffers == (NUMBUF - 1))
         flag_buf_full = 1; // buf pool full
@@ -172,9 +182,14 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       return FAIL;
       /*   this->numBuffers++;
               page=&this->bufPool[this->numBuffers];      // allocate into buf
-             this->bufDescr[this->numBuffers].page_id=PageId_in_a_DB;
+             this->bufDescr[this->numBuffers].pageNo=PageId_in_a_DB;
+<<<<<<< HEAD
              this->bufDescr[this->numBuffers].num_pin++;
              this->bufDescr[this->numBuffers].is_clean=false;
+=======
+             this->bufDescr[this->numBuffers].pin_cnt++;
+             this->bufDescr[this->numBuffers].dirtybit=false;
+>>>>>>> parent of 3bec71e... Finished move include and Global declaration
               hash_build(PageId_in_a_DB,this->numBuffers);   // insert
               */
     }
@@ -422,10 +437,17 @@ Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE)
     if (this->bufDescr[frameid].num_pin == 0)
     {
       return FAIL;
+<<<<<<< HEAD
     } // can not pin a page which num_pin=0
     this->bufDescr[frameid].num_pin--;
     this->bufDescr[frameid].is_clean = dirty;
     if (this->bufDescr[frameid].num_pin == 0)
+=======
+    } // can not pin a page which pin_cnt=0
+    this->bufDescr[frameid].pin_cnt--;
+    this->bufDescr[frameid].dirtybit = dirty;
+    if (this->bufDescr[frameid].pin_cnt == 0)
+>>>>>>> parent of 3bec71e... Finished move include and Global declaration
     {
       if (hate == FALSE)
       {
@@ -526,7 +548,7 @@ Status BufMgr::flushPage(PageId pageid)
     disk_page.push_back(pageid);
     if (buf_write != OK)
     {
-      cout << "Error: write buf page " << this->bufDescr[frameid].page_id << "into to disk" << endl;
+      cout << "Error: write buf page " << this->bufDescr[frameid].pageNo << "into to disk" << endl;
       return FAIL;
     }
   }
@@ -550,15 +572,15 @@ Status BufMgr::flushAllPages()
     this->numBuffers++; // avoid numBuffers init value which always biggest int number from my test
   while (i <= this->numBuffers)
   {
-    if (this->bufDescr[i].is_clean == true)
+    if (this->bufDescr[i].dirtybit == true)
     {
       //   cout<<"write page to disk"<<endl;
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
-      Status buf_write = MINIBASE_DB->write_page(this->bufDescr[i].num_pin, replace); //write disk
-      disk_page.push_back(this->bufDescr[i].num_pin);
+      Status buf_write = MINIBASE_DB->write_page(this->bufDescr[i].pageNo, replace); //write disk
+      disk_page.push_back(this->bufDescr[i].pageNo);
       if (buf_write != OK)
-        cout << "Error: write buf page " << this->bufDescr[i].num_pin << "into to disk" << endl;
+        cout << "Error: write buf page " << this->bufDescr[i].pageNo << "into to disk" << endl;
     }
     i++;
   }
@@ -596,26 +618,31 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       Loved_Frame.pop();
     }
     // following code same as above pin function
-    if (this->bufDescr[i].is_clean == true)
+    if (this->bufDescr[i].dirtybit == true)
     {
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
-      Status buf_write = MINIBASE_DB->write_page(this->bufDescr[i].num_pin, replace); //write disk
+      Status buf_write = MINIBASE_DB->write_page(this->bufDescr[i].pageNo, replace); //write disk
       disk_page.push_back(PageId_in_a_DB);
       if (buf_write != OK)
-        cout << "Error: write buf page " << this->bufDescr[i].num_pin << "into to disk" << endl;
+        cout << "Error: write buf page " << this->bufDescr[i].pageNo << "into to disk" << endl;
     }
 
-    hash_remove(this->bufDescr[i].num_pin); // remove from hash table
+    hash_remove(this->bufDescr[i].pageNo); // remove from hash table
     Page *replace = new Page();
     Status buf_read = MINIBASE_DB->read_page(PageId_in_a_DB, replace);
     if (buf_read == OK)
     {
       memcpy(&this->bufPool[i], replace, sizeof(Page));
       page = &this->bufPool[i];
-      this->bufDescr[i].num_pin = PageId_in_a_DB;
+      this->bufDescr[i].pageNo = PageId_in_a_DB;
+<<<<<<< HEAD
       this->bufDescr[i].num_pin = 1;
       this->bufDescr[i].is_clean = false;
+=======
+      this->bufDescr[i].pin_cnt = 1;
+      this->bufDescr[i].dirtybit = false;
+>>>>>>> parent of 3bec71e... Finished move include and Global declaration
     }
     else
     {
@@ -638,9 +665,14 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       if (emptyPage) // if it is a empty page , do not need to copy it from the disk
         memcpy(&this->bufPool[this->numBuffers], replace, sizeof(Page));
       page = &this->bufPool[this->numBuffers]; // allocate into buf
-      this->bufDescr[this->numBuffers].num_pin = PageId_in_a_DB;
+      this->bufDescr[this->numBuffers].pageNo = PageId_in_a_DB;
+<<<<<<< HEAD
       this->bufDescr[this->numBuffers].num_pin++;
       this->bufDescr[this->numBuffers].is_clean = false;
+=======
+      this->bufDescr[this->numBuffers].pin_cnt++;
+      this->bufDescr[this->numBuffers].dirtybit = false;
+>>>>>>> parent of 3bec71e... Finished move include and Global declaration
       hash_build(PageId_in_a_DB, this->numBuffers); // insert into hash table
                                                     // cout<<"page "<<PageId_in_a_DB<<" num_pin "<<this->bufDescr[this->numBuffers].num_pin<<endl;
       if (this->numBuffers == (NUMBUF - 1))
@@ -675,18 +707,28 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
             this->numBuffers++;
             page=&this->bufPool[this->numBuffers];
             memcpy(&this->bufPool[this->numBuffers],replace,sizeof(Page));
-            this->bufDescr[this->numBuffers].num_pin=PageId_in_a_DB;
+            this->bufDescr[this->numBuffers].pageNo=PageId_in_a_DB;
+<<<<<<< HEAD
             this->bufDescr[this->numBuffers].num_pin++;
             this->bufDescr[this->numBuffers].is_clean=false;
+=======
+            this->bufDescr[this->numBuffers].pin_cnt++;
+            this->bufDescr[this->numBuffers].dirtybit=false;
+>>>>>>> parent of 3bec71e... Finished move include and Global declaration
             hash_build(PageId_in_a_DB,this->numBuffers); 
           }
          else 
          {
           //  this->numBuffers++;
              page=&this->bufPool[frame];      // allocate into buf
-            this->bufDescr[frame].page_id_id=PageId_in_a_DB;
+            this->bufDescr[frame].pageNo=PageId_in_a_DB;
+<<<<<<< HEAD
             this->bufDescr[frame].num_pin++;
             this->bufDescr[frame].is_clean=false;
+=======
+            this->bufDescr[frame].pin_cnt++;
+            this->bufDescr[frame].dirtybit=false;
+>>>>>>> parent of 3bec71e... Finished move include and Global declaration
            // hash_build(PageId_in_a_DB,this->numBuffers);   // insert into hash table
          }
 #endif

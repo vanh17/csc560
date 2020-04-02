@@ -21,12 +21,10 @@
 /*******************End Package including***************************/
 #define NUMBUF 20   
 // Default number of frames, artifically small number for ease of debugging.
-
 #define BuckSize 2
 // Default size of the bucket
 #define HTSIZE 7
 // Hash Table size
-
 #define INT_MAX 4294967200
 // define largest integer for storage calcualtion
 
@@ -47,21 +45,28 @@ class Replacer; // may not be necessary as described below in the constructor
 
 class FrameDesc {
 
-    // friend of BufMgr so that we can call it within BufMgr
     friend class BufMgr;
 
     private:
+<<<<<<< HEAD
         // variable to show if the page is clean to move on to the next stage
         bool is_clean;
-        // The number of pins in this frame
+        // The pin count for the page in this frame
         unsigned int num_pin;  
         // page No so we know if it is a valid page or invalid page
-        int page_id;
+        int    pageNo;
+=======
+        int    pageNo;     // the page within file, or INVALID_PAGE if
+                       // the frame is empty.
+
+        unsigned int pin_cnt;  // The pin count for the page in this frame
+        bool dirtybit;
+>>>>>>> parent of 3bec71e... Finished move include and Global declaration
 
 
         FrameDesc() {
+            pageNo  = INVALID_PAGE;
             num_pin = 0;
-            page_id = INVALID_PAGE;
         }
 
         ~FrameDesc() {}
