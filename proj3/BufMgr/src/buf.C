@@ -204,20 +204,20 @@ void hash_build(PageId PageNo, int frameNo)
 
   int Max_next = BuckSize * pow(2, level) - 1; // N*Pow(2,level)  number of Buck times two over level equal total current hash length above overflow page
   int index = (a * PageNo + b) % hashbuf;      //get  key
-  LinkList frame;                              // pair<pageid, frameid> structure
+  LL frame;                              // pair<pageid, frameid> structure
   frame.PageId = PageNo;
   frame.frameID = frameNo;
 
   if (!hash_table[index]) // no buck , insert
   {
-    list<LinkList> *buck = new list<LinkList>;
+    list<LL> *buck = new list<LL>;
     buck->push_back(frame);
     hash_table[index] = buck; // point to the buck
   }
   else // have buck, jude how many
   {
 
-    list<LinkList> *buck = hash_table[index];
+    list<LL> *buck = hash_table[index];
     if (buck->size() < BuckSize) // less than bucksize
       buck->push_back(frame);    // insert into the buck
     else                         // bigger , overflow or partiion
@@ -235,7 +235,7 @@ void hash_build(PageId PageNo, int frameNo)
       int hash_size = (hashbuf)*2;               // double length of hash table
       int index1 = (a * PageNo + b) % hash_size; // find new index for insert record
       int partion_index;
-      list<LinkList>::iterator it = buck->begin();
+      list<LL>::iterator it = buck->begin();
       if (index1 <= Next) // if index less than next, parition
       {
         int overflow = 0;
@@ -246,12 +246,12 @@ void hash_build(PageId PageNo, int frameNo)
           partion_index = (a * partion_index + b) % hash_size; // find new index for insert record
           if (index != partion_index)                          // if not the same , insert into new buck
           {
-            LinkList frame1;
+            LL frame1;
             frame1.PageId = (*it).PageId;
             frame1.frameID = (*it).frameID;
             if (!hash_table[partion_index]) // no buck ,create a buck ,point to it
             {
-              list<LinkList> *buck1 = new list<LinkList>;
+              list<LL> *buck1 = new list<LL>;
               buck1->push_back(frame1);
               hash_table[partion_index] = buck1;
             }
@@ -266,7 +266,7 @@ void hash_build(PageId PageNo, int frameNo)
 
         if (!hash_table[index1]) // find new index for new insert reocrd
         {
-          list<LinkList> *buck2 = new list<LinkList>;
+          list<LL> *buck2 = new list<LL>;
           buck2->push_back(frame);
           hash_table[index1] = buck2;
         }
@@ -296,11 +296,11 @@ void print_hash()
 
     if (hash_table[i]) // no null , have buck
     {
-      list<LinkList> *buck = hash_table[i];
+      list<LL> *buck = hash_table[i];
       if (!hash_table[i])
         return;
       cout << "hash key  " << i << endl;
-      list<LinkList>::iterator it = buck->begin();
+      list<LL>::iterator it = buck->begin();
       while (it != buck->end())
       {
         cout << "  page id=" << (*it).PageId << endl;
@@ -318,8 +318,8 @@ Return: void
 void hash_remove(int page)
 {
   int index = (a * page + b) % hashbuf;     //key    find in the no partion page
-  list<LinkList> *buck = hash_table[index]; // get the buck
-  list<LinkList>::iterator it = buck->begin();
+  list<LL> *buck = hash_table[index]; // get the buck
+  list<LL>::iterator it = buck->begin();
   while (it != buck->end()) // find the element and remove it
   {
     if ((*it).PageId == page)
@@ -358,8 +358,8 @@ int hash_search(int pageID, int &frameNo)
   int index = (a * pageID + b) % hashbuf; //key  find in the no partion page
   if (!hash_table[index])
     return 0;
-  list<LinkList> *buck = hash_table[index];
-  list<LinkList>::iterator it = buck->begin();
+  list<LL> *buck = hash_table[index];
+  list<LL>::iterator it = buck->begin();
   while (it != buck->end())
   {
     if ((*it).PageId == pageID)
@@ -398,9 +398,9 @@ void Hash_delte()
   {
     if (!hash_table[index])
       continue;
-    list<LinkList> *buck = hash_table[index];
+    list<LL> *buck = hash_table[index];
     hash_table[index] = NULL;
-    buck->~list<LinkList>();
+    buck->~list<LL>();
   }
   Next = 0;
   level = 2;
