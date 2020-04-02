@@ -37,6 +37,12 @@ typedef struct LinkList
   int frameID;
 } * List;
 typedef list<LinkList> *Linkhash;
+vector<Linkhash> hash_table(8, NULL);
+void hash_build(PageId PageNo, int frameNo);
+void hash_remove(int page);
+int hash_search(int pageID, int &frameNo);
+void print_hash();
+void Hash_delte();
 /*****************************End Global Variables Declaration*****************/
 
 /*****************************************************************/

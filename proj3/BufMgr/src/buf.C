@@ -5,16 +5,11 @@
 
 /***************Global Variables******************************/
 
-vector<Linkhash> hash_table(8, NULL);
+
 int a = 1, b = 0;
 int Next = 0, level = 2;
 int partion_flag = 1;
 int hashbuf = HTSIZE + 1;
-void hash_build(PageId PageNo, int frameNo);
-void hash_remove(int page);
-int hash_search(int pageID, int &frameNo);
-void print_hash();
-void Hash_delte();
 vector<PageId> disk_page;
 stack<int> Hated_Frame;
 queue<int> Loved_Frame;
