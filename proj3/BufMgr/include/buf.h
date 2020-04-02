@@ -31,14 +31,6 @@
 // define largest integer for storage calcualtion
 
 /****** Global Type ********************************/
-typedef struct LinkList
-{
-  int PageId;
-  int frameID;
-} * List;
-typedef list<LinkList> *Linkhash;
-vector<Linkhash> hash_table(8, NULL);
-
 /*****************************End Global Variables Declaration*****************/
 
 /*****************************************************************/
