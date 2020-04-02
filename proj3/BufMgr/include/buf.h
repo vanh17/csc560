@@ -64,10 +64,10 @@ class Replacer; // may not be necessary as described below in the constructor
 class HashTable{
     friend BufMgr;
         int next_ptr_value, prev_ptr_value;
-        int Next,level;
-        int partion_flag;
-        int hashbuf;
         vector<HL> hash_table;
+        int hash_buffer_size;
+        int next_id,level_id;
+        int partion_id;
 };
 
 
