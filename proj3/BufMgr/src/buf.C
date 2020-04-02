@@ -5,7 +5,7 @@
 
 /***************Global Variables******************************/
 vector<HL> hash_table(8, NULL);
-int Next = 0, level = 2;
+int  = 0, level = 2;
 int partion_flag = 1;
 int hashbuf = HTSIZE + 1;
 vector<PageId> disk_page;
@@ -65,9 +65,9 @@ void hash_build(PageId PageNo, int frameNo) {
       buck->push_back(frame);    // insert into the buck
     else                         // bigger , overflow or partiion
     {
-      if (partion_flag || Max_next == Next)
+      if (partion_flag || Max_next == next_id)
       {
-        if (Max_next == Next)
+        if (Max_next == next_id)
         {
           level++;
           hashbuf = 2 * hashbuf;
@@ -81,7 +81,7 @@ void hash_build(PageId PageNo, int frameNo) {
       int index1 = (PageNo) % hash_size; // find new index for insert record
       int partion_index;
       list<LL>::iterator it = buck->begin();
-      if (index1 <= Next) // if index less than next, parition
+      if (index1 <= next_id) // if index less than next, parition
       {
         int overflow = 0;
         while (it != buck->end())
@@ -118,7 +118,7 @@ void hash_build(PageId PageNo, int frameNo) {
         else
           hash_table[index1]->push_back(frame);
         if (!overflow) // no overflow ++
-          Next++;      // next move
+          next_id++;      // next move
       }
       else
       {
@@ -213,7 +213,7 @@ void Hash_delte() {
     hash_table[index] = NULL;
     buck->~list<LL>();
   }
-  Next = 0;
+  next_id = 0;
   level = 2;
   partion_flag = 1;
   hashbuf = HTSIZE + 1;
