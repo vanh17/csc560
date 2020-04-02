@@ -85,10 +85,10 @@ BufMgr::~BufMgr()
       //   cout<<"write page to disk"<<endl;
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
-      Status buf_write = MINIBASE_DB->write_page(this->bufDescr[i].page, replace); //write disk
+      Status buf_write = MINIBASE_DB->write_page(this->bufDescr[i].page_id, replace); //write disk
       disk_page.push_back(this->bufDescr[i].num_pin);
       if (buf_write != OK)
-        cout << "Error: write buf page " << this->bufDescr[i].page << "into to disk" << endl;
+        cout << "Error: write buf page " << this->bufDescr[i].page_id << "into to disk" << endl;
     }
     i++;
   }
@@ -121,13 +121,13 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
     {
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
-      Status buf_write = MINIBASE_DB->write_page(this->bufDescr[i].page, replace); //write disk
+      Status buf_write = MINIBASE_DB->write_page(this->bufDescr[i].page_id, replace); //write disk
       disk_page.push_back(PageId_in_a_DB);
       if (buf_write != OK)
-        cout << "Error: write buf page " << this->bufDescr[i].page << "into to disk" << endl;
+        cout << "Error: write buf page " << this->bufDescr[i].page_id << "into to disk" << endl;
     }
 
-    hash_remove(this->bufDescr[i].page); // remove from hash table
+    hash_remove(this->bufDescr[i].page_id); // remove from hash table
 
     Page *replace = new Page();
     Status buf_read = MINIBASE_DB->read_page(PageId_in_a_DB, replace); // read page from disk , copy it to the buf pool
@@ -135,7 +135,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
     {
       memcpy(&this->bufPool[i], replace, sizeof(Page));
       page = &this->bufPool[i];
-      this->bufDescr[i].page = PageId_in_a_DB;
+      this->bufDescr[i].page_id = PageId_in_a_DB;
       this->bufDescr[i].num_pin = 1;
       this->bufDescr[i].is_clean = false;
     }
@@ -158,7 +158,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       this->numBuffers++;
       memcpy(&this->bufPool[this->numBuffers], replace, sizeof(Page));
       page = &this->bufPool[this->numBuffers]; // allocate into buf
-      this->bufDescr[this->numBuffers].page = PageId_in_a_DB;
+      this->bufDescr[this->numBuffers].page_id = PageId_in_a_DB;
       this->bufDescr[this->numBuffers].num_pin++;
       this->bufDescr[this->numBuffers].is_clean = false;
       hash_build(PageId_in_a_DB, this->numBuffers); // insert new page record into hash table
@@ -172,7 +172,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       return FAIL;
       /*   this->numBuffers++;
               page=&this->bufPool[this->numBuffers];      // allocate into buf
-             this->bufDescr[this->numBuffers].page=PageId_in_a_DB;
+             this->bufDescr[this->numBuffers].page_id=PageId_in_a_DB;
              this->bufDescr[this->numBuffers].num_pin++;
              this->bufDescr[this->numBuffers].is_clean=false;
               hash_build(PageId_in_a_DB,this->numBuffers);   // insert
@@ -526,7 +526,7 @@ Status BufMgr::flushPage(PageId pageid)
     disk_page.push_back(pageid);
     if (buf_write != OK)
     {
-      cout << "Error: write buf page " << this->bufDescr[frameid].page << "into to disk" << endl;
+      cout << "Error: write buf page " << this->bufDescr[frameid].page_id << "into to disk" << endl;
       return FAIL;
     }
   }
@@ -684,7 +684,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
          {
           //  this->numBuffers++;
              page=&this->bufPool[frame];      // allocate into buf
-            this->bufDescr[frame].page=PageId_in_a_DB;
+            this->bufDescr[frame].page_id_id=PageId_in_a_DB;
             this->bufDescr[frame].num_pin++;
             this->bufDescr[frame].is_clean=false;
            // hash_build(PageId_in_a_DB,this->numBuffers);   // insert into hash table

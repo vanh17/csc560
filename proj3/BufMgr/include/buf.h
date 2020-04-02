@@ -56,12 +56,12 @@ class FrameDesc {
         // The number of pins in this frame
         unsigned int num_pin;  
         // page No so we know if it is a valid page or invalid page
-        int page;
+        int page_id;
 
 
         FrameDesc() {
             num_pin = 0;
-            page  = INVALID_PAGE;
+            page_id = INVALID_PAGE;
         }
 
         ~FrameDesc() {}
