@@ -30,28 +30,6 @@
 #define INT_MAX 4294967200
 // define largest integer for storage calcualtion
 
-/***************Global Variables**********************************/
-typedef struct LinkList
-{
-  int PageId;
-  int frameID;
-} * List;
-typedef list<LinkList> *Linkhash;
-vector<Linkhash> hash_table(8, NULL);
-int a = 1, b = 0;
-int Next = 0, level = 2;
-int partion_flag = 1;
-int hashbuf = HTSIZE + 1;
-void hash_build(PageId PageNo, int frameNo);
-void hash_remove(int page);
-int hash_search(int pageID, int &frameNo);
-void print_hash();
-void Hash_delte();
-vector<PageId> disk_page;
-stack<int> Hated_Frame;
-queue<int> Loved_Frame;
-vector<int> copy_stack;
-int flag_buf_full;
 /*****************************End Global Variables Declaration*****************/
 
 /*****************************************************************/
