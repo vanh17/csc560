@@ -224,7 +224,7 @@ void hash_build(PageId PageNo, int frameNo)
         hash_table.resize(2 * (hashbuf), NULL);
         partion_flag = 0; // first parition flag
       }
-      doubled_hashbuf = hashbuf * 2;
+      int doubled_hashbuf = hashbuf * 2;
       int hash_size = doubled_hashbuf;               // double length of hash table
       int index1 = (PageNo) % hash_size; // find new index for insert record
       int partion_index;
@@ -295,7 +295,7 @@ void hash_remove(int pageNo)
     }
     it++;
   }
-  doubled_hashbuf = hashbuf * 2;
+  int doubled_hashbuf = hashbuf * 2;
   index = (pageNo) % (doubled_hashbuf); //key , find in the parition pages or overflow pages
   if (index <= hash_table.size())
   {
@@ -335,7 +335,7 @@ int hash_search(int pageID, int &frameNo)
     }
     it++;
   }
-  doubled_hashbuf = 2 * hashbuf;
+  int doubled_hashbuf = 2 * hashbuf;
   index = (pageID) % (doubled_hashbuf); //key
   if (index <= hash_table.size())           //key , find in the parition pages or overflow pages
   {
