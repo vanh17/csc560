@@ -15,7 +15,7 @@ vector<int> copy_stack;
 int flag_buf_full;
 void Hash_delte();
 void hash_build(PageId PageNo, int frameNo);
-void hash_remove(int page);
+// void hash_remove(int page);
 int hash_search(int pageID, int &frameNo);
 /************************************************************/
 // Define buffer manager error messages here
@@ -282,38 +282,7 @@ Paremeter: page number
 Author: xing yuan
 Return: void
 */
-void hash_remove(int pageNo)
-{
-  int index = (pageNo) % hashbuf;     //key    find in the no partion page
-  list<LL> *buck = hash_table[index]; // get the buck
-  list<LL>::iterator it = buck->begin();
-  while (it != buck->end()) // find the element and remove it
-  {
-    if ((*it).PageId == pageNo)
-    {
-      buck->erase(it);
-      return;
-    }
-    it++;
-  }
-  // Added doubled_hashbuf April 2nd, 2020
-  int doubled_hashbuf = hashbuf * 2;
-  index = (pageNo) % (doubled_hashbuf); //key , find in the parition pages or overflow pages
-  if (index <= hash_table.size())
-  {
-    buck = hash_table[index];
-    it = buck->begin();
-    while (it != buck->end()) // find and delete
-    {
-      if ((*it).PageId == pageNo)
-      {
-        buck->erase(it);
-        break;
-      }
-      it++;
-    }
-  }
-}
+
 /*
 Function: find a frame number from hash table
 Paremeter: pageid  page number ,  frameNo output vaules - frame number

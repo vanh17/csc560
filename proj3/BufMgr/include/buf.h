@@ -136,4 +136,37 @@ class BufMgr {
         // Get number of unpinned buffers
 };
 
+// global function defnition
+void hash_remove(int pageNo)
+{
+  int index = (pageNo) % hashbuf;     //key    find in the no partion page
+  list<LL> *buck = hash_table[index]; // get the buck
+  list<LL>::iterator it = buck->begin();
+  while (it != buck->end()) // find the element and remove it
+  {
+    if ((*it).PageId == pageNo)
+    {
+      buck->erase(it);
+      return;
+    }
+    it++;
+  }
+  // Added doubled_hashbuf April 2nd, 2020
+  int doubled_hashbuf = hashbuf * 2;
+  index = (pageNo) % (doubled_hashbuf); //key , find in the parition pages or overflow pages
+  if (index <= hash_table.size())
+  {
+    buck = hash_table[index];
+    it = buck->begin();
+    while (it != buck->end()) // find and delete
+    {
+      if ((*it).PageId == pageNo)
+      {
+        buck->erase(it);
+        break;
+      }
+      it++;
+    }
+  }
+}
 #endif
