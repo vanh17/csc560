@@ -15,11 +15,10 @@ stack<int> Hated_Frame;
 queue<int> Loved_Frame;
 vector<int> copy_stack;
 int flag_buf_full;
+void Hash_delte();
 void hash_build(PageId PageNo, int frameNo);
 void hash_remove(int page);
 int hash_search(int pageID, int &frameNo);
-void print_hash();
-void Hash_delte();
 /************************************************************/
 // Define buffer manager error messages here
 //enum bufErrCodes  {...};
@@ -186,8 +185,6 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
   }
   else
     cout << "can not pin this page  " << endl;
-
-  //   print_hash();
   // put your code here
   return OK;
 } //end pinPage
@@ -278,33 +275,6 @@ void hash_build(PageId PageNo, int frameNo)
       else
       {
         buck->push_back(frame); // overflow
-      }
-    }
-  }
-}
-/*
-Function: print whole hash table by key
-Paremeter: no
-return: no
-Author: xing yuan
-*/
-void print_hash()
-{
-  cout << "size of hash buf " << hashbuf << " size of  hash" << hash_table.size() << "next =" << Next << endl;
-  for (int i = 0; i < hash_table.size(); i++)
-  {
-
-    if (hash_table[i]) // no null , have buck
-    {
-      list<LL> *buck = hash_table[i];
-      if (!hash_table[i])
-        return;
-      cout << "hash key  " << i << endl;
-      list<LL>::iterator it = buck->begin();
-      while (it != buck->end())
-      {
-        cout << "  page id=" << (*it).PageId << endl;
-        it++;
       }
     }
   }
