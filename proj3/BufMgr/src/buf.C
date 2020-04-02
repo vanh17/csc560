@@ -393,7 +393,6 @@ Functiomn: clear hash table , destory buck
 */
 void Hash_delte()
 {
-#if 1
   for (int index = 0; index < hash_table.size(); index++)
   {
     if (!hash_table[index])
@@ -406,8 +405,6 @@ void Hash_delte()
   level = 2;
   partion_flag = 1;
   hashbuf = HTSIZE + 1;
-#endif
-
   // hash_table(7,NULL);
 }
 //*************************************************************
