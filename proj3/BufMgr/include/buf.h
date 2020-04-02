@@ -47,7 +47,6 @@ class FrameDesc {
 
     friend class BufMgr;
 
-    private:
         // to make sure the page is clean to unpin
         bool is_clean;
         // keep track if the pageNo is Invalid or not
@@ -68,7 +67,6 @@ class Replacer; // may not be necessary as described below in the constructor
 class HashTable{
 
     friend BufMgr;
-    private:
         int a,b;
         int Next,level;
         int partion_flag;
