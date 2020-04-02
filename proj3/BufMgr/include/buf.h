@@ -31,6 +31,12 @@
 // define largest integer for storage calcualtion
 
 /****** Global Type ********************************/
+typedef struct LinkList
+{
+  int PageId;
+  int frameID;
+} * List;
+typedef list<LinkList> *Linkhash;
 /*****************************End Global Variables Declaration*****************/
 
 /*****************************************************************/
