@@ -9,45 +9,20 @@
 #include "db.h"
 #include "page.h"
 #include "new_error.h"
-/************Include C basic package**********/
 #include<list>
+#include<vector>
+#include<algorithm>
 #include<stack>
 #include<deque>
-#include<algorithm>
 #include<queue>
-#include<vector>
 #include<math.h>
-#define NUMBUF 20  
-/***************** End Include**************/ 
+#define NUMBUF 20   
 // Default number of frames, artifically small number for ease of debugging.
 
 #define HTSIZE 7
 // Hash Table size
 
-/***** Global Variables ************/
-typedef struct LL {
-  int PageId;
-  int frameID;
-} * List;
-typedef list<LL> *Linkhash;
-#define INT_MAX 4294967200
-#define BuckSize 2
-vector<Linkhash> hash_table(8, NULL);
-int a = 1, b = 0;
-int Next = 0, level = 2;
-int partion_flag = 1;
-int hashbuf = HTSIZE + 1;
-void hash_build(PageId PageNo, int frameNo);
-void hash_remove(int page);
-int hash_search(int pageID, int &frameNo);
-void print_hash();
-void Hash_delte();
-vector<PageId> disk_page;
-stack<int> Hated_Frame;
-queue<int> Loved_Frame;
-vector<int> copy_stack;
-int flag_buf_full;
-/****************** End Global variable *****************
+
 
 /*******************ALL BELOW are purely local to buffer Manager********/
 
@@ -95,12 +70,12 @@ private:
     int Next,level;
     int partion_flag;
     int hashbuf;
-    typedef struct LL
+    typedef struct LinkList
     {
     int PageId;
     int frameID;
     }*List;
-    typedef list<LL> *Linkhash;
+    typedef list<LinkList> *Linkhash;
     vector<Linkhash> hash_table;
 public:
          HashTable(int size);
@@ -121,12 +96,11 @@ private:
    // fill in this area
 public:
     Page* bufPool; // The actual buffer pool
-
     BufMgr (int numbuf, Replacer *replacer = 0); 
-        // Initializes a buffer manager managing "numbuf" buffers.
-        // Disregard the "replacer" parameter for now. In the full 
-        // implementation of minibase, it is a pointer to an object
-        // representing one of several buffer pool replacement schemes.
+    // Initializes a buffer manager managing "numbuf" buffers.
+    // Disregard the "replacer" parameter for now. In the full 
+    // implementation of minibase, it is a pointer to an object
+    // representing one of several buffer pool replacement schemes.
 
     ~BufMgr();           // Flush all valid dirty pages to disk
 
@@ -158,22 +132,23 @@ public:
         // Should call the write_page method of the DB class
 
     Status flushAllPages();
-        // Flush all pages of the buffer pool to disk, as per flushPage.
+    // Flush all pages of the buffer pool to disk, as per flushPage.
 
     /*** Methods for compatibility with project 1 ***/
     Status pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage, const char *filename);
-        // Should be equivalent to the above pinPage()
-        // Necessary for backward compatibility with project 1
+    // Should be equivalent to the above pinPage()
+    // Necessary for backward compatibility with project 1
 
     Status unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *filename);
-        // Should be equivalent to the above unpinPage()
-        // Necessary for backward compatibility with project 1
+    void init_frame(unsigned int  value) { numBuffers=value;};
+    // Should be equivalent to the above unpinPage()
+    // Necessary for backward compatibility with project 1
     
     unsigned int getNumBuffers() const { return numBuffers+1; }
-        // Get number of buffers
+    // Get number of buffers
 
     unsigned int getNumUnpinnedBuffers();
-        // Get number of unpinned buffers
+    // Get number of unpinned buffers
 };
 
 #endif
