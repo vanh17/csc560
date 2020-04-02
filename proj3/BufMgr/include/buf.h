@@ -47,14 +47,16 @@ class Replacer; // may not be necessary as described below in the constructor
 
 class FrameDesc {
 
+    // friend of BufMgr so that we can call it within BufMgr
     friend class BufMgr;
 
     private:
-        int    pageNo;     // the page within file, or INVALID_PAGE if
-                       // the frame is empty.
-
-        unsigned int pin_cnt;  // The pin count for the page in this frame
-        bool dirtybit;
+        // variable to show if the page is clean to move on to the next stage
+        bool is_clean;
+        // The pin count for the page in this frame
+        unsigned int pin_cnt;  
+        // page No so we know if it is a valid page or invalid page
+        int    pageNo;
 
 
         FrameDesc() {

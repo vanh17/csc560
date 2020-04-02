@@ -80,7 +80,7 @@ BufMgr::~BufMgr()
   int i = 0;
   while (i <= this->numBuffers)
   {
-    if (this->bufDescr[i].dirtybit == true)
+    if (this->bufDescr[i].is_clean == true)
     {
       //   cout<<"write page to disk"<<endl;
       Page *replace = new Page();
@@ -117,7 +117,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       i = Loved_Frame.front(); // LRU   use queue
       Loved_Frame.pop();
     }
-    if (this->bufDescr[i].dirtybit == true) // if it is dirty , write to disk
+    if (this->bufDescr[i].is_clean == true) // if it is dirty , write to disk
     {
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
@@ -137,7 +137,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       page = &this->bufPool[i];
       this->bufDescr[i].pageNo = PageId_in_a_DB;
       this->bufDescr[i].pin_cnt = 1;
-      this->bufDescr[i].dirtybit = false;
+      this->bufDescr[i].is_clean = false;
     }
     else
     {
@@ -160,7 +160,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       page = &this->bufPool[this->numBuffers]; // allocate into buf
       this->bufDescr[this->numBuffers].pageNo = PageId_in_a_DB;
       this->bufDescr[this->numBuffers].pin_cnt++;
-      this->bufDescr[this->numBuffers].dirtybit = false;
+      this->bufDescr[this->numBuffers].is_clean = false;
       hash_build(PageId_in_a_DB, this->numBuffers); // insert new page record into hash table
       if (this->numBuffers == (NUMBUF - 1))
         flag_buf_full = 1; // buf pool full
@@ -174,7 +174,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
               page=&this->bufPool[this->numBuffers];      // allocate into buf
              this->bufDescr[this->numBuffers].pageNo=PageId_in_a_DB;
              this->bufDescr[this->numBuffers].pin_cnt++;
-             this->bufDescr[this->numBuffers].dirtybit=false;
+             this->bufDescr[this->numBuffers].is_clean=false;
               hash_build(PageId_in_a_DB,this->numBuffers);   // insert
               */
     }
@@ -424,7 +424,7 @@ Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE)
       return FAIL;
     } // can not pin a page which pin_cnt=0
     this->bufDescr[frameid].pin_cnt--;
-    this->bufDescr[frameid].dirtybit = dirty;
+    this->bufDescr[frameid].is_clean = dirty;
     if (this->bufDescr[frameid].pin_cnt == 0)
     {
       if (hate == FALSE)
@@ -550,7 +550,7 @@ Status BufMgr::flushAllPages()
     this->numBuffers++; // avoid numBuffers init value which always biggest int number from my test
   while (i <= this->numBuffers)
   {
-    if (this->bufDescr[i].dirtybit == true)
+    if (this->bufDescr[i].is_clean == true)
     {
       //   cout<<"write page to disk"<<endl;
       Page *replace = new Page();
@@ -596,7 +596,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       Loved_Frame.pop();
     }
     // following code same as above pin function
-    if (this->bufDescr[i].dirtybit == true)
+    if (this->bufDescr[i].is_clean == true)
     {
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
@@ -615,7 +615,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       page = &this->bufPool[i];
       this->bufDescr[i].pageNo = PageId_in_a_DB;
       this->bufDescr[i].pin_cnt = 1;
-      this->bufDescr[i].dirtybit = false;
+      this->bufDescr[i].is_clean = false;
     }
     else
     {
@@ -640,7 +640,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       page = &this->bufPool[this->numBuffers]; // allocate into buf
       this->bufDescr[this->numBuffers].pageNo = PageId_in_a_DB;
       this->bufDescr[this->numBuffers].pin_cnt++;
-      this->bufDescr[this->numBuffers].dirtybit = false;
+      this->bufDescr[this->numBuffers].is_clean = false;
       hash_build(PageId_in_a_DB, this->numBuffers); // insert into hash table
                                                     // cout<<"page "<<PageId_in_a_DB<<" pin_cnt "<<this->bufDescr[this->numBuffers].pin_cnt<<endl;
       if (this->numBuffers == (NUMBUF - 1))
@@ -677,7 +677,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
             memcpy(&this->bufPool[this->numBuffers],replace,sizeof(Page));
             this->bufDescr[this->numBuffers].pageNo=PageId_in_a_DB;
             this->bufDescr[this->numBuffers].pin_cnt++;
-            this->bufDescr[this->numBuffers].dirtybit=false;
+            this->bufDescr[this->numBuffers].is_clean=false;
             hash_build(PageId_in_a_DB,this->numBuffers); 
           }
          else 
@@ -686,7 +686,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
              page=&this->bufPool[frame];      // allocate into buf
             this->bufDescr[frame].pageNo=PageId_in_a_DB;
             this->bufDescr[frame].pin_cnt++;
-            this->bufDescr[frame].dirtybit=false;
+            this->bufDescr[frame].is_clean=false;
            // hash_build(PageId_in_a_DB,this->numBuffers);   // insert into hash table
          }
 #endif
