@@ -46,7 +46,8 @@ static error_string_table bufTable(BUFMGR, bufErrMsgs);
 /**************************Global Helpers Definition*****************************/
 void hash_build(PageId PageNo, int frameNo) {
 
-  int Max_next = BuckSize * pow(2, depth) - 1; // N*Pow(2,depth)  number of Buck times two over depth equal total current hash length above overflow page
+  // max_pages can be stored in this Frame
+  int max_pages = pow(2, depth) * 2 - 1; 
   int index = PageNo % hash_size;      //get  key
   LL frame;                              // pair<pageid, frameid> structure
   frame.PageId = PageNo;
@@ -62,17 +63,17 @@ void hash_build(PageId PageNo, int frameNo) {
   {
 
     list<LL> *buck = hash_table[index];
-    if (buck->size() < BuckSize) // less than bucksize
+    if (buck->size() < 2)
       buck->push_back(frame);    // insert into the buck
     else                         // bigger , overflow or partiion
     {
-      if (partion_id || Max_next == next_id)
+      if (partion_id || max_page == next_id)
       {
-        if (Max_next == next_id)
+        if (max_page == next_id)
         {
           depth++;
           hash_size = 2 * hash_size;
-        } // parition when next equal to Max_next
+        } // parition when next equal to max_page
         hash_table.resize(2 * (hash_size), NULL);
         partion_id = 0; // first parition flag
       }
