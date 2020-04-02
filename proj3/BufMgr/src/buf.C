@@ -7,10 +7,15 @@
 unsigned int next_id = 0, depth = 2, partion_id = 1;
 //Global Hash table to hold the key and pair value.
 vector<HL> hash_table(8, NULL);
-unsigned int hashbuf = HTSIZE + partion_id;
-vector<PageId> disk_page;
-stack<int> Hated_Frame;
+//size of a buffer hash table
+unsigned int hash_size = HTSIZE + partion_id;
+// Loved Frame holder
 queue<int> Loved_Frame;
+// disk holder
+vector<PageId> disk_page;
+// Hated Frame holder
+stack<int> Hated_Frame;
+// the copy 
 vector<int> copy_stack;
 int flag_buf_full;
 void Hash_delte();
@@ -46,7 +51,7 @@ static error_string_table bufTable(BUFMGR, bufErrMsgs);
 void hash_build(PageId PageNo, int frameNo) {
 
   int Max_next = BuckSize * pow(2, depth) - 1; // N*Pow(2,depth)  number of Buck times two over depth equal total current hash length above overflow page
-  int index = PageNo % hashbuf;      //get  key
+  int index = PageNo % hash_size;      //get  key
   LL frame;                              // pair<pageid, frameid> structure
   frame.PageId = PageNo;
   frame.frameID = frameNo;
@@ -70,15 +75,14 @@ void hash_build(PageId PageNo, int frameNo) {
         if (Max_next == next_id)
         {
           depth++;
-          hashbuf = 2 * hashbuf;
+          hash_size = 2 * hash_size;
         } // parition when next equal to Max_next
-        hash_table.resize(2 * (hashbuf), NULL);
+        hash_table.resize(2 * (hash_size), NULL);
         partion_id = 0; // first parition flag
       }
       // Added doubled_hashbuf April 2nd, 2020
-      int doubled_hashbuf = hashbuf * 2;
-      int hash_size = doubled_hashbuf;               // double length of hash table
-      int index1 = (PageNo) % hash_size; // find new index for insert record
+      int doubled_hashbuf = hash_size * 2;
+      int index1 = (PageNo) % doubled_hashbuf; // find new index for insert record
       int partion_index;
       list<LL>::iterator it = buck->begin();
       if (index1 <= next_id) // if index less than next, parition
@@ -88,7 +92,7 @@ void hash_build(PageId PageNo, int frameNo) {
         {
           //  cout<<"pade id "<<(*it).PageId<<endl;
           partion_index = (*it).PageId;
-          partion_index = (partion_index) % hash_size; // find new index for insert record
+          partion_index = (partion_index) % doubled_hashbuf; // find new index for insert record
           if (index != partion_index)                          // if not the same , insert into new buck
           {
             LL frame1;
@@ -131,7 +135,7 @@ void hash_build(PageId PageNo, int frameNo) {
 // global function defnition
 void hash_remove(int pageNo)
 {
-  int index = (pageNo) % hashbuf;     //key    find in the no partion page
+  int index = (pageNo) % hash_size;     //key    find in the no partion page
   list<LL> *buck = hash_table[index]; // get the buck
   list<LL>::iterator it = buck->begin();
   while (it != buck->end()) // find the element and remove it
@@ -144,7 +148,7 @@ void hash_remove(int pageNo)
     it++;
   }
   // Added doubled_hashbuf April 2nd, 2020
-  int doubled_hashbuf = hashbuf * 2;
+  int doubled_hashbuf = hash_size * 2;
   index = (pageNo) % (doubled_hashbuf); //key , find in the parition pages or overflow pages
   if (index <= hash_table.size())
   {
@@ -167,7 +171,7 @@ void hash_remove(int pageNo)
 // find the doc we need
 int hash_search(int pageID, int &frameNo)
 {
-  int index = (pageID) % hashbuf; //key  find in the no partion page
+  int index = (pageID) % hash_size; //key  find in the no partion page
   if (!hash_table[index])
     return 0;
   list<LL> *buck = hash_table[index];
@@ -182,7 +186,7 @@ int hash_search(int pageID, int &frameNo)
     it++;
   }
   // Added doubled_hashbuf April 2nd, 2020
-  int doubled_hashbuf = 2 * hashbuf;
+  int doubled_hashbuf = 2 * hash_size;
   index = (pageID) % (doubled_hashbuf); //key
   if (index <= hash_table.size())           //key , find in the parition pages or overflow pages
   {
@@ -216,8 +220,7 @@ void Hash_delte() {
   next_id = 0;
   depth = 2;
   partion_id = 1;
-  hashbuf = HTSIZE + 1;
-  // hash_table(7,NULL);
+  hash_size = HTSIZE + 1;
 }
 /************************************End Global Helpers Definition***********************/
 BufMgr::BufMgr(int numbuf, Replacer *replacer)
