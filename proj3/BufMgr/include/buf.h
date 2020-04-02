@@ -32,7 +32,7 @@
 
 /****** Global Type ********************************/
 typedef struct LL {int frameID; int PageId;} * List;
-typedef list<LL> *Linkhash;
+typedef list<LL> *HL;
 /*****************************End Global Variables Declaration*****************/
 
 /*****************************************************************/
@@ -81,7 +81,7 @@ class HashTable{
         int Next,level;
         int partion_flag;
         int hashbuf;
-        vector<Linkhash> hash_table;
+        vector<HL> hash_table;
     public:
         HashTable(int size);
         void hash_build(PageId PageNo,int frameNo);

@@ -5,7 +5,7 @@
 
 /***************Global Variables******************************/
 
-vector<Linkhash> hash_table(8, NULL);
+vector<HL> hash_table(8, NULL);
 int a = 1, b = 0;
 int Next = 0, level = 2;
 int partion_flag = 1;
