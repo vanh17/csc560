@@ -9,6 +9,7 @@ unsigned int next_id = 0, depth = 2, partion_id = 1;
 vector<HL> hash_table(8, NULL);
 //size of a buffer hash table
 unsigned int hash_size = HTSIZE + partion_id;
+bool is_buf_full = false;
 // Loved Frame holder
 queue<int> loved_queue;
 // disk holder
@@ -17,7 +18,6 @@ vector<PageId> disk_page;
 stack<int> hated_stack;
 // the copy 
 vector<int> copy_stack;
-int flag_buf_full;
 /************************************************************/
 // Define buffer manager error messages here
 //enum bufErrCodes  {...};
@@ -234,7 +234,7 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer)
     loved_queue.pop();
   Hash_delte();
   init_frame(-1);
-  flag_buf_full = 0;
+  is_buf_full = false;
 
   //    cout<<"bufmgr "<<this->numBuffers<<endl;
   // put your code here
@@ -335,7 +335,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       this->bufFrame[this->numBuffers].is_clean = false;
       hash_build(PageId_in_a_DB, this->numBuffers); // insert new page record into hash table
       if (this->numBuffers == (NUMBUF - 1))
-        flag_buf_full = 1; // buf pool full
+        is_buf_full = true; // buf pool full
     }
     else {
       return FAIL;
@@ -409,7 +409,7 @@ Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany)
     cout << "Error: can not allocate a page from DB" << endl;
   get_new = MINIBASE_DB->read_page(allocate_page, new_page);
   //  if(this->numBuffers>=(NUMBUF-1))
-  if (flag_buf_full) // if buf pool is full , dellocate it
+  if (is_buf_full) // if buf pool is full , dellocate it
   {
     deallocte = MINIBASE_DB->deallocate_page(allocate_page, howmany);
     if (deallocte != OK)
@@ -587,7 +587,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       hash_build(PageId_in_a_DB, this->numBuffers); // insert into hash table
                                                     // cout<<"page "<<PageId_in_a_DB<<" num_pin "<<this->bufFrame[this->numBuffers].num_pin<<endl;
       if (this->numBuffers == (NUMBUF - 1))
-        flag_buf_full = 1;
+        is_buf_full = 1;
     }
     else
     {
