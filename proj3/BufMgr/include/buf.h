@@ -87,12 +87,6 @@ private:
     int Next,level;
     int partion_flag;
     int hashbuf;
-    typedef struct LinkList
-    {
-    int PageId;
-    int frameID;
-    }*List;
-    typedef list<LinkList> *Linkhash;
     vector<Linkhash> hash_table;
 public:
          HashTable(int size);
