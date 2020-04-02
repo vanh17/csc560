@@ -33,6 +33,7 @@
 /****** Global Type ********************************/
 typedef struct LL {int frameID; int PageId;} * List;
 typedef list<LL> *HL;
+int hashbuf = HTSIZE + 1;
 /*****************************End Global Variables Declaration*****************/
 
 /*****************************************************************/

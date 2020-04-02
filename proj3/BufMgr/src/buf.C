@@ -7,7 +7,7 @@
 vector<HL> hash_table(8, NULL);
 int Next = 0, level = 2;
 int partion_flag = 1;
-int hashbuf = HTSIZE + 1;
+
 vector<PageId> disk_page;
 stack<int> Hated_Frame;
 queue<int> Loved_Frame;
