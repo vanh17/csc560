@@ -50,26 +50,26 @@ class FrameDesc {
     friend class BufMgr;
 
     private:
-        int    pageNo;     // the page within file, or INVALID_PAGE if
-                       // the frame is empty.
-
-        unsigned int pin_cnt;  // The pin count for the page in this frame
-        bool dirtybit;
+        // to make sure the page is clean to unpin
+        bool is_clean;
+        int pageNo; 
+        //number of pin of the frame
+        unsigned int num_pin;  
 
 
         FrameDesc() {
             pageNo  = INVALID_PAGE;
-            pin_cnt = 0;
+            num_pin = 0;
         }
 
         ~FrameDesc() {}
 
     public:
-        int pin_count() { return(pin_cnt); }
-        int pin() { return(++pin_cnt); }
+        int pin_count() { return(num_pin); }
+        int pin() { return(++num_pin); }
         int unpin() {
-            pin_cnt = (pin_cnt <= 0) ? 0 : pin_cnt - 1;
-            return(pin_cnt);
+            num_pin = (num_pin <= 0) ? 0 : num_pin - 1;
+            return(num_pin);
         }
 };
 // HashTable Defnition 
