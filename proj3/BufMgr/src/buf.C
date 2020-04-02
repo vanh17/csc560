@@ -136,13 +136,8 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       memcpy(&this->bufPool[i], replace, sizeof(Page));
       page = &this->bufPool[i];
       this->bufDescr[i].pageNo = PageId_in_a_DB;
-<<<<<<< HEAD
-      this->bufDescr[i].num_pin = 1;
-      this->bufDescr[i].is_clean = false;
-=======
       this->bufDescr[i].pin_cnt = 1;
       this->bufDescr[i].dirtybit = false;
->>>>>>> parent of 3bec71e... Finished move include and Global declaration
     }
     else
     {
@@ -164,13 +159,8 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       memcpy(&this->bufPool[this->numBuffers], replace, sizeof(Page));
       page = &this->bufPool[this->numBuffers]; // allocate into buf
       this->bufDescr[this->numBuffers].pageNo = PageId_in_a_DB;
-<<<<<<< HEAD
-      this->bufDescr[this->numBuffers].num_pin++;
-      this->bufDescr[this->numBuffers].is_clean = false;
-=======
       this->bufDescr[this->numBuffers].pin_cnt++;
       this->bufDescr[this->numBuffers].dirtybit = false;
->>>>>>> parent of 3bec71e... Finished move include and Global declaration
       hash_build(PageId_in_a_DB, this->numBuffers); // insert new page record into hash table
       if (this->numBuffers == (NUMBUF - 1))
         flag_buf_full = 1; // buf pool full
@@ -183,20 +173,15 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       /*   this->numBuffers++;
               page=&this->bufPool[this->numBuffers];      // allocate into buf
              this->bufDescr[this->numBuffers].pageNo=PageId_in_a_DB;
-<<<<<<< HEAD
-             this->bufDescr[this->numBuffers].num_pin++;
-             this->bufDescr[this->numBuffers].is_clean=false;
-=======
              this->bufDescr[this->numBuffers].pin_cnt++;
              this->bufDescr[this->numBuffers].dirtybit=false;
->>>>>>> parent of 3bec71e... Finished move include and Global declaration
               hash_build(PageId_in_a_DB,this->numBuffers);   // insert
               */
     }
   }
   else if (hash_search(PageId_in_a_DB, frame)) // in the buf pool , pin ++
   {
-    this->bufDescr[frame].num_pin++;
+    this->bufDescr[frame].pin_cnt++;
     page = &this->bufPool[frame];
   }
   else
@@ -434,20 +419,13 @@ Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE)
   int frameid;
   if (hash_search(page_num, frameid)) // in the buf pool
   {
-    if (this->bufDescr[frameid].num_pin == 0)
+    if (this->bufDescr[frameid].pin_cnt == 0)
     {
       return FAIL;
-<<<<<<< HEAD
-    } // can not pin a page which num_pin=0
-    this->bufDescr[frameid].num_pin--;
-    this->bufDescr[frameid].is_clean = dirty;
-    if (this->bufDescr[frameid].num_pin == 0)
-=======
     } // can not pin a page which pin_cnt=0
     this->bufDescr[frameid].pin_cnt--;
     this->bufDescr[frameid].dirtybit = dirty;
     if (this->bufDescr[frameid].pin_cnt == 0)
->>>>>>> parent of 3bec71e... Finished move include and Global declaration
     {
       if (hate == FALSE)
       {
@@ -510,7 +488,7 @@ Status BufMgr::freePage(PageId globalPageId)
   int frame;
   if (hash_search(globalPageId, frame)) // find frame no and free it
   {
-    if (this->bufDescr[frame].num_pin)
+    if (this->bufDescr[frame].pin_cnt)
       return FAIL;
     else
     {
@@ -636,13 +614,8 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       memcpy(&this->bufPool[i], replace, sizeof(Page));
       page = &this->bufPool[i];
       this->bufDescr[i].pageNo = PageId_in_a_DB;
-<<<<<<< HEAD
-      this->bufDescr[i].num_pin = 1;
-      this->bufDescr[i].is_clean = false;
-=======
       this->bufDescr[i].pin_cnt = 1;
       this->bufDescr[i].dirtybit = false;
->>>>>>> parent of 3bec71e... Finished move include and Global declaration
     }
     else
     {
@@ -666,15 +639,10 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
         memcpy(&this->bufPool[this->numBuffers], replace, sizeof(Page));
       page = &this->bufPool[this->numBuffers]; // allocate into buf
       this->bufDescr[this->numBuffers].pageNo = PageId_in_a_DB;
-<<<<<<< HEAD
-      this->bufDescr[this->numBuffers].num_pin++;
-      this->bufDescr[this->numBuffers].is_clean = false;
-=======
       this->bufDescr[this->numBuffers].pin_cnt++;
       this->bufDescr[this->numBuffers].dirtybit = false;
->>>>>>> parent of 3bec71e... Finished move include and Global declaration
       hash_build(PageId_in_a_DB, this->numBuffers); // insert into hash table
-                                                    // cout<<"page "<<PageId_in_a_DB<<" num_pin "<<this->bufDescr[this->numBuffers].num_pin<<endl;
+                                                    // cout<<"page "<<PageId_in_a_DB<<" pin_cnt "<<this->bufDescr[this->numBuffers].pin_cnt<<endl;
       if (this->numBuffers == (NUMBUF - 1))
         flag_buf_full = 1;
     }
@@ -687,7 +655,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
   }
   else if (hash_search(PageId_in_a_DB, frame))
   {
-    this->bufDescr[frame].num_pin++;
+    this->bufDescr[frame].pin_cnt++;
     page = &this->bufPool[frame];
   }
   else
@@ -708,13 +676,8 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
             page=&this->bufPool[this->numBuffers];
             memcpy(&this->bufPool[this->numBuffers],replace,sizeof(Page));
             this->bufDescr[this->numBuffers].pageNo=PageId_in_a_DB;
-<<<<<<< HEAD
-            this->bufDescr[this->numBuffers].num_pin++;
-            this->bufDescr[this->numBuffers].is_clean=false;
-=======
             this->bufDescr[this->numBuffers].pin_cnt++;
             this->bufDescr[this->numBuffers].dirtybit=false;
->>>>>>> parent of 3bec71e... Finished move include and Global declaration
             hash_build(PageId_in_a_DB,this->numBuffers); 
           }
          else 
@@ -722,13 +685,8 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
           //  this->numBuffers++;
              page=&this->bufPool[frame];      // allocate into buf
             this->bufDescr[frame].pageNo=PageId_in_a_DB;
-<<<<<<< HEAD
-            this->bufDescr[frame].num_pin++;
-            this->bufDescr[frame].is_clean=false;
-=======
             this->bufDescr[frame].pin_cnt++;
             this->bufDescr[frame].dirtybit=false;
->>>>>>> parent of 3bec71e... Finished move include and Global declaration
            // hash_build(PageId_in_a_DB,this->numBuffers);   // insert into hash table
          }
 #endif
@@ -747,18 +705,18 @@ Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *fil
   if (hash_search(globalPageId_in_a_DB, frameid)) // find page frame id and unpin it
   {
 
-    if (this->bufDescr[frameid].num_pin == 0)
+    if (this->bufDescr[frameid].pin_cnt == 0)
     {
       cout << "unpind page_cnt=0. pagde id=" << globalPageId_in_a_DB << endl;
       return FAIL;
     }
-    this->bufDescr[frameid].num_pin--;
-    if (this->bufDescr[frameid].num_pin == 0 && find(copy_stack.begin(), copy_stack.end(), frameid) == copy_stack.end())
+    this->bufDescr[frameid].pin_cnt--;
+    if (this->bufDescr[frameid].pin_cnt == 0 && find(copy_stack.begin(), copy_stack.end(), frameid) == copy_stack.end())
     {
       Hated_Frame.push(frameid);     // Hate policy
       copy_stack.push_back(frameid); // copy a stack for seach
     }
-    //    cout<<"unpin file "<<globalPageId_in_a_DB<<" num_pin"<<this->bufDescr[frameid].num_pin<<endl;
+    //    cout<<"unpin file "<<globalPageId_in_a_DB<<" pin_cnt"<<this->bufDescr[frameid].pin_cnt<<endl;
   }
   else
   {
@@ -782,7 +740,7 @@ unsigned int BufMgr::getNumUnpinnedBuffers()
     this->numBuffers++;
   while (i <= this->numBuffers)
   {
-    if (!this->bufDescr[i].num_pin) // cout total unpin page
+    if (!this->bufDescr[i].pin_cnt) // cout total unpin page
       count++;
     i++;
   }
