@@ -25,12 +25,11 @@
 // Hash Table size
 
 /***** Global Variables ************/
-typedef struct LinkList
-{
+typedef struct LL {
   int PageId;
   int frameID;
 } * List;
-typedef list<LinkList> *Linkhash;
+typedef list<LL> *Linkhash;
 #define INT_MAX 4294967200
 #define BuckSize 2
 vector<Linkhash> hash_table(8, NULL);
@@ -96,12 +95,12 @@ private:
     int Next,level;
     int partion_flag;
     int hashbuf;
-    typedef struct LinkList
+    typedef struct LL
     {
     int PageId;
     int frameID;
     }*List;
-    typedef list<LinkList> *Linkhash;
+    typedef list<LL> *Linkhash;
     vector<Linkhash> hash_table;
 public:
          HashTable(int size);
