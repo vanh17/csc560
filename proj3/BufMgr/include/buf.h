@@ -52,6 +52,7 @@ class FrameDesc {
     private:
         // to make sure the page is clean to unpin
         bool is_clean;
+        // keep track if the pageNo is Invalid or not
         int pageNo; 
         //number of pin of the frame
         unsigned int num_pin;  
@@ -63,14 +64,6 @@ class FrameDesc {
         }
 
         ~FrameDesc() {}
-
-    public:
-        int pin_count() { return(num_pin); }
-        int pin() { return(++num_pin); }
-        int unpin() {
-            num_pin = (num_pin <= 0) ? 0 : num_pin - 1;
-            return(num_pin);
-        }
 };
 // HashTable Defnition 
 class HashTable{
