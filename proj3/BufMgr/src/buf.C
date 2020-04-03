@@ -452,24 +452,24 @@ Status BufMgr::freePage(PageId globalPageId)
 //*************************************************************
 //** This is the implementation of flushPage
 //************************************************************
-Status BufMgr::flushPage(PageId pageid)
-{
-
-  int frameid;
-  if (search_frame(pageid, frameid)) // find frame no , and flush it , write it to disk
-  {
+// Starting modification work here
+Status BufMgr::flushPage(PageId pageid) {
+  
+  unsigned int frame_id;
+  if (!search_frame(pageid, frameid)) { // step-by-step: searching for frame, flush all the content, and write changes
+    cout << "Error: cannot flush page_id =" << pageid << endl;
+    return FAIL;
+  } // if we can find some frame flush them all here
+  else {
     Page *replace = new Page();
     memcpy(replace, &this->bufPool[frameid], sizeof(Page));
-    Status buf_write = MINIBASE_DB->write_page(pageid, replace); //write disk
-    storage.push_back(pageid);
-    if (buf_write != OK)
-    {
-      cout << "Error: write buf page " << this->bufFrame[frameid].pageNo << "into to disk" << endl;
+    //write changes
+    if (MINIBASE_DB->write_page(pageid, replace) != OK) {
+      cout << "Error: cannot write to disk " << endl;
       return FAIL;
     }
+    storage.push_back(pageid);
   }
-  else
-    cout << "can not find the page in the buf pool pageid=" << pageid << endl;
 
   // put your code here
   return OK;
@@ -617,12 +617,15 @@ Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *fil
   if (search_frame(globalPageId_in_a_DB, frame)) {
     // if cant find the frame with that numpin >= 0 not thing to unpin
     // just return fail
-    if (this->bufFrame[frame].num_pin == 0) {
+    int pins = this->bufFrame[frame].num_pin
+    if (pins == 0) {
       return FAIL;
     }
     // if find any, then start unpin one at a time
     this->bufFrame[frame].num_pin--;
-    if (this->bufFrame[frame].num_pin == 0 && find(copy_stack.begin(), copy_stack.end(), frame) == copy_stack.end()) {
+    pins = this->bufFrame[frame].num_pin
+    if (pins == 0 && find(copy_stack.begin(), copy_stack.end(), frame) == copy_stack.end()) {
+      // put it to hated and copy stack for search purpose
       hated_stack.push(frame);
       copy_stack.push_back(frame);
     }
