@@ -642,9 +642,9 @@ unsigned int BufMgr::getNumUnpinnedBuffers() {
   if (this->numBuffers > INT_MAX) { this->numBuffers++; } // to make sure the numBuffer value is valid
   // loop through frames in the buffers, and add number of pins to the count
   // these will be used in order to clear the hashtable and deconstruct BufMgr
-  for (int frame_id = 0; frame_id <= this->numBuffers; frame_id++) {
+  for (unsigned int frame_id = 0; frame_id <= this->numBuffers; frame_id++) {
     int curr_frame_pins = this->bufFrame[frame_id].num_pin;
-    if (!curr_frame_pins) { count++; } // there are unpin pages, add them to cnt
+    if (!curr_frame_pins) { cnt++; } // there are unpin pages, add them to cnt
   }
   return cnt; //put your code here
 }
