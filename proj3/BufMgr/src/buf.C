@@ -594,12 +594,12 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
     page = &this->bufPool[frame_id];
   }
   else {
-    page=&this->bufPool[frame];      // allocate into buf
-    this->bufFrame[frame].num_pin++;
-    this->bufFrame[frame].is_clean = false; //not clean Frame so it will notify delete function
-    this->bufFrame[frame].pageNo=PageId_in_a_DB;
+    page=&this->bufPool[frame_id];      // allocate into buf
+    this->bufFrame[frame_id].num_pin++;
+    this->bufFrame[frame_id].is_clean = false; //not clean Frame so it will notify delete function
+    this->bufFrame[frame_id].pageNo=PageId_in_a_DB;
   }
-  return OK;
+  return OK; //put your code here
 }
 
 //*************************************************************
