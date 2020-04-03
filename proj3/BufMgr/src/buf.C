@@ -166,42 +166,45 @@ void hash_remove(int pageNo)
 // search within the hash table to find the page we need 
 // this function will take frameID and pageID to better 
 // find the doc we need
-int hash_search(int pageID, int &frameNo)
-{
-  int index = (pageID) % hash_size; //key  find in the no partion page
-  if (!hash_table[index])
-    return 0;
-  list<LL> *buck = hash_table[index];
-  list<LL>::iterator it = buck->begin();
-  while (it != buck->end())
-  {
-    if ((*it).PageId == pageID)
-    {
-      frameNo = (*it).frameID;
-      return 1;
+// Fixed April 02, 2020
+bool search_frame(int page_id, int &frame_id) {
+  // index is page_id mod hash_size, this is for hashing
+  int pos = (page_id) % hash_size;
+  if (!hash_table[pos]) {return 0;} // no key exist
+  list<LL> *slot = hash_table[pos];
+  list<LL>::iterator ptr = slot->begin();
+  bool at_tail = (ptr != slot->end());
+  while (at_tail) {
+    // found the page_id, return 1 to say it is true
+    if ((*ptr).PageId == page_id) {
+      frame_id = (*ptr).frameID;
+      return true;
     }
-    it++;
+    ptr++;
+    at_tail = (ptr != slot->end())
   }
   // Added doubled_hashbuf April 2nd, 2020
   int doubled_hashbuf = 2 * hash_size;
-  index = (pageID) % (doubled_hashbuf); //key
-  if (index <= hash_table.size())           //key , find in the parition pages or overflow pages
-  {
-    if (!hash_table[index])
-      return 0;
-    buck = hash_table[index];
-    it = buck->begin();
-    while (it != buck->end())
-    {
-      if ((*it).PageId == pageID)
+  pos = (page_id) % (doubled_hashbuf); //key has to be new because size is now double
+  if (pos <= hash_table.size()) {
+    if (!hash_table[index]) {
+      return false;
+    }
+    slot = hash_table[pos];
+    ptr = slot->begin();
+    at_tail = (ptr != slot->end());
+    // do another loop at this new slot to make sure we dont miss the double size hashing
+    while (at_tail) {
+      if ((*ptr).PageId == page_id)
       {
-        frameNo = (*it).frameID;
-        return 1;
+        frame_id = (*ptr).frameID;
+        return true;
       }
-      it++;
+      ptr++;
+      at_tail = (ptr != slot->end());
     }
   }
-  return 0;
+  return false;
 };
 
 // delete the hastable we create and set everything back to their initial value
@@ -274,7 +277,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
 {
   int frame;
   //  cout<<"frame number  pin without filename"<<this->numBuffers<<"page number="<<PageId_in_a_DB<<endl;
-  if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers == (NUMBUF - 1)) //page  not in the buf pool and buf pool full
+  if (!search_frame(PageId_in_a_DB, frame) && this->numBuffers == (NUMBUF - 1)) //page  not in the buf pool and buf pool full
   {
     int i = 0;
     if (!hated_stack.empty()) // love and hate replace policy
@@ -318,7 +321,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
 
     hash_build(PageId_in_a_DB, i); // insert new page record into hash table
   }
-  else if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1) || this->numBuffers > 4294967200) {
+  else if (!search_frame(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1) || this->numBuffers > 4294967200) {
     Page *replace = new Page();
     Status buf_read = MINIBASE_DB->read_page(PageId_in_a_DB, replace); // read this page to buf pool
     if (buf_read == OK)
@@ -344,7 +347,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
               */
     }
   }
-  else if (hash_search(PageId_in_a_DB, frame)) // in the buf pool , pin ++
+  else if (search_frame(PageId_in_a_DB, frame)) // in the buf pool , pin ++
   {
     this->bufFrame[frame].num_pin++;
     page = &this->bufPool[frame];
@@ -361,7 +364,7 @@ Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE)
 {
 
   int frameid;
-  if (hash_search(page_num, frameid)) // in the buf pool
+  if (search_frame(page_num, frameid)) // in the buf pool
   {
     if (this->bufFrame[frameid].num_pin == 0)
     {
@@ -427,7 +430,7 @@ Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany)
 Status BufMgr::freePage(PageId globalPageId)
 {
   int frame;
-  if (hash_search(globalPageId, frame)) // find frame no and free it
+  if (search_frame(globalPageId, frame)) // find frame no and free it
   {
     if (this->bufFrame[frame].num_pin)
       return FAIL;
@@ -459,7 +462,7 @@ Status BufMgr::flushPage(PageId pageid)
 {
 
   int frameid;
-  if (hash_search(pageid, frameid)) // find frame no , and flush it , write it to disk
+  if (search_frame(pageid, frameid)) // find frame no , and flush it , write it to disk
   {
     Page *replace = new Page();
     memcpy(replace, &this->bufPool[frameid], sizeof(Page));
@@ -511,7 +514,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
 {
 
   int frame;
-  if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers == (NUMBUF - 1))
+  if (!search_frame(PageId_in_a_DB, frame) && this->numBuffers == (NUMBUF - 1))
   {
 
     int i;
@@ -557,7 +560,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
 
     hash_build(PageId_in_a_DB, i); // insert new record into hash table
   }
-  else if ((!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1)) || this->numBuffers > 4294967200) {
+  else if ((!search_frame(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1)) || this->numBuffers > 4294967200) {
     Page *replace = new Page();
     Status buf_read = MINIBASE_DB->read_page(PageId_in_a_DB, replace);
     if (buf_read == OK) {
@@ -580,11 +583,11 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       return FAIL;
     }
   }
-  else if (hash_search(PageId_in_a_DB, frame)) {
+  else if (search_frame(PageId_in_a_DB, frame)) {
     this->bufFrame[frame].num_pin++;
     page = &this->bufPool[frame];
   }
-  else if(!hash_search(PageId_in_a_DB,frame)) {
+  else if(!search_frame(PageId_in_a_DB,frame)) {
     cout<<"max test"<<"pageid="<<PageId_in_a_DB<<endl;
     Page *replace=new Page();
     Status buf_read=MINIBASE_DB->read_page(PageId_in_a_DB,replace);
@@ -612,11 +615,12 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
 //*************************************************************
 //** This is the implementation of unpinPage
 //************************************************************
+// Fixed to make sure there is no overflow when unpin April 04 2020
 Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *filename) {
   // search for the page to unpin
   //initialize point to a frameid so that we can find it
   int frame; 
-  if (hash_search(globalPageId_in_a_DB, frame)) {
+  if (search_frame(globalPageId_in_a_DB, frame)) {
     // if cant find the frame with that numpin >= 0 not thing to unpin
     // just return fail
     if (this->bufFrame[frame].num_pin == 0) {
