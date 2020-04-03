@@ -247,10 +247,7 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer)
 BufMgr::~BufMgr()
 {
 
-  // if (this->numBuffers > INT_MAX)
-  //   this->numBuffers++; // avoid numBuffers init value which always biggest int number from my test
-
-  // cout<<"number of frame="<<this->numBuffers<<endl;
+  if (this->numBuffers > 4294967200) { this->numBuffers++; }
   int i = 0;
   while (i <= this->numBuffers)
   {
@@ -321,9 +318,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
 
     hash_build(PageId_in_a_DB, i); // insert new page record into hash table
   }
-  else if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1) )//|| this->numBuffers > INT_MAX) // page not in the buf pool, not full
-  {
-    //  if(this->numBuffers>INT_MAX) cout<<"biggerst number enter " <<endl;
+  else if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1) || this->numBuffers > 4294967200) {
     Page *replace = new Page();
     Status buf_read = MINIBASE_DB->read_page(PageId_in_a_DB, replace); // read this page to buf pool
     if (buf_read == OK)
@@ -492,12 +487,9 @@ Status BufMgr::flushAllPages()
   //flush all  , write all to disk
 
   int i = 0;
-  // if (this->numBuffers > INT_MAX)
-  //   this->numBuffers++; // avoid numBuffers init value which always biggest int number from my test
-  while (i <= this->numBuffers)
-  {
-    if (this->bufFrame[i].is_clean == true)
-    {
+  if (this->numBuffers > INT_MAX) { this->numBuffers++; }
+  while (i <= this->numBuffers){
+    if (this->bufFrame[i].is_clean == true) {
       //   cout<<"write page to disk"<<endl;
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
@@ -508,8 +500,6 @@ Status BufMgr::flushAllPages()
     }
     i++;
   }
-
-  //put your code here
   return OK;
 }
 
@@ -521,8 +511,6 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
 {
 
   int frame;
-  //  cout<<"file pin pade id"<<PageId_in_a_DB<<" frame "<<this->numBuffers<<endl;
-
   if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers == (NUMBUF - 1))
   {
 
@@ -563,42 +551,36 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       this->bufFrame[i].num_pin = 1;
       this->bufFrame[i].is_clean = false;
     }
-    else
-    {
-      cout << "Fata error: can not read page in the disk" << endl;
+    else {
       return FAIL;
     }
 
     hash_build(PageId_in_a_DB, i); // insert new record into hash table
   }
-  else if ((!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1)) )//|| this->numBuffers > INT_MAX)
-  {
-    //  if(this->numBuffers>INT_MAX) cout<<"biggerst number enter  pageid= " <<PageId_in_a_DB<<endl;
+  else if ((!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1)) || this->numBuffers > 4294967200) {
     Page *replace = new Page();
     Status buf_read = MINIBASE_DB->read_page(PageId_in_a_DB, replace);
-    if (buf_read == OK)
-    {
+    if (buf_read == OK) {
       this->numBuffers++;
-      if (emptyPage) // if it is a empty page , do not need to copy it from the disk
+      if (emptyPage) {
         memcpy(&this->bufPool[this->numBuffers], replace, sizeof(Page));
+      }
       page = &this->bufPool[this->numBuffers]; // allocate into buf
       this->bufFrame[this->numBuffers].pageNo = PageId_in_a_DB;
       this->bufFrame[this->numBuffers].num_pin++;
       this->bufFrame[this->numBuffers].is_clean = false;
       hash_build(PageId_in_a_DB, this->numBuffers); // insert into hash table
                                                     // cout<<"page "<<PageId_in_a_DB<<" num_pin "<<this->bufFrame[this->numBuffers].num_pin<<endl;
-      if (this->numBuffers == (NUMBUF - 1))
+      if (this->numBuffers == (NUMBUF - 1)){
         is_buf_full = 1;
+      }
     }
-    else
-    {
-      //detect a error code
-      cout << "Error: can not read page from disk" << endl;
+    // if cant read just return Fail
+    else {
       return FAIL;
     }
   }
-  else if (hash_search(PageId_in_a_DB, frame))
-  {
+  else if (hash_search(PageId_in_a_DB, frame)) {
     this->bufFrame[frame].num_pin++;
     page = &this->bufPool[frame];
   }
@@ -612,7 +594,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
     memcpy(&this->bufPool[this->numBuffers],replace,sizeof(Page));
     this->bufFrame[this->numBuffers].pageNo=PageId_in_a_DB;
     this->bufFrame[this->numBuffers].num_pin++;
-    this->bufFrame[this->numBuffers].is_clean=false;
+    this->bufFrame[this->numBuffers].is_clean = false;
     hash_build(PageId_in_a_DB,this->numBuffers); 
   }
   else {
@@ -621,7 +603,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
     // hash_build(PageId_in_a_DB,this->numBuffers);   // insert into hash table
     this->bufFrame[frame].num_pin++;
     //  this->numBuffers++;
-    this->bufFrame[frame].is_clean=false;
+    this->bufFrame[frame].is_clean = false;
     
   }
   return OK;
@@ -630,34 +612,24 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
 //*************************************************************
 //** This is the implementation of unpinPage
 //************************************************************
-Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *filename)
-{
-
-  int frameid;
-  if (hash_search(globalPageId_in_a_DB, frameid)) // find page frame id and unpin it
-  {
-
-    if (this->bufFrame[frameid].num_pin == 0)
-    {
-      cout << "unpind page_cnt=0. pagde id=" << globalPageId_in_a_DB << endl;
+Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *filename) {
+  // search for the page to unpin
+  if (hash_search(globalPageId_in_a_DB, 0)) {
+    // if cant find the frame with that numpin >= 0 not thing to unpin
+    // just return fail
+    if (this->bufFrame[0].num_pin == 0) {
       return FAIL;
     }
-    this->bufFrame[frameid].num_pin--;
-    if (this->bufFrame[frameid].num_pin == 0 && find(copy_stack.begin(), copy_stack.end(), frameid) == copy_stack.end())
-    {
-      hated_stack.push(frameid);     // Hate policy
-      copy_stack.push_back(frameid); // copy a stack for seach
+    // if find any, then start unpin one at a time
+    this->bufFrame[0].num_pin--;
+    if (this->bufFrame[0].num_pin == 0 && find(copy_stack.begin(), copy_stack.end(), 0) == copy_stack.end()) {
+      hated_stack.push(frameid);
+      copy_stack.push_back(frameid);
     }
-    //    cout<<"unpin file "<<globalPageId_in_a_DB<<" num_pin"<<this->bufFrame[frameid].num_pin<<endl;
+    return OK;
   }
-  else
-  {
-    // cout<<"can not find the page in the buf pool pageid="<<globalPageId_in_a_DB<<endl;
-    return FAIL;
-  }
-
-  //put your code here
-  return OK;
+  // if cannot find the page we need
+  return FAIL;
 }
 
 //*************************************************************
@@ -668,8 +640,8 @@ unsigned int BufMgr::getNumUnpinnedBuffers()
 
   int i = 0;
   int count = 0;
-  // if (this->numBuffers > INT_MAX)
-  //   this->numBuffers++;
+  if (this->numBuffers > INT_MAX)
+    this->numBuffers++;
   while (i <= this->numBuffers)
   {
     if (!this->bufFrame[i].num_pin) // cout total unpin page
