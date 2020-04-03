@@ -243,8 +243,8 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer){
     hated_stack.pop();
     // empty all the previous populated screen
   }
-  // init_frame(-1);
-  // is_buf_full = false;
+  init_frame(-1);
+  is_buf_full = false;
 }
 
 //*************************************************************
