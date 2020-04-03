@@ -165,6 +165,8 @@ void remove_page(int page_id) {
         at_tail = (ptr != slot->end());
       }
     }
+  } else {
+    return;
   }
 }
 
@@ -304,7 +306,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
         cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
     }
 
-    hash_remove(this->bufFrame[i].pageNo); // remove from hash table
+    remove_page(this->bufFrame[i].pageNo); // remove from hash table
 
     Page *replace = new Page();
     Status buf_read = MINIBASE_DB->read_page(PageId_in_a_DB, replace); // read page from disk , copy it to the buf pool
@@ -546,7 +548,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
         cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
     }
 
-    hash_remove(this->bufFrame[i].pageNo); // remove from hash table
+    remove_page(this->bufFrame[i].pageNo); // remove from hash table
     Page *replace = new Page();
     Status buf_read = MINIBASE_DB->read_page(PageId_in_a_DB, replace);
     if (buf_read == OK)
