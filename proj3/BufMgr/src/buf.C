@@ -257,7 +257,7 @@ BufMgr::~BufMgr() {
   for (int frame_id = 0; frame_id <= this->numBuffers; frame_id++) {
     if (this->bufFrame[frame_id].is_clean == true) {
       // write to memmory the current framId and then remove the rest
-      Page *dirty_page = new Page()
+      Page *dirty_page = new Page();
       memcpy(dirty_page, &this->bufPool[frame_id], sizeof(Page));
       MINIBASE_DB->write_page(this->bufFrame[frame_id].pageNo, dirty_page); //write disk
       storage.push_back(this->bufFrame[frame_id].pageNo);
