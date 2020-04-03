@@ -42,6 +42,7 @@ static error_string_table bufTable(BUFMGR, bufErrMsgs);
 // add page to the hash table
 // given the page_id, frame_id
 // return nothing, but alter the hash_table
+// Modified April 02, 2020 add page to hash_table
 void add_page(PageId page_id, int frame_id) {
   LL frame_holder; //create the frame to hold the data of the hashed key
   // max_pages can be stored in this Frame
@@ -205,19 +206,24 @@ bool search_frame(int page_id, int &frame_id) {
 };
 
 // delete the hastable we create and set everything back to their initial value
-void Hash_delte() {
-  for (int index = 0; index < hash_table.size(); index++)
-  {
-    if (!hash_table[index])
-      continue;
-    list<LL> *buck = hash_table[index];
-    hash_table[index] = NULL;
-    buck->~list<LL>();
+// so that we dont have overflow or gabbage collection
+// Modified April 02, 2020
+void clear_hash_table() {
+  int key = 0;
+  while (key < hash_table.size()){
+    // only delete the records if key are there, not move on
+    if (hash_table[key]) {
+      (hash_table[index])->~list<LL>();
+      hash_table[index] = NULL;
+      // buck->~list<LL>();
+    }
+    key++
   }
-  next_id = 0;
-  depth = 2;
+  // reset all variable keep track of status of the hash table to default value 
   partion_id = 1;
-  hash_size = HTSIZE + 1;
+  hash_size = HTSIZE + partion_id;
+  depth = 2;
+  next_id = 0;
 }
 /************************************End Global Helpers Definition***********************/
 BufMgr::BufMgr(int numbuf, Replacer *replacer)
@@ -233,7 +239,7 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer)
     hated_stack.pop();
   while (!loved_queue.empty())
     loved_queue.pop();
-  Hash_delte();
+  clear_hash_table();
   init_frame(-1);
   is_buf_full = false;
 
@@ -263,7 +269,7 @@ BufMgr::~BufMgr()
     }
     i++;
   }
-  Hash_delte();
+  clear_hash_table();
   // put your code here
 }
 
