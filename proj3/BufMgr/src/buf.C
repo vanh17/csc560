@@ -244,7 +244,7 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer){
     // empty all the previous populated screen
   }
   // init_frame(-1);
-  is_buf_full = false;
+  // is_buf_full = false;
 }
 
 //*************************************************************
