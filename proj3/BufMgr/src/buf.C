@@ -130,35 +130,40 @@ void hash_build(PageId PageNo, int frameNo) {
 }
 
 // global function defnition
-void hash_remove(int pageNo)
-{
-  int index = (pageNo) % hash_size;     //key    find in the no partion page
-  list<LL> *buck = hash_table[index]; // get the buck
-  list<LL>::iterator it = buck->begin();
-  while (it != buck->end()) // find the element and remove it
-  {
-    if ((*it).PageId == pageNo)
-    {
-      buck->erase(it);
-      return;
+// remove page from hash table
+// given page_id
+// Modified April 02, 2020
+void remove_page(int page_id) {
+  int pos = page_id % hash_size;     //hash the key value
+  list<LL> *slot = hash_table[pos]; // get hold of the slot with hashed key
+  list<LL>::iterator ptr = slot->begin(); // starting from the head of the LL
+  bool at_tail = (ptr != slot->end());
+  bool removed_page = false;
+  while (at_tail || !removed_page) { // search through the whole slot
+    if ((*ptr).PageId == page_id) {
+      slot->erase(ptr);
+      removed_page = true;
     }
-    it++;
+    ptr++;
+    at_tail = (ptr != slot->end());
   }
   // Added doubled_hashbuf April 2nd, 2020
-  int doubled_hashbuf = hash_size * 2;
-  index = (pageNo) % (doubled_hashbuf); //key , find in the parition pages or overflow pages
-  if (index <= hash_table.size())
-  {
-    buck = hash_table[index];
-    it = buck->begin();
-    while (it != buck->end()) // find and delete
-    {
-      if ((*it).PageId == pageNo)
-      {
-        buck->erase(it);
-        break;
+  // if already found the page and removed it, do nothing here
+  if (!removed_page) {
+    unsigned int doubled_hashbuf = hash_size * 2;
+    pos = page_id % doubled_hashbuf; //hashing the page_id to hashed key
+    if (index <= hash_table.size()) {
+      slot = hash_table[index];
+      ptr = slot->begin();
+      at_tail = (ptr != slot->end());
+      while (at_tail) { // iterate through LL and delete found page
+        if ((*ptr).PageId == page_id) {
+          slot->erase(ptr);
+          break;
+        }
+        ptr++;
+        at_tail = (ptr != slot->end());
       }
-      it++;
     }
   }
 }
