@@ -492,7 +492,7 @@ Status BufMgr::flushAllPages() {
     else {
       Page *dirty_page = new Page(); // temporary diry page for flushing
       memcpy(dirty_page, &this->bufPool[frame_id], sizeof(Page)); // write to memmp
-      if (MINIBASE_DB->write_page(this->bufFrame[i].pageNo, dirty_page) != OK) { //write to this
+      if (MINIBASE_DB->write_page(this->bufFrame[frame_id].pageNo, dirty_page) != OK) { //write to this
         cout << "Error: cannot flush some Page " << "into to disk" << endl;
         storage.push_back(this->bufFrame[frame_id].pageNo);
         return FAIL;
