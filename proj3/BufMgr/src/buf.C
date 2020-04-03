@@ -456,13 +456,13 @@ Status BufMgr::freePage(PageId globalPageId)
 Status BufMgr::flushPage(PageId pageid) {
   // set the frame_id here so that we can find the page
   unsigned int frame_id;
-  if (!search_frame(pageid, 0)) { // step-by-step: searching for frame, flush all the content, and write changes
+  if (!search_frame(pageid, frame_id)) { // step-by-step: searching for frame, flush all the content, and write changes
     cout << "Error: cannot flush page_id =" << pageid << endl;
     return FAIL;
   } // if we can find some frame flush them all here
   else {
     Page *dirty_page  = new Page();
-    memcpy(dirty_page, &this->bufPool[0], sizeof(Page));
+    memcpy(dirty_page, &this->bufPool[frame_id], sizeof(Page));
     //write changes to disk
     if (MINIBASE_DB->write_page(pageid, dirty_page) != OK) {
       cout << "Error: cannot write to disk " << endl;
