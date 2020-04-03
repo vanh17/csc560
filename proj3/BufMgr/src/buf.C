@@ -339,7 +339,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
       this->bufFrame[curr_frame_id].is_clean=false;
     }
   }
-  else if (search_frame(PageId_in_a_DB, frame)) {
+  else if (search_frame(PageId_in_a_DB, frame_holder)) {
     this->bufFrame[frame_holder].num_pin++; // accumulate pin counts
     page = &this->bufPool[frame_holder];
   }
