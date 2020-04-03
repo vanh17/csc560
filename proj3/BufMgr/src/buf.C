@@ -364,7 +364,7 @@ Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE) {
   else {
     int num_pins_curr_frame = this->bufFrame[frame_id].num_pin;
     if (num_pins_curr_frame == 0) {
-      cout << "nothing to unpin even found the pin"<<endl; return FAIL; // stop the unpinning
+      return FAIL; cout << "nothing to unpin even found the pin"<<endl;
     } 
     else {// can not pin a page which num_pin=0
       this->bufFrame[frame_id].num_pin--;
