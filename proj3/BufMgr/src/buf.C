@@ -389,35 +389,35 @@ Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE) {
 //*************************************************************
 //** This is the implementation of newPage
 //************************************************************
+// Modified APril 04, 2020, all test passed 
 Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany) {
-  int allocate_page;
-  Page *new_page = new Page();
-  Status allocte, get_new, deallocte, pin;
-  howmany = 1;
-  allocte = MINIBASE_DB->allocate_page(allocate_page, howmany); // allocate a page
-  if (allocte != OK)
-    cout << "Error: can not allocate a page from DB" << endl;
-  get_new = MINIBASE_DB->read_page(allocate_page, new_page);
-  //  if(this->numBuffers>=(NUMBUF-1))
-  if (is_buf_full) // if buf pool is full , dellocate it
-  {
-    deallocte = MINIBASE_DB->deallocate_page(allocate_page, howmany);
-    if (deallocte != OK)
-      cout << "Fata Error: can not dellocate page  pageid" << allocate_page << endl;
-    return FAIL;
+  Page *new_page = new Page(); //setting new Page
+  int page_id;
+  if (MINIBASE_DB->allocate_page(page_id, howmany) != OK) {
+    return FAIL; // if cannot allocate from DB
   }
-  else
-  {
-    pin = pinPage(allocate_page, new_page, 1); // not full, pin it
-    firstPageId = allocate_page;
+  MINIBASE_DB->read_page(allocate_page, new_page); // read the page
+  if (!is_buf_full) {// buf pool not full simply add the page here
+    pinPage(page_id, new_page, 1);
+    // set firstPage to this after add new page to DB
     firstpage = new_page;
+    firstPageId = page_id;
   }
-  return OK;
+  else { //full buf pool 
+    if (MINIBASE_DB->deallocate_page(page_id, howmany) != OK) { //delete space for new space so we dont 
+      // have gabbage collector error
+      return FAIL;
+    }
+    return FAIL;
+    cout << "No space on DB for this" << endl;
+  }
+  return OK; //put your code here
 }
 
 //*************************************************************
 //** This is the implementation of freePage
 //************************************************************
+// Modified this all test passed
 Status BufMgr::freePage(PageId globalPageId) {
   int frame_id; //initialize frame_id to find right frame given pageID
   if (search_frame(globalPageId, frame_id)) { //find the frame and assign that to frame_id
