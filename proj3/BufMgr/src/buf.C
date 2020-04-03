@@ -252,14 +252,18 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer){
 //** This is the implementation of ~BufMgr
 //************************************************************
 // remove all the unused space for not being gabagge overflow
+// Modifed April 02, 2020 to make sure it works.
 BufMgr::~BufMgr() {
   if (this->numBuffers > 4294967200) { this->numBuffers++; }
   for (int frame_id = 0; frame_id <= this->numBuffers; frame_id++) {
-    if (this->bufFrame[frame_id].is_clean == true) {
+    if (this->bufFrame[frame_id].is_clean != true) {
+      continue;
+    } else {
       // write to memmory the current framId and then remove the rest
       Page *dirty_page = new Page();
       memcpy(dirty_page, &this->bufPool[frame_id], sizeof(Page));
       MINIBASE_DB->write_page(this->bufFrame[frame_id].pageNo, dirty_page); //write disk
+      // push to disk story.
       storage.push_back(this->bufFrame[frame_id].pageNo);
     }
   }
@@ -270,8 +274,7 @@ BufMgr::~BufMgr() {
 //*************************************************************
 //** This is the implementation of pinPage
 //************************************************************
-Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
-{
+Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
   int frame;
   //  cout<<"frame number  pin without filename"<<this->numBuffers<<"page number="<<PageId_in_a_DB<<endl;
   if (!search_frame(PageId_in_a_DB, frame) && this->numBuffers == (NUMBUF - 1)) //page  not in the buf pool and buf pool full
