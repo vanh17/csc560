@@ -614,17 +614,19 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
 //************************************************************
 Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *filename) {
   // search for the page to unpin
-  if (hash_search(globalPageId_in_a_DB, 0)) {
+  //initialize point to a frameid so that we can find it
+  int frame; 
+  if (hash_search(globalPageId_in_a_DB, frame)) {
     // if cant find the frame with that numpin >= 0 not thing to unpin
     // just return fail
-    if (this->bufFrame[0].num_pin == 0) {
+    if (this->bufFrame[frame].num_pin == 0) {
       return FAIL;
     }
     // if find any, then start unpin one at a time
-    this->bufFrame[0].num_pin--;
-    if (this->bufFrame[0].num_pin == 0 && find(copy_stack.begin(), copy_stack.end(), 0) == copy_stack.end()) {
-      hated_stack.push(frameid);
-      copy_stack.push_back(frameid);
+    this->bufFrame[frame].num_pin--;
+    if (this->bufFrame[frame].num_pin == 0 && find(copy_stack.begin(), copy_stack.end(), frame) == copy_stack.end()) {
+      hated_stack.push(frame);
+      copy_stack.push_back(frame);
     }
     return OK;
   }
