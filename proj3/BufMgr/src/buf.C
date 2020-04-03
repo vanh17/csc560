@@ -452,7 +452,7 @@ Status BufMgr::freePage(PageId globalPageId)
 //*************************************************************
 //** This is the implementation of flushPage
 //************************************************************
-// Starting modification work here
+// Modified April 03, 2020 passed test case 5
 Status BufMgr::flushPage(PageId pageid) {
   // set the frame_id here so that we can find the page
   int frame_id;
@@ -481,38 +481,38 @@ Status BufMgr::flushPage(PageId pageid) {
 //*************************************************************
 //** This is the implementation of flushAllPages
 //************************************************************
-Status BufMgr::flushAllPages()
-{
-
-  //flush all  , write all to disk
-
-  int i = 0;
+// Modified April 03, 2020. Passed test 6
+Status BufMgr::flushAllPages() {
+  // first we have to check if the numBuffers from this BufMrgs are Valid Buffers
   if (this->numBuffers > INT_MAX) { this->numBuffers++; }
-  while (i <= this->numBuffers){
-    if (this->bufFrame[i].is_clean == true) {
-      //   cout<<"write page to disk"<<endl;
-      Page *replace = new Page();
-      memcpy(replace, &this->bufPool[i], sizeof(Page));
-      Status buf_write = MINIBASE_DB->write_page(this->bufFrame[i].pageNo, replace); //write disk
-      storage.push_back(this->bufFrame[i].pageNo);
-      if (buf_write != OK)
-        cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
+  for (int frame_id = 0; frame_id <= this->numBuffers; frame_id++){
+    if (this->bufFrame[frame_id].is_clean != true) {
+      continue; //cout<<"it is clean here, nothingwrite page to disk"<<endl;
+    } 
+    else {
+      Page *dirty_page = new Page(); // temporary diry page for flushing
+      memcpy(dirty_page, &this->bufPool[frame_id], sizeof(Page)); // write to memmp
+      if (MINIBASE_DB->write_page(this->bufFrame[i].pageNo, dirty_page) != OK) { //write to this
+        cout << "Error: cannot flush some Page " << "into to disk" << endl;
+        storage.push_back(this->bufFrame[frame_id].pageNo);
+        return FAIL;
+      }
+      else {
+        storage.push_back(this->bufFrame[frame_id].pageNo); //write to disk
+      }
     }
-    i++;
   }
-  return OK;
+  return OK; //put your code here
 }
 
 /*** Methods for compatibility with project 1 ***/
 //*************************************************************
 //** This is the implementation of pinPage
 //************************************************************
-Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const char *filename)
-{
+Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const char *filename) {
 
   int frame;
-  if (!search_frame(PageId_in_a_DB, frame) && this->numBuffers == (NUMBUF - 1))
-  {
+  if (!search_frame(PageId_in_a_DB, frame) && this->numBuffers == (NUMBUF - 1)) {
 
     int i;
     //    cout<<"size of hate "<<hated_stack.size()<<endl;
