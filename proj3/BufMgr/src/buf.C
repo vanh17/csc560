@@ -315,7 +315,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       return FAIL;
     }
 
-    hash_build(PageId_in_a_DB, i); // insert new page record into hash table
+    add_page(PageId_in_a_DB, i); // insert new page record into hash table
   }
   else if (!search_frame(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1) || this->numBuffers > 4294967200) {
     Page *replace = new Page();
@@ -328,7 +328,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       this->bufFrame[this->numBuffers].pageNo = PageId_in_a_DB;
       this->bufFrame[this->numBuffers].num_pin++;
       this->bufFrame[this->numBuffers].is_clean = false;
-      hash_build(PageId_in_a_DB, this->numBuffers); // insert new page record into hash table
+      add_page(PageId_in_a_DB, this->numBuffers); // insert new page record into hash table
       if (this->numBuffers == (NUMBUF - 1))
         is_buf_full = true; // buf pool full
     }
@@ -339,7 +339,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
              this->bufFrame[this->numBuffers].pageNo=PageId_in_a_DB;
              this->bufFrame[this->numBuffers].num_pin++;
              this->bufFrame[this->numBuffers].is_clean=false;
-              hash_build(PageId_in_a_DB,this->numBuffers);   // insert
+              add_page(PageId_in_a_DB,this->numBuffers);   // insert
               */
     }
   }
@@ -554,7 +554,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       return FAIL;
     }
 
-    hash_build(PageId_in_a_DB, i); // insert new record into hash table
+    add_page(PageId_in_a_DB, i); // insert new record into hash table
   }
   else if ((!search_frame(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1)) || this->numBuffers > 4294967200) {
     Page *replace = new Page();
@@ -568,7 +568,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       this->bufFrame[this->numBuffers].pageNo = PageId_in_a_DB;
       this->bufFrame[this->numBuffers].num_pin++;
       this->bufFrame[this->numBuffers].is_clean = false;
-      hash_build(PageId_in_a_DB, this->numBuffers); // insert into hash table
+      add_page(PageId_in_a_DB, this->numBuffers); // insert into hash table
                                                     // cout<<"page "<<PageId_in_a_DB<<" num_pin "<<this->bufFrame[this->numBuffers].num_pin<<endl;
       if (this->numBuffers == (NUMBUF - 1)){
         is_buf_full = 1;
@@ -594,12 +594,12 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
     this->bufFrame[this->numBuffers].pageNo=PageId_in_a_DB;
     this->bufFrame[this->numBuffers].num_pin++;
     this->bufFrame[this->numBuffers].is_clean = false;
-    hash_build(PageId_in_a_DB,this->numBuffers); 
+    add_page(PageId_in_a_DB,this->numBuffers); 
   }
   else {
     page=&this->bufPool[frame];      // allocate into buf
     this->bufFrame[frame].pageNo=PageId_in_a_DB;
-    // hash_build(PageId_in_a_DB,this->numBuffers);   // insert into hash table
+    // add_page(PageId_in_a_DB,this->numBuffers);   // insert into hash table
     this->bufFrame[frame].num_pin++;
     //  this->numBuffers++;
     this->bufFrame[frame].is_clean = false;
