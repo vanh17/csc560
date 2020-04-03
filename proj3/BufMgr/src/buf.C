@@ -181,15 +181,13 @@ bool search_frame(int page_id, int &frame_id) {
       return true;
     }
     ptr++;
-    at_tail = (ptr != slot->end())
+    at_tail = (ptr != slot->end());
   }
   // Added doubled_hashbuf April 2nd, 2020
   int doubled_hashbuf = 2 * hash_size;
   pos = (page_id) % (doubled_hashbuf); //key has to be new because size is now double
   if (pos <= hash_table.size()) {
-    if (!hash_table[index]) {
-      return false;
-    }
+    if (!hash_table[pos]) {return false;}
     slot = hash_table[pos];
     ptr = slot->begin();
     at_tail = (ptr != slot->end());
