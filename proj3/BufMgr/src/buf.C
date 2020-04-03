@@ -313,7 +313,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
     }
     else { return FAIL; }
   }
-  else if (this->numBuffers < (NUMBUF - 1) && search_frame(PageId_in_a_DB, frame_holder) == false || this->numBuffers > 4294967200) {
+  else if (this->numBuffers < (NUMBUF - 1) && !search_frame(PageId_in_a_DB, frame_holder) == false || this->numBuffers > 4294967200) {
     Page *dirty_page = new Page();
     // read this page to buf pool
     if (MINIBASE_DB->read_page(PageId_in_a_DB, dirty_page) == OK) {
