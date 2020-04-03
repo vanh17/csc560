@@ -217,7 +217,7 @@ void clear_hash_table() {
       hash_table[key] = NULL;
       // buck->~list<LL>();
     }
-    key++
+    key++;
   }
   // reset all variable keep track of status of the hash table to default value 
   partion_id = 1;
