@@ -254,7 +254,7 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer){
 // remove all the unused space for not being gabagge overflow
 BufMgr::~BufMgr() {
   if (this->numBuffers > 4294967200) { this->numBuffers++; }
-  for (int frame_id = 0, frame_id <= this->numBuffers, frame_id++) {
+  for (int frame_id = 0; frame_id <= this->numBuffers; frame_id++) {
     if (this->bufFrame[frame_id].is_clean == true) {
       // write to memmory the current framId and then remove the rest
 
