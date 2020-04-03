@@ -287,13 +287,13 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
       key = loved_queue.front();
       loved_queue.pop();
     }
-    if (this->bufFrame[i].is_clean == true) {// if it is dirty , write to disk
+    if (this->bufFrame[key].is_clean == true) {// if it is dirty , write to disk
       Page *dirty_page = new Page();
       memcpy(dirty_page, &this->bufPool[key], sizeof(Page));
       storage.push_back(PageId_in_a_DB);
       // if cannot write to disk the dirty page, print out
       if (MINIBASE_DB->write_page(this->bufFrame[key].pageNo, dirty_page) != OK) {
-        cout << "Error: cannot write to disk"
+        cout << "Error: cannot write to disk" << endl;
       }
     }
     // removed the pin page
@@ -308,11 +308,11 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
       page = &this->bufPool[key]; // update variable page to the current page in buf poo;
       this->bufFrame[key].num_pin = 1; // now we pin one document here
       this->bufFrame[key].pageNo = PageId_in_a_DB;
-      add_page(PageId_in_a_DB, i);
+      add_page(PageId_in_a_DB, key);
     }
     else { return FAIL; }
   }
-  else if (this->numBuffers < (NUMBUF - 1) && !search_frame(PageId_in_a_DB, frame) || this->numBuffers > 4294967200) {
+  else if (this->numBuffers < (NUMBUF - 1) && !search_frame(PageId_in_a_DB, frame_holder) || this->numBuffers > 4294967200) {
     Page *dirty_page = new Page();
     // read this page to buf pool
     if (MINIBASE_DB->read_page(PageId_in_a_DB, dirty_page) == OK) {
