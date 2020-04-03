@@ -247,8 +247,8 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer)
 BufMgr::~BufMgr()
 {
 
-  if (this->numBuffers > INT_MAX)
-    this->numBuffers++; // avoid numBuffers init value which always biggest int number from my test
+  // if (this->numBuffers > INT_MAX)
+  //   this->numBuffers++; // avoid numBuffers init value which always biggest int number from my test
 
   // cout<<"number of frame="<<this->numBuffers<<endl;
   int i = 0;
@@ -321,7 +321,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
 
     hash_build(PageId_in_a_DB, i); // insert new page record into hash table
   }
-  else if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1) || this->numBuffers > INT_MAX) // page not in the buf pool, not full
+  else if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1) )//|| this->numBuffers > INT_MAX) // page not in the buf pool, not full
   {
     //  if(this->numBuffers>INT_MAX) cout<<"biggerst number enter " <<endl;
     Page *replace = new Page();
@@ -492,8 +492,8 @@ Status BufMgr::flushAllPages()
   //flush all  , write all to disk
 
   int i = 0;
-  if (this->numBuffers > INT_MAX)
-    this->numBuffers++; // avoid numBuffers init value which always biggest int number from my test
+  // if (this->numBuffers > INT_MAX)
+  //   this->numBuffers++; // avoid numBuffers init value which always biggest int number from my test
   while (i <= this->numBuffers)
   {
     if (this->bufFrame[i].is_clean == true)
@@ -571,7 +571,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
 
     hash_build(PageId_in_a_DB, i); // insert new record into hash table
   }
-  else if ((!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1)) || this->numBuffers > INT_MAX)
+  else if ((!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1)) )//|| this->numBuffers > INT_MAX)
   {
     //  if(this->numBuffers>INT_MAX) cout<<"biggerst number enter  pageid= " <<PageId_in_a_DB<<endl;
     Page *replace = new Page();
@@ -668,8 +668,8 @@ unsigned int BufMgr::getNumUnpinnedBuffers()
 
   int i = 0;
   int count = 0;
-  if (this->numBuffers > INT_MAX)
-    this->numBuffers++;
+  // if (this->numBuffers > INT_MAX)
+  //   this->numBuffers++;
   while (i <= this->numBuffers)
   {
     if (!this->bufFrame[i].num_pin) // cout total unpin page
