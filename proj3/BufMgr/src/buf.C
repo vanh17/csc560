@@ -358,8 +358,8 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
 Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE) {
   int frame_id; // frame_id to search for pinned page in the Frame
   if (!search_frame(page_num, frame_id)) { // to check if we can find the frame with that page_id the buf pool
-    cout<<"cannot find the pinned page"<<endl;
     return FAIL; // stop the page is already unpinned or not exist
+    cout<<"cannot find the pinned page"<<endl;
   }
   else {
     int num_pins_curr_frame = this->bufFrame[frame_id].num_pin;
