@@ -617,13 +617,13 @@ Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *fil
   if (search_frame(globalPageId_in_a_DB, frame)) {
     // if cant find the frame with that numpin >= 0 not thing to unpin
     // just return fail
-    int pins = this->bufFrame[frame].num_pin
+    int pins = this->bufFrame[frame].num_pin;
     if (pins == 0) {
       return FAIL;
     }
     // if find any, then start unpin one at a time
     this->bufFrame[frame].num_pin--;
-    pins = this->bufFrame[frame].num_pin
+    pins = this->bufFrame[frame].num_pin;
     if (pins == 0 && find(copy_stack.begin(), copy_stack.end(), frame) == copy_stack.end()) {
       // put it to hated and copy stack for search purpose
       hated_stack.push(frame);
