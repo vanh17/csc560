@@ -37,93 +37,79 @@ static const char *bufErrMsgs[] = {
     "Unpinning an unpinned page",
     "Freeing a pinned page"};
 
-// Create a static "error_string_table" object and register the error messages
-// with minibase system
 static error_string_table bufTable(BUFMGR, bufErrMsgs);
-//*************************************************************
-//** This is the implementation of BufMgr
-//************************************************************
 /**************************Global Helpers Definition*****************************/
-void hash_build(PageId PageNo, int frameNo) {
-
+// add page to the hash table
+// given the page_id, frame_id
+// return nothing, but alter the hash_table
+void add_page(PageId page_id, int frame_id) {
+  LL frame_holder; //create the frame to hold the data of the hashed key
   // max_pages can be stored in this Frame
   int max_page = pow(2, depth) * 2 - 1; 
-  int index = PageNo % hash_size;      //get  key
-  LL frame;                              // pair<pageid, frameid> structure
-  frame.PageId = PageNo;
-  frame.frameID = frameNo;
+  int key = PageNo % hash_size;
+  frame_holder.frameID = frame_id;
+  frame_holder.PageId = page_id;
+  // create new slot in case we need it to hold new frame
+  list<LL> *slot = new list<LL>;
 
-  if (!hash_table[index]) // no buck , insert
-  {
-    list<LL> *buck = new list<LL>;
-    buck->push_back(frame);
-    hash_table[index] = buck; // point to the buck
+  if (!hash_table[key]) { // if the key doesn't there yet, create new slot for it
+    // add frame to the hash table
+    slot->push_back(frame_holder);
+    hash_table[key] = slot; // the hash function will point to the ptr point to the slot
   }
-  else // have buck, jude how many
-  {
-
-    list<LL> *buck = hash_table[index];
-    if (buck->size() < 2)
-      buck->push_back(frame);    // insert into the buck
-    else                         // bigger , overflow or partiion
-    {
-      if (partion_id || max_page == next_id)
-      {
-        if (max_page == next_id)
-        {
+  else {// the key is already exist, now have to check if the slot is full or not
+    slot = hash_table[key];
+    if (slot->size() < 2) {
+      slot->push_back(frame);    // insert into the buck
+    }
+    else {
+      if (partion_id || max_page == next_id) {
+        if (max_page == next_id) {
           depth++;
           hash_size = 2 * hash_size;
-        } // parition when next equal to max_page
+          // full, double the size
+        }
         hash_table.resize(2 * (hash_size), NULL);
-        partion_id = 0; // first parition flag
+        partion_id = 0;
       }
       // Added doubled_hashbuf April 2nd, 2020
       int doubled_hashbuf = hash_size * 2;
-      int index1 = (PageNo) % doubled_hashbuf; // find new index for insert record
+      int new_key = (page_id) % doubled_hashbuf; // since size is double, update key
       int partion_index;
-      list<LL>::iterator it = buck->begin();
-      if (index1 <= next_id) // if index less than next, parition
-      {
+      list<LL>::iterator ptr = slot->begin();
+      if (new_key <= next_id) {
         int overflow = 0;
-        while (it != buck->end())
-        {
-          //  cout<<"pade id "<<(*it).PageId<<endl;
-          partion_index = (*it).PageId;
-          partion_index = (partion_index) % doubled_hashbuf; // find new index for insert record
-          if (index != partion_index)                          // if not the same , insert into new buck
-          {
-            LL frame1;
-            frame1.PageId = (*it).PageId;
-            frame1.frameID = (*it).frameID;
-            if (!hash_table[partion_index]) // no buck ,create a buck ,point to it
-            {
-              list<LL> *buck1 = new list<LL>;
-              buck1->push_back(frame1);
-              hash_table[partion_index] = buck1;
+        while (ptr != slot->end()) {
+          partion_index = (*ptr).PageId;
+          partion_index = (partion_index) % doubled_hashbuf; // update index
+          if (key != partion_index) { // if they are not the same, we have to create new frame
+            LL new_frame_holder;
+            new_frame_holder.PageId = (*ptr).PageId;
+            new_frame_holder.frameID = (*ptr).frameID;
+            if (!hash_table[partion_index]) {
+              list<LL> *new_slot = new list<LL>;
+              new_slot->push_back(new_frame_holder);
+              hash_table[partion_index] = new_slot;
             }
             else
-              hash_table[partion_index]->push_back(frame1); // have buck , insert
-            it = buck->erase(it);                           // delete copy
-            overflow = 1;                                   // parition flag ,if all index is the same , then overflow
+              hash_table[partion_index]->push_back(new_frame_holder); // add new frame to hash table
+              ptr = slot->erase(ptr); //delete the slot
+              overflow = 1;                                   
           }
-
-          it++;
+          ptr++;
         }
 
-        if (!hash_table[index1]) // find new index for new insert reocrd
-        {
-          list<LL> *buck2 = new list<LL>;
-          buck2->push_back(frame);
-          hash_table[index1] = buck2;
+        if (!hash_table[new_key]){
+          list<LL> *slot2 = new list<LL>;
+          slot2->push_back(frame);
+          hash_table[new_key] = slot2;
         }
         else
-          hash_table[index1]->push_back(frame);
-        if (!overflow) // no overflow ++
-          next_id++;      // next move
+          hash_table[index1]->push_back(frame_holder);
+        if (!overflow) {next_id++;} // good to go because there is no overflow
       }
-      else
-      {
-        buck->push_back(frame); // overflow
+      else{
+        buck->push_back(frame_holder); // overflow
       }
     }
   }
