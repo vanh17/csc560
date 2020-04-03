@@ -541,11 +541,11 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       
     }
     else {
-      memcpy(&this->bufPool[index], replace, sizeof(Page));
+      memcpy(&this->bufPool[index], dirty_page, sizeof(Page));
       page = &this->bufPool[index];
-      this->bufFrame[i].pageNo = PageId_in_a_DB;
-      this->bufFrame[i].num_pin = 1;
-      this->bufFrame[i].is_clean = false;
+      this->bufFrame[index].is_clean = false; //set clean to dirty
+      this->bufFrame[index].pageNo = PageId_in_a_DB;
+      this->bufFrame[index].num_pin = 1; // added one to numpin
     }
 
     add_page(PageId_in_a_DB, index); // insert new record into hash table
