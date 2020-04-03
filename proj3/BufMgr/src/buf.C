@@ -139,10 +139,11 @@ void remove_page(int page_id) {
   list<LL>::iterator ptr = slot->begin(); // starting from the head of the LL
   bool at_tail = (ptr != slot->end());
   bool removed_page = false;
-  while (at_tail || !removed_page) { // search through the whole slot
+  while (at_tail || removed_page) { // search through the whole slot
     if ((*ptr).PageId == page_id) {
       slot->erase(ptr);
       removed_page = true;
+      break;
     }
     ptr++;
     at_tail = (ptr != slot->end());
