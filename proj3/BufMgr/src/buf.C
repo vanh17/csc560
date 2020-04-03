@@ -274,6 +274,7 @@ BufMgr::~BufMgr() {
 //*************************************************************
 //** This is the implementation of pinPage
 //************************************************************
+// Modified April 02, 2020 all test past for 6
 Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
   int frame_holder = 0;
   // search the page to be pinned
@@ -313,7 +314,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
     }
     else { return FAIL; }
   }
-  else if (this->numBuffers < (NUMBUF - 1) && !search_frame(PageId_in_a_DB, frame_holder) == false || this->numBuffers > 4294967200) {
+  else if (this->numBuffers < (NUMBUF - 1) && search_frame(PageId_in_a_DB, frame_holder) == false || this->numBuffers > 4294967200) {
     Page *dirty_page = new Page();
     // read this page to buf pool
     if (MINIBASE_DB->read_page(PageId_in_a_DB, dirty_page) == OK) {
@@ -391,8 +392,7 @@ Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE)
 //*************************************************************
 //** This is the implementation of newPage
 //************************************************************
-Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany)
-{
+Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany) {
   int allocate_page;
   Page *new_page = new Page();
   Status allocte, get_new, deallocte, pin;
@@ -635,19 +635,16 @@ Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *fil
 //*************************************************************
 //** This is the implementation of getNumUnpinnedBuffers
 //************************************************************
-unsigned int BufMgr::getNumUnpinnedBuffers()
-{
-
-  int i = 0;
-  int count = 0;
-  if (this->numBuffers > INT_MAX)
-    this->numBuffers++;
-  while (i <= this->numBuffers)
-  {
-    if (!this->bufFrame[i].num_pin) // cout total unpin page
-      count++;
-    i++;
+// Modified April 02, 2020 for unpining page test cases
+unsigned int BufMgr::getNumUnpinnedBuffers() {
+  // initialized cnt to return avalue 
+  unsigned int cnt = 0;
+  if (this->numBuffers > INT_MAX) { this->numBuffers++; } // to make sure the numBuffer value is valid
+  // loop through frames in the buffers, and add number of pins to the count
+  // these will be used in order to clear the hashtable and deconstruct BufMgr
+  for (int frame_id = 0; frame_id <= this->numBuffers; frame_id++) {
+    curr_frame_pins = this->bufFrame[frame_id].num_pin
+    if (!curr_frame_pins) { count++; } // there are unpin pages, add them to cnt
   }
-  //put your code here
-  return count;
+  return cnt; //put your code here
 }
