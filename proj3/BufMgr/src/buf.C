@@ -355,38 +355,34 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
 //*************************************************************
 //** This is the implementation of unpinPage
 //************************************************************
-Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE)
-{
-
-  int frameid;
-  if (search_frame(page_num, frameid)) // in the buf pool
-  {
-    if (this->bufFrame[frameid].num_pin == 0)
-    {
-      return FAIL;
-    } // can not pin a page which num_pin=0
-    this->bufFrame[frameid].num_pin--;
-    this->bufFrame[frameid].is_clean = dirty;
-    if (this->bufFrame[frameid].num_pin == 0)
-    {
-      if (hate == FALSE)
-      {
-        loved_queue.push(frameid);
-      } // hata and love replace policy
-      else
-      {
-        hated_stack.push(frameid);
+Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE) {
+  int frame_id; // frame_id to search for pinned page in the Frame
+  if (!search_frame(page_num, frame_id)) { // to check if we can find the frame with that page_id the buf pool
+    cout<<"cannot find the pinned page"<<endl;
+    return FAIL; // stop the page is already unpinned or not exist
+  }
+  else {
+    int num_pins_curr_frame = this->bufFrame[frame_id].num_pin;
+    if (num_pins_curr_frame == 0) {
+      cout << "nothing to unpin even found the pin"<<endl; return FAIL; // stop the unpinning
+    } 
+    else {// can not pin a page which num_pin=0
+      this->bufFrame[frame_id].num_pin--;
+      this->bufFrame[frame_id].is_clean = dirty;
+      num_pins_curr_frame = this->bufFrame[frame_id].num_pin;
+      if (num_pins_curr_frame == 0) { // check the rest 
+        if (love == true) { // where to push the dirt_page to after unpin
+          loved_queue.push(frameid);
+        } 
+        else { // hata and love replace policy
+          hated_stack.push(frameid);
+        }
       }
     }
-    //   cout<<"unpin a page  pageid="<<page_num<<endl;
+    
+    return OK;
   }
-  else
-  {
-    //   cout<<"can not find the page in the buf pool pageid="<<page_num<<endl;
-    return FAIL;
-  }
-  // put your code here
-  return OK;
+  return OK; // put your code here
 }
 
 //*************************************************************
