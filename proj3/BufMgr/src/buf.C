@@ -213,8 +213,8 @@ void clear_hash_table() {
   while (key < hash_table.size()){
     // only delete the records if key are there, not move on
     if (hash_table[key]) {
-      (hash_table[index])->~list<LL>();
-      hash_table[index] = NULL;
+      hash_table[key]->~list<LL>();
+      hash_table[key] = NULL;
       // buck->~list<LL>();
     }
     key++
