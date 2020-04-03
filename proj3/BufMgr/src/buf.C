@@ -152,7 +152,11 @@ void remove_page(int page_id) {
   if (!removed_page) {
     unsigned int doubled_hashbuf = hash_size * 2;
     pos = page_id % doubled_hashbuf; //hashing the page_id to hashed key
-    if (index <= hash_table.size()) {
+    // if pos is not in the hash_table, then do nothing
+    if (pos > hash_table.size()) {
+      return;
+    }
+    if (pos <= hash_table.size()) {
       slot = hash_table[pos];
       ptr = slot->begin();
       at_tail = (ptr != slot->end());
