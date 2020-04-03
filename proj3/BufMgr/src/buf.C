@@ -234,6 +234,7 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer){
   this->bufPool = new Page[numbuf];
   // set this to wrong
   this->numBuffers = -1; 
+  is_buf_full = false;
   // clear all values in hash table 
   clear_hash_table();
   while (loved_queue.empty() == false){
@@ -244,7 +245,6 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer){
     // empty all the previous populated screen
   }
   init_frame(-1);
-  is_buf_full = false;
 }
 
 //*************************************************************
