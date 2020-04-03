@@ -455,7 +455,7 @@ Status BufMgr::freePage(PageId globalPageId)
 // Starting modification work here
 Status BufMgr::flushPage(PageId pageid) {
   // set the frame_id here so that we can find the page
-  unsigned int frame_id;
+  int frame_id;
   if (!search_frame(pageid, frame_id)) { // step-by-step: searching for frame, flush all the content, and write changes
     cout << "Error: cannot flush page_id =" << pageid << endl;
     return FAIL;
