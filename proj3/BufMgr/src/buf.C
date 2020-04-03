@@ -277,7 +277,8 @@ BufMgr::~BufMgr() {
 Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
   int frame_holder = 0;
   // search the page to be pinned
-  if (!search_frame(PageId_in_a_DB, frame_holder) && this->numBuffers == (NUMBUF - 1)) {
+  bool found = search_frame(PageId_in_a_DB, frame_holder);
+  if (!found && this->numBuffers == (NUMBUF - 1)) {
     int key = 0;
     if (hated_stack.empty() == false) {
       key = hated_stack.top();
@@ -312,7 +313,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
     }
     else { return FAIL; }
   }
-  else if (this->numBuffers < (NUMBUF - 1) && !search_frame(PageId_in_a_DB, frame_holder) || this->numBuffers > 4294967200) {
+  else if (this->numBuffers < (NUMBUF - 1) && search_frame(PageId_in_a_DB, frame_holder) == false || this->numBuffers > 4294967200) {
     Page *dirty_page = new Page();
     // read this page to buf pool
     if (MINIBASE_DB->read_page(PageId_in_a_DB, dirty_page) == OK) {
@@ -339,7 +340,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
       this->bufFrame[curr_frame_id].is_clean=false;
     }
   }
-  else if (search_frame(PageId_in_a_DB, frame_holder)) {
+  else if (search_frame(PageId_in_a_DB, frame_holder) == true) {
     this->bufFrame[frame_holder].num_pin++; // accumulate pin counts
     page = &this->bufPool[frame_holder];
   }
@@ -347,9 +348,9 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
     cout << "Errors: this page isn't pinned yet" << endl;
     return FAIL;
   }
-  // put your code here
   return OK;
 } //end pinPage
+
 //*************************************************************
 //** This is the implementation of unpinPage
 //************************************************************
