@@ -436,7 +436,7 @@ Status BufMgr::freePage(PageId globalPageId) {
       cout << "Return FAIL because cannot free this page" <<endl;
     }
   }
-  if (MINIBASE_DB->deallocate_page(globalPageId); != OK) {//delete from disk
+  if (MINIBASE_DB->deallocate_page(globalPageId) != OK) {//delete from disk
     return FAIL;
     cout << "ERROR: can not free this page" << globalPageId << endl;
   }
