@@ -371,11 +371,11 @@ Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE) {
       this->bufFrame[frame_id].is_clean = dirty;
       num_pins_curr_frame = this->bufFrame[frame_id].num_pin;
       if (num_pins_curr_frame == 0) { // check the rest 
-        if (love == true) { // where to push the dirt_page to after unpin
-          loved_queue.push(frameid);
+        if (!hate) { // where to push the dirt_page to after unpin
+          loved_queue.push(frame_id);
         } 
         else { // hata and love replace policy
-          hated_stack.push(frameid);
+          hated_stack.push(frame_id);
         }
       }
     }
