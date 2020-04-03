@@ -355,6 +355,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
 //*************************************************************
 //** This is the implementation of unpinPage
 //************************************************************
+// Modifed April 03, 2020
 Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE) {
   int frame_id; // frame_id to search for pinned page in the Frame
   if (!search_frame(page_num, frame_id)) { // to check if we can find the frame with that page_id the buf pool
@@ -417,32 +418,29 @@ Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany) {
 //*************************************************************
 //** This is the implementation of freePage
 //************************************************************
-Status BufMgr::freePage(PageId globalPageId)
-{
-  int frame;
-  if (search_frame(globalPageId, frame)) // find frame no and free it
-  {
-    if (this->bufFrame[frame].num_pin)
-      return FAIL;
-    else
-    {
-      int i = frame + 1;
-      while (i <= this->numBuffers) // move forward to fill the gap
-      {
+Status BufMgr::freePage(PageId globalPageId) {
+  int frame_id; //initialize frame_id to find right frame given pageID
+  if (search_frame(globalPageId, frame_id)) { //find the frame and assign that to frame_id
+    if (!this->bufFrame[frame_id].num_pin) {
+      for (int temp = frame_id + 1; temp <= this->numBuffers; temp++) {// free the rest and update the next file
 
-        memcpy(&this->bufFrame[frame], &this->bufFrame[i], sizeof(FrameDesc));
-        frame++;
-        i++;
+
+        memcpy(&this->bufFrame[frame_id], &this->bufFrame[temp], sizeof(FrameDesc));
+        frame_id++; temp++; // update current frame and frame pointer for next itr
       }
+      // reduce pinned page number
       this->numBuffers--;
     }
+    else {
+      return FAIL;
+      cout << "Return FAIL because cannot free this page" <<endl;
+    }
   }
-  Status deallocte = MINIBASE_DB->deallocate_page(globalPageId); // deloocate it from the disk
-  if (deallocte != OK)
-    cout << "ERROR: can not dellocate a page  pageid=" << globalPageId << endl;
-
-  // put your code here
-  return OK;
+  if (MINIBASE_DB->deallocate_page(globalPageId); != OK) {//delete from disk
+    return FAIL;
+    cout << "ERROR: can not free this page" << globalPageId << endl;
+  }
+  return OK;// put your code here
 }
 
 //*************************************************************
