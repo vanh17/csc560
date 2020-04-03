@@ -396,7 +396,7 @@ Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany) {
   if (MINIBASE_DB->allocate_page(page_id, howmany) != OK) {
     return FAIL; // if cannot allocate from DB
   }
-  MINIBASE_DB->read_page(allocate_page, new_page); // read the page
+  MINIBASE_DB->read_page(page_id, new_page); // read the page
   if (!is_buf_full) {// buf pool not full simply add the page here
     pinPage(page_id, new_page, 1);
     // set firstPage to this after add new page to DB
