@@ -46,7 +46,7 @@ void add_page(PageId page_id, int frame_id) {
   LL frame_holder; //create the frame to hold the data of the hashed key
   // max_pages can be stored in this Frame
   int max_page = pow(2, depth) * 2 - 1; 
-  int key = PageNo % hash_size;
+  int key = page_id % hash_size;
   frame_holder.frameID = frame_id;
   frame_holder.PageId = page_id;
   // create new slot in case we need it to hold new frame
