@@ -523,7 +523,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
     bool is_clean = this->bufFrame[index].is_clean;
     if (is_clean) {
       Page *dirty_page = new Page();
-      memcpy(replace, &this->bufPool[index], sizeof(Page));
+      memcpy(dirty_page, &this->bufPool[index], sizeof(Page));
       
       if (MINIBASE_DB->write_page(this->bufFrame[index].pageNo, dirty_page) != OK) {//write changes
         cout << "Cannot write buf page " << this->bufFrame[index].pageNo << endl;
@@ -534,9 +534,9 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
     }
 
 
-    remove_page(this->bufFrame[i].pageNo); // remove from hash table
-    Page *replace = new Page();
-    if (MINIBASE_DB->read_page(PageId_in_a_DB, replace) != OK) {
+    remove_page(this->bufFrame[index].pageNo); // remove from hash table
+    Page *dirty_page = new Page();
+    if (MINIBASE_DB->read_page(PageId_in_a_DB, dirty_page) != OK) {
       return FAIL;
       
     }
@@ -574,16 +574,18 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
     }
   }
   else if(!found_frame) {
-    cout<<"max test"<<"pageid="<<PageId_in_a_DB<<endl; // now do the max test
-    Page *dirty_page=new Page();
+    Page *dirty_page = new Page();
     MINIBASE_DB->read_page(PageId_in_a_DB,dirty_page);
+    cout << "max test" << "pageid="  << PageId_in_a_DB << endl; // now do the max test
     // update numBuffers
     this->numBuffers++;
-    page=&this->bufPool[this->numBuffers];
-    memcpy(&this->bufPool[this->numBuffers],replace,sizeof(Page)); //write to memory
-    this->bufFrame[this->numBuffers].pageNo = PageId_in_a_DB;
-    this->bufFrame[this->numBuffers].num_pin++;
-    this->bufFrame[this->numBuffers].is_clean = false;
+    int curr_numBuffer = this->numBuffers;
+    page=&this->bufPool[curr_numBuffer];
+    memcpy(&this->bufPool[this->numBuffers], dirty_page, sizeof(Page)); //write to memory
+    curr_numBuffer = this->numBuffers; //update current numBuffers
+    this->bufFrame[curr_numBuffer].is_clean = false; //set to dirty page
+    this->bufFrame[curr_numBuffer].pageNo = PageId_in_a_DB;
+    this->bufFrame[curr_numBuffer].num_pin++;
     add_page(PageId_in_a_DB,this->numBuffers); //add page to the hash table 
   }
   else if (found_frame) {
