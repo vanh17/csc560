@@ -60,7 +60,7 @@ void add_page(PageId page_id, int frame_id) {
   else {// the key is already exist, now have to check if the slot is full or not
     slot = hash_table[key];
     if (slot->size() < 2) {
-      slot->push_back(frame);    // insert into the buck
+      slot->push_back(frame_holder);    // insert into the buck
     }
     else {
       if (partion_id || max_page == next_id) {
@@ -77,7 +77,10 @@ void add_page(PageId page_id, int frame_id) {
       int new_key = (page_id) % doubled_hashbuf; // since size is double, update key
       int partion_index;
       list<LL>::iterator ptr = slot->begin();
-      if (new_key <= next_id) {
+      if (new_key > next_id) {
+        slot->push_back(frame_holder); // overflow
+      }
+      else{
         int overflow = 0;
         while (ptr != slot->end()) {
           partion_index = (*ptr).PageId;
@@ -101,15 +104,13 @@ void add_page(PageId page_id, int frame_id) {
 
         if (!hash_table[new_key]){
           list<LL> *slot2 = new list<LL>;
-          slot2->push_back(frame);
+          slot2->push_back(frame_holder);
           hash_table[new_key] = slot2;
         }
-        else
-          hash_table[index1]->push_back(frame_holder);
+        else {
+          hash_table[new_key]->push_back(frame_holder);
+        }
         if (!overflow) {next_id++;} // good to go because there is no overflow
-      }
-      else{
-        buck->push_back(frame_holder); // overflow
       }
     }
   }
