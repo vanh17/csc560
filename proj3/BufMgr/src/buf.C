@@ -226,25 +226,25 @@ void clear_hash_table() {
   next_id = 0;
 }
 /************************************End Global Helpers Definition***********************/
-BufMgr::BufMgr(int numbuf, Replacer *replacer)
-{
-
-  Page *BufPage = new Page[numbuf];
-  FrameDesc *BufDesript = new FrameDesc[numbuf];
-  this->bufPool = BufPage;
-  this->bufFrame = BufDesript;
-  this->numBuffers = -1; // init 0   it from biggest number ++ become 0
-                         //   cout<<"bufmgr "<<this->numBuffers<<endl;
-  while (!hated_stack.empty())
-    hated_stack.pop();
-  while (!loved_queue.empty())
-    loved_queue.pop();
+BufMgr::BufMgr(int numbuf, Replacer *replacer){
+  // create new buffer page and Frame for buffer page
+  // set buffer pools of frame to this bufFrame
+  this->bufFrame = new FrameDesc[numbuf];
+  // set buffer pools of page to this bufPage
+  this->bufPool = new Page[numbuf];
+  // set this to wrong
+  this->numBuffers = -1; 
+  // clear all values in hash table 
   clear_hash_table();
+  while (loved_queue.empty() == false){
+    loved_queue.pop(); // empty all the queue
+  }
+  while (hated_stack.empty() == false) {
+    hated_stack.pop();
+    // empty all the previous populated screen
+  }
   init_frame(-1);
   is_buf_full = false;
-
-  //    cout<<"bufmgr "<<this->numBuffers<<endl;
-  // put your code here
 }
 
 //*************************************************************
