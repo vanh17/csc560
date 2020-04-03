@@ -226,6 +226,7 @@ void clear_hash_table() {
   next_id = 0;
 }
 /************************************End Global Helpers Definition***********************/
+// Modified April 02, 2020 to passed the allocated and deallocated space for constructor
 BufMgr::BufMgr(int numbuf, Replacer *replacer){
   // create new buffer page and Frame for buffer page
   // set buffer pools of frame to this bufFrame
@@ -250,27 +251,19 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer){
 //*************************************************************
 //** This is the implementation of ~BufMgr
 //************************************************************
-BufMgr::~BufMgr()
-{
-
+// remove all the unused space for not being gabagge overflow
+BufMgr::~BufMgr() {
   if (this->numBuffers > 4294967200) { this->numBuffers++; }
-  int i = 0;
-  while (i <= this->numBuffers)
-  {
-    if (this->bufFrame[i].is_clean == true)
-    {
-      //   cout<<"write page to disk"<<endl;
-      Page *replace = new Page();
-      memcpy(replace, &this->bufPool[i], sizeof(Page));
-      Status buf_write = MINIBASE_DB->write_page(this->bufFrame[i].pageNo, replace); //write disk
-      disk_page.push_back(this->bufFrame[i].pageNo);
-      if (buf_write != OK)
-        cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
+  for (int frame_id = 0, frame_id <= this->numBuffers, frame_id++) {
+    if (this->bufFrame[frame_id].is_clean == true) {
+      // write to memmory the current framId and then remove the rest
+      memcpy(new Page();, &this->bufPool[frame_id], sizeof(Page));
+      MINIBASE_DB->write_page(this->bufFrame[frame_id].pageNo, replace); //write disk
+      disk_page.push_back(this->bufFrame[frame_id].pageNo);
     }
-    i++;
   }
+  // clear everything
   clear_hash_table();
-  // put your code here
 }
 
 //*************************************************************
