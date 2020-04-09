@@ -21,13 +21,8 @@
 /*******************End Package including***************************/
 #define NUMBUF 20   
 // Default number of frames, artifically small number for ease of debugging.
-
-#define BuckSize 2
-// Default size of the bucket
 #define HTSIZE 7
 // Hash Table size
-
-#define INT_MAX 4294967200
 // define largest integer for storage calcualtion
 
 /****** Global Type ********************************/
