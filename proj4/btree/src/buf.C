@@ -6,7 +6,6 @@
 
 /************Defined global variables here ***********************************/
 //Started to modified April 10, 2020
-vector<HL> hash_table(8, NULL);
 int a = 1, b = 0;
 int next_id = 0, depth = 2, flg_partion = 1; // declare next_id, depth, flg_partition for tracking
 int hashbuf = HTSIZE + 1;
@@ -20,6 +19,7 @@ stack<int> Hated_Frame;
 queue<int> Loved_Frame;
 vector<int> copy_stack;
 int flag_buf_full;
+vector<HL> hash_table(8, NULL); // declare hash_table to store value key pairs for hashing
 /****************End GlobalVariables Declaration******************************/
 // Define error message here
 static const char *bufErrMsgs[] = {
