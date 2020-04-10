@@ -46,7 +46,7 @@ class BTIndexPage : public SortedPage {
 
    Status get_page_no(const void *key, AttrType key_type, PageId & pageNo);
 
-    
+   Status get_index_Page_no(const void *key, AttrType key_type, PageId & pageNo);
 // ------------------- Iterators ------------------------
 // The two functions get_first and get_next provide an
 // iterator interface to the records on a BTIndexPage.
@@ -69,6 +69,9 @@ class BTIndexPage : public SortedPage {
    PageId getLeftLink(void) { return getPrevPage(); }
    void   setLeftLink(PageId left) { setPrevPage(left); }
 
+   AttrType  keytype;
+   int level;
+   RID  first_index;
     
    // The remaining functions of SortedPage are still visible.
 };

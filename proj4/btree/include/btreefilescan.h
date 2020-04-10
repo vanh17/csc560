@@ -28,7 +28,12 @@ public:
     // destructor
     ~BTreeFileScan();
 private:
-
+	PageId begin;
+    PageId end;
+    AttrType keytype;
+    RID  R_Start;
+    RID  R_End;
+    RID  Curr_rid;
 };
 
 #endif

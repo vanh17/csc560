@@ -56,7 +56,7 @@ typedef enum {
  */
 
 #define MAX_KEY_SIZE1        220
-
+#define MAX_key       15
 
 /*
  * Keytype union: used to discover the max keysize, and for minimal 
@@ -96,6 +96,30 @@ struct KeyDataEntry
 {
   Keytype    key;
   Datatype   data;
+};
+
+
+
+/* struct Key_Int   just for int type key   
+
+union Keytype  , I try many time, I alway  waster space, 8 bit int key would waste 212 Btye, So , I choose define data strcut by my own 
+
+*/
+struct Key_Int
+{
+    int intkey;
+    Datatype   data;
+};
+
+/*struct Key_stirng,  just for string type key  
+
+union Keytype  , I try many time, it alway  waster space, 8 bit int key would waste 212 Btye, So , I choose define data strcut by my own.
+For string type, the length of string is different , I also tye string type, but it also waste space , So I define following data struct. 
+*/
+struct Key_string
+{
+     char charkey[MAX_key];
+     Datatype   data;
 };
 
 /*
@@ -143,7 +167,7 @@ void make_entry(KeyDataEntry *target,
  * of the data chunk (to calculate data start of the <data> part).
  */
 
-void get_key_data(void *targetkey, Datatype *targetdata,
+void* get_key_data(void *targetkey, Datatype *targetdata,
                   KeyDataEntry *psource, int entry_len, 
                   nodetype ndtype);
 

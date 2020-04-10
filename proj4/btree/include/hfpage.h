@@ -82,7 +82,7 @@ class HFPage {
 
       // returns the amount of available space on the page
     int    available_space(void);
-
+    
       // Returns true if the HFPage is has no records in it, false otherwise.
     bool empty(void);
 

@@ -73,6 +73,8 @@ void BTreeTest::test_scan(IndexFileScan* scan)
 	size = scan->keysize();
 	char* temp = new char[size];
 
+  //  cout<<"size  test "<<size<<endl;  // test code
+
 	while (status == OK) {
 		status = scan->get_next(rid, temp);
 		if (status == OK)  {
@@ -86,6 +88,7 @@ void BTreeTest::test_scan(IndexFileScan* scan)
 				cout <<"\t key = " << ckey <<";"<<endl;
 			}
 			count++;
+          //  if(count==100) break;     // test code
 		}
 		else  if (status != DONE)
 	    		minibase_errors.show_errors();
@@ -155,8 +158,10 @@ int key;
         }
     }
 
-    // test delete()
 
+
+    // test delete()
+#if 1
     cout << "\nstart BTreeIndex deletion" << endl << endl;
     int j = 0;
     for (i = 0; i < num; i++) {
@@ -165,6 +170,7 @@ int key;
 	    if (btf->Delete(&kill[i/10].key, kill[(i/10)].r) != OK) {
 	    	cout << " Deleting record with key = " << kill[i/10].key << "  [pageNo,slotNo] = ";
 	        cout << "[" << kill[i/10].r.pageNo<<","<<kill[i/10].r.slotNo<<"] failed !!"<<endl;
+             exit(0);
 	       minibase_errors.show_errors();
 	    }
 
@@ -172,6 +178,9 @@ int key;
     }
 
     delete btf;
+     
+
+#endif
 
     btf = new BTreeFile(status, "BTreeIndex");
     if(status == OK)
@@ -188,29 +197,31 @@ int key;
     delete scan;   
 	
 
-
+   
     //MaxRangeScan
     scan = btf->new_scan(NULL, &hikey);
     test_scan(scan);
     delete scan;
-
-
-
+    
+    
     //MinRangeScan;
     scan = btf->new_scan(&lokey, NULL);
     test_scan(scan);
     delete scan;   
-
     
     //ExactMatch
     scan = btf->new_scan(&hikey, &hikey);
     test_scan(scan);
     delete scan;
+ 
 
-
-   
+  
     //MinMaxRangeScan with delete_current()
     scan = btf->new_scan(&lokey, &hikey);
+
+    
+    
+
     int count = 0;
     int size = scan->keysize();
     char* temp = new char[size];
@@ -392,6 +403,8 @@ void BTreeTest::test3() {
     while(!keysamples.eof()) {
 		rid.pageNo = (int)(key[0]+key[1]+key[2]);
 		rid.slotNo = rid.pageNo;
+        if(rid.pageNo==145||rid.pageNo==210)
+            cout<<"Find unusual record "<<rid.pageNo<<" key ="<<key<<endl;
         if (btf->insert(key, rid) != OK) {
             minibase_errors.show_errors();
         }
@@ -404,6 +417,18 @@ void BTreeTest::test3() {
     cout << "\nNumber of records inserted is " << i << endl;
     cout << "\n--------------End of insert----------------" << endl;
 
+   
+#if 0
+ //AllScan     
+    scan = btf->new_scan(NULL,NULL);                                            
+    cout << "\n---------------Start AllScan------------" << endl;
+    test_scan(scan);                                                            
+    delete scan;                                                                
+    cout <<"\n------End of AllScan------" << endl;
+
+#endif
+
+  
     // test delete()
     cout << "\n------Start to delete some records----------" << endl;
 
@@ -417,6 +442,8 @@ void BTreeTest::test3() {
 	cout << "\nSuccessfully deleted record with key = " << lokey << endl;
     cout << "\n---------------End of delete----------------" << endl;
 
+   
+
     delete btf;
     btf = new BTreeFile(status, "BTreeIndex");
   
@@ -428,6 +455,7 @@ void BTreeTest::test3() {
     delete scan;                                                                
     cout <<"\n------End of AllScan------" << endl;
 	
+
     //MaxRangeScan                                                              
     scan = btf->new_scan(NULL, hikey);                                       
     cout << "\n\n------Start MaxRangeScan with hikey = "<<hikey<< "------\n";
@@ -435,7 +463,7 @@ void BTreeTest::test3() {
     delete scan;                                                                
     cout << "\n------End of MaxRangeScan with hikey = "<<hikey<< "------\n";
     
-
+    
     //MinRangeScan;                                                        
     scan = btf->new_scan(lokey, NULL);                                         
     cout << "\n\n-----Start MinRangeScan with lokey = "<<lokey<< "------\n"; 
@@ -443,19 +471,24 @@ void BTreeTest::test3() {
     delete scan;                                                                
     cout << "\n------End of MinRangeScan with lokey = "<<lokey<< "------\n"; 
 
+
     //ExactMatch                                                                
     scan = btf->new_scan(hikey, hikey);                                       
     cout << "\n\n------Start ExactMatch with key = " <<hikey << "------\n"; 
     test_scan(scan);                                                            
     delete scan;
     cout << "\n------End of ExactMatch with key = " <<hikey << "------\n"; 
-                                             
+      
+
+
     //MinMaxRangeScan
     scan = btf->new_scan(lokey, hikey);
     cout << "\n\n------Start MinMaxRangeScan------" << endl;
     if(scan == NULL) {
 	cout << "Cannot open a scan." << endl;
     }
+
+
 
     cout << "\n------Start scan with lokey = "<<lokey << " hikey = "<<hikey \
 		<< "-----" << endl;
@@ -477,6 +510,8 @@ void BTreeTest::test3() {
         delete [] temp;  // BK
     }
 
+
+
     if (status != DONE)
     {
      cout << "Problem...\n";
@@ -488,6 +523,8 @@ void BTreeTest::test3() {
 
 
     cout << "\n\n------Testing abnormal scans------\n";
+
+
 
 	// test abnormal scans
 	// lokey > hikey
@@ -508,6 +545,7 @@ void BTreeTest::test3() {
 
 	cout << " Failed as expected: no records scanned " << endl;
 
+
 	// lokey > the largest key 
 	strcpy(lokey, "zabcd");
 	strcpy(hikey, "zcdef");
@@ -522,7 +560,9 @@ void BTreeTest::test3() {
 		minibase_errors.show_errors();
 	delete scan;
 
+
 	cout << " Failed as expected: no records scanned " << endl;
+
 
 	// hikey < smallest key
 	strcpy(lokey, "aaa");
@@ -538,9 +578,11 @@ void BTreeTest::test3() {
 		exit(1);
 	}
 
+
 	if (status != DONE)
 		minibase_errors.show_errors();
 	delete scan;
+
 
 	cout << " Failed as expected: no records scanned " << endl;
 
@@ -548,6 +590,8 @@ void BTreeTest::test3() {
     delete btf;
     
     // test destroyFile()
+
+
 
     btf = new BTreeFile(status, "BTreeIndex");
 
@@ -639,15 +683,28 @@ cout << " key " << values[i].key
     cout << "\n------Start to insert " << num << "  records------" << endl;
 
     for (i=0; i < num; i++){
-        //cout << " Inserting key " << values[i].key << " order " 
-             //<< values[i].sort_value1 << endl;
+      //   cout << " Inserting key " << values[i].key << " order " 
+       //      << values[i].sort_value1 << endl;
+        if(values[i].key==570) cout<<"key "<<values[i].key<<endl;
        	if (btf->insert(&(values[i].key), values[i].r) != OK) {
             minibase_errors.show_errors();
         }
     }
     cout << "\n------ End of insert------" << endl;
 
-   
+
+
+#if 0
+         //AllScan
+    scan = btf->new_scan(NULL,NULL);
+    cout << "\n\n------Start AllScan------" << endl;
+
+    test_scan(scan);
+    delete scan;   
+    
+    exit(0);
+
+#endif
 
     // test delete()
     cout << "\n\n------ Delete the first " << num_deletes 
@@ -655,22 +712,33 @@ cout << " key " << values[i].key
 
     // place records in deletion order
     qsort(values, num, sizeof(dummy), eval2);
-
+    int flag=0;
     for (i = 0; i < num_deletes; i++) {
-/*
-	    cout << "Deleting record with key = " << values[i].key 
-                 << "  [pageNo,slotNo] = ";
-	    cout << "[" << values[i].r.pageNo<<","
-                 << values[i].r.slotNo << "]" <<endl;
-*/
+
+	  //  cout << "Deleting record with key = " << values[i].key 
+      //           << "  [pageNo,slotNo] = ";
+	//    cout << "[" << values[i].r.pageNo<<","
+      //           << values[i].r.slotNo << "]" <<endl;
+
 	    if (btf->Delete(&values[i].key, values[i].r) != OK) {
-	       minibase_errors.show_errors();
+
+             cout << "Deleting record with key = " << values[i].key 
+                 << "  [pageNo,slotNo] = ";
+            cout << "[" << values[i].r.pageNo<<","
+                 << values[i].r.slotNo << "]" <<endl;
+                 flag++;
+           //    if(values[i].key==7279) exit(0);
+	   //    minibase_errors.show_errors();
 	    }
     }
     cout << "Deleted  " << i << "  records " << endl;
     cout << "\n------ End of delete ------" << endl;
 
     delete btf;
+
+
+
+  
 
     btf = new BTreeFile(status, "BTreeIndex");
   
@@ -689,6 +757,8 @@ cout << " key " << values[i].key
         i++;
     }
 
+
+
     //AllScan
     scan = btf->new_scan(NULL,NULL);
     cout << "\n\n------Start AllScan------" << endl;
@@ -696,6 +766,8 @@ cout << " key " << values[i].key
     test_scan(scan);
     delete scan;   
 	
+  
+
     cout << "\n------End of AllScan------" << endl;
 
     //MaxRangeScan
@@ -703,6 +775,8 @@ cout << " key " << values[i].key
     cout << "\n\n------Start MaxRangeScan with hikey = "<<hikey<<"------\n";
     test_scan(scan);
     delete scan;
+
+  
 
     cout << "\n------End of MaxRangeScan with hikey = "<<hikey<<"------\n";
 
@@ -712,6 +786,7 @@ cout << " key " << values[i].key
     test_scan(scan);
     delete scan;   
 
+   
     cout << "\n------End of MinRangeScan with lokey = "<<lokey<<"------\n";
     
     //ExactMatch
@@ -720,6 +795,7 @@ cout << " key " << values[i].key
     test_scan(scan);
     delete scan;
     cout << "\n------End of ExactMatch with key = " <<hikey <<"-------\n";
+   
 
    
     //MinMaxRangeScan with delete_current()
@@ -728,6 +804,7 @@ cout << " key " << values[i].key
 	    << " hikey = "<<hikey<<"------\n";
     cout << "Will also perform delete_current()\n";
   
+ // exit(0);
     int count = 0;
     status = OK;
     while (status == OK) {
