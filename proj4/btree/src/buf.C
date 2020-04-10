@@ -12,6 +12,8 @@ vector<PageId> disk_page;
 int flag_buf_full;
 vector<int> copy_stack; // create this so we can update loved, hated queue
 vector<HL> hash_table(8, NULL); // declare hash_table to store value key pairs for hashing
+stack<int> hate_stack; // stack to keep hate page
+queue<int> love_queue; // queue to keep love page
 /****************End GlobalVariables Declaration******************************/
 // Define error message here
 static const char *bufErrMsgs[] = {
