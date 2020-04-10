@@ -61,9 +61,8 @@ class FrameDesc {
 class BufMgr {
 
 private: 
+   FrameDesc *bufFrame; // private variable to hold current frame for BufMgr 
    unsigned int    numBuffers;
-   FrameDesc   *bufDescr;
-   // fill in this area
 public:
     Page* bufPool; // The actual buffer pool
     BufMgr (int numbuf, Replacer *replacer = 0); 
