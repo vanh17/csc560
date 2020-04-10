@@ -25,6 +25,8 @@
 // Hash Table size
 // define largest integer for storage calcualtion
 
+#define INT_MAX 4294967200
+
 /****** Global Type ********************************/
 typedef struct LL {int frameID; int PageId;} * List;
 typedef list<LL> *HL;
