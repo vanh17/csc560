@@ -3,9 +3,9 @@
 /*****************************************************************************/
 
 #include "buf.h"
-// Define buffer manager error messages here
-//enum bufErrCodes  {...};
-#define BuckSize 2
+
+/************Defined global variables here ***********************************/
+//Started to modified April 10, 2020
 vector<HL> hash_table(8, NULL);
 int a = 1, b = 0;
 int Next = 0, level = 2;
@@ -21,6 +21,7 @@ stack<int> Hated_Frame;
 queue<int> Loved_Frame;
 vector<int> copy_stack;
 int flag_buf_full;
+/****************End GlobalVariables Declaration******************************/
 // Define error message here
 static const char *bufErrMsgs[] = {
     // error message strings go here
@@ -201,7 +202,7 @@ Return: void
 void hash_build(PageId PageNo, int frameNo)
 {
 
-  int Max_next = BuckSize * pow(2, level) - 1; // N*Pow(2,level)  number of Buck times two over level equal total current hash length above overflow page
+  int Max_next = pow(2, level) * 2  - 1; // N*Pow(2,level)  number of Buck times two over level equal total current hash length above overflow page
   int index = (a * PageNo + b) % hashbuf;      //get  key
   LL frame;                              // pair<pageid, frameid> structure
   frame.PageId = PageNo;
@@ -217,7 +218,7 @@ void hash_build(PageId PageNo, int frameNo)
   {
 
     list<LL> *buck = hash_table[index];
-    if (buck->size() < BuckSize) // less than bucksize
+    if (buck->size() < 2) // less than bucksize
       buck->push_back(frame);    // insert into the buck
     else                         // bigger , overflow or partiion
     {
