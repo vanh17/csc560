@@ -2,6 +2,7 @@
 /*************** Implementation of the Buffer Manager Layer ******************/
 /*****************************************************************************/
 
+#include "buf.h"
 // Define buffer manager error messages here
 //enum bufErrCodes  {...};
 #define BuckSize 2
