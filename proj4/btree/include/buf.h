@@ -73,21 +73,13 @@ class FrameDesc {
 
 
 class HashTable{
-
     friend BufMgr;
-private:
-    int a,b;
-    int Next,level;
-    int partion_flag;
-    int hashbuf;
-    vector<HL> hash_table;
-public:
-         HashTable(int size);
-        void hash_build(PageId PageNo,int frameNo);
-        void hash_remove(int page);
-        int hash_search(int pageID,int &frameNo);
-        void print_hash();
-        void Hash_delte();
+    HashTable(int size);
+    void hash_build(PageId PageNo,int frameNo);
+    void hash_remove(int page);
+    int hash_search(int pageID,int &frameNo);
+    void print_hash();
+    void Hash_delte();
 };
 
 
