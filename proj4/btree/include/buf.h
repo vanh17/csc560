@@ -9,21 +9,31 @@
 #include "db.h"
 #include "page.h"
 #include "new_error.h"
-#include<list>
-#include<vector>
-#include<algorithm>
-#include<stack>
-#include<deque>
-#include<queue>
+
+
+/****************Include basic C packages***************************/
 #include<math.h>
+#include<stack>
+#include<vector>
+#include<deque>
+#include<list>
+#include<queue>
+#include<algorithm>
+/*******************End Package including***************************/
+
+
 #define NUMBUF 20   
 // Default number of frames, artifically small number for ease of debugging.
-
 #define HTSIZE 7
 // Hash Table size
+// define largest integer for storage calcualtion
 
+#define INT_MAX 4294967200
 
-
+/****** Global Type ********************************/
+typedef struct LL {int frameID; int PageId;} * List;
+typedef list<LL> *HL;
+/*****************************End Global Variables Declaration*****************/
 /*******************ALL BELOW are purely local to buffer Manager********/
 
 // You could add more enums for internal errors in the buffer manager.
@@ -70,13 +80,7 @@ private:
     int Next,level;
     int partion_flag;
     int hashbuf;
-    typedef struct LinkList
-    {
-    int PageId;
-    int frameID;
-    }*List;
-    typedef list<LinkList> *Linkhash;
-    vector<Linkhash> hash_table;
+    vector<HL> hash_table;
 public:
          HashTable(int size);
         void hash_build(PageId PageNo,int frameNo);
