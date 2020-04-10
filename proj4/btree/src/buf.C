@@ -8,7 +8,7 @@
 //Started to modified April 10, 2020
 int a = 1, b = 0;
 int next_id = 0, depth = 2, flg_partion = 1; // declare next_id, depth, flg_partition for tracking
-int hash_size = HTSIZE + 1;
+int hashbuf = HTSIZE + 1;
 void hash_build(PageId PageNo, int frameNo);
 void hash_remove(int page);
 int hash_search(int pageID, int &frameNo);
@@ -202,7 +202,7 @@ void hash_build(PageId PageNo, int frameNo)
 {
 
   int Max_next = pow(2, depth) * 2  - 1; // N*Pow(2,depth)  number of Buck times two over depth equal total current hash length above overflow page
-  int index = (a * PageNo + b) % hash_size;      //get  key
+  int index = (a * PageNo + b) % hashbuf;      //get  key
   LL frame;                              // pair<pageid, frameid> structure
   frame.PageId = PageNo;
   frame.frameID = frameNo;
@@ -226,12 +226,12 @@ void hash_build(PageId PageNo, int frameNo)
         if (Max_next == next_id)
         {
           depth++;
-          hash_size = 2 * hash_size;
+          hashbuf = 2 * hashbuf;
         } // parition when next equal to Max_next
-        hash_table.resize(2 * (hash_size), NULL);
+        hash_table.resize(2 * (hashbuf), NULL);
         flg_partion = 0; // first parition flag
       }
-      int hash_size = (hash_size)*2;               // double length of hash table
+      int hash_size = (hashbuf)*2;               // double length of hash table
       int index1 = (a * PageNo + b) % hash_size; // find new index for insert record
       int partion_index;
       list<LL>::iterator it = buck->begin();
@@ -289,7 +289,7 @@ Author: xing yuan
 */
 void print_hash()
 {
-  cout << "size of hash buf " << hash_size << " size of  hash" << hash_table.size() << "next =" << next_id << endl;
+  cout << "size of hash buf " << hashbuf << " size of  hash" << hash_table.size() << "next =" << next_id << endl;
   for (int i = 0; i < hash_table.size(); i++)
   {
 
@@ -316,7 +316,7 @@ Return: void
 */
 void hash_remove(int page)
 {
-  int index = (a * page + b) % hash_size;     //key    find in the no partion page
+  int index = (a * page + b) % hashbuf;     //key    find in the no partion page
   list<LL> *buck = hash_table[index]; // get the buck
   list<LL>::iterator it = buck->begin();
   while (it != buck->end()) // find the element and remove it
@@ -329,7 +329,7 @@ void hash_remove(int page)
     it++;
   }
 
-  index = (a * page + b) % (2 * hash_size); //key , find in the parition pages or overflow pages
+  index = (a * page + b) % (2 * hashbuf); //key , find in the parition pages or overflow pages
   if (index <= hash_table.size())
   {
     buck = hash_table[index];
@@ -354,7 +354,7 @@ Return: 1 success find  0 do not exit in the hash table
 */
 int hash_search(int pageID, int &frameNo)
 {
-  int index = (a * pageID + b) % hash_size; //key  find in the no partion page
+  int index = (a * pageID + b) % hashbuf; //key  find in the no partion page
   if (!hash_table[index])
     return 0;
   list<LL> *buck = hash_table[index];
@@ -368,7 +368,7 @@ int hash_search(int pageID, int &frameNo)
     }
     it++;
   }
-  index = (a * pageID + b) % (2 * hash_size); //key
+  index = (a * pageID + b) % (2 * hashbuf); //key
   if (index <= hash_table.size())           //key , find in the parition pages or overflow pages
   {
     if (!hash_table[index])
@@ -404,7 +404,7 @@ void Hash_delte()
   next_id = 0;
   depth = 2;
   flg_partion = 1;
-  hash_size = HTSIZE + 1;
+  hashbuf = HTSIZE + 1;
 #endif
 
   // hash_table(7,NULL);
