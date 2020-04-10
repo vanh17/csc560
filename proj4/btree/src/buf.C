@@ -8,8 +8,7 @@
 //Started to modified April 10, 2020
 vector<HL> hash_table(8, NULL);
 int a = 1, b = 0;
-int Next = 0, level = 2;
-int partion_flag = 1;
+unsigned int next_id = 0, depth = 2, partion_id = 1; // declare next_id, depth for tracking purposes
 int hashbuf = HTSIZE + 1;
 void hash_build(PageId PageNo, int frameNo);
 void hash_remove(int page);
@@ -22,6 +21,22 @@ queue<int> Loved_Frame;
 vector<int> copy_stack;
 int flag_buf_full;
 /****************End GlobalVariables Declaration******************************/
+/***************Global Variables******************************/
+
+//Global Hash table to hold the key and pair value.
+vector<HL> hash_table(8, NULL);
+//size of a buffer hash table
+unsigned int hash_size = HTSIZE + partion_id;
+bool is_buf_full = false;
+// Loved Frame holder
+queue<int> loved_queue;
+// disk holder
+vector<PageId> storage;
+// Hated Frame holder
+stack<int> hated_stack;
+// the copy 
+vector<int> copy_stack;
+/************************************************************/
 // Define error message here
 static const char *bufErrMsgs[] = {
     // error message strings go here
@@ -202,7 +217,7 @@ Return: void
 void hash_build(PageId PageNo, int frameNo)
 {
 
-  int Max_next = pow(2, level) * 2  - 1; // N*Pow(2,level)  number of Buck times two over level equal total current hash length above overflow page
+  int Max_next = pow(2, depth) * 2  - 1; // N*Pow(2,depth)  number of Buck times two over depth equal total current hash length above overflow page
   int index = (a * PageNo + b) % hashbuf;      //get  key
   LL frame;                              // pair<pageid, frameid> structure
   frame.PageId = PageNo;
@@ -222,21 +237,21 @@ void hash_build(PageId PageNo, int frameNo)
       buck->push_back(frame);    // insert into the buck
     else                         // bigger , overflow or partiion
     {
-      if (partion_flag || Max_next == Next)
+      if (partion_id || Max_next == next_id)
       {
-        if (Max_next == Next)
+        if (Max_next == next_id)
         {
-          level++;
+          depth++;
           hashbuf = 2 * hashbuf;
         } // parition when next equal to Max_next
         hash_table.resize(2 * (hashbuf), NULL);
-        partion_flag = 0; // first parition flag
+        partion_id = 0; // first parition flag
       }
       int hash_size = (hashbuf)*2;               // double length of hash table
       int index1 = (a * PageNo + b) % hash_size; // find new index for insert record
       int partion_index;
       list<LL>::iterator it = buck->begin();
-      if (index1 <= Next) // if index less than next, parition
+      if (index1 <= next_id) // if index less than next, parition
       {
         int overflow = 0;
         while (it != buck->end())
@@ -273,7 +288,7 @@ void hash_build(PageId PageNo, int frameNo)
         else
           hash_table[index1]->push_back(frame);
         if (!overflow) // no overflow ++
-          Next++;      // next move
+          next_id++;      // next move
       }
       else
       {
@@ -290,7 +305,7 @@ Author: xing yuan
 */
 void print_hash()
 {
-  cout << "size of hash buf " << hashbuf << " size of  hash" << hash_table.size() << "next =" << Next << endl;
+  cout << "size of hash buf " << hashbuf << " size of  hash" << hash_table.size() << "next =" << next_id << endl;
   for (int i = 0; i < hash_table.size(); i++)
   {
 
@@ -402,9 +417,9 @@ void Hash_delte()
     hash_table[index] = NULL;
     buck->~list<LL>();
   }
-  Next = 0;
-  level = 2;
-  partion_flag = 1;
+  next_id = 0;
+  depth = 2;
+  partion_id = 1;
   hashbuf = HTSIZE + 1;
 #endif
 

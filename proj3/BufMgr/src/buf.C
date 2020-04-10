@@ -19,9 +19,6 @@ stack<int> hated_stack;
 // the copy 
 vector<int> copy_stack;
 /************************************************************/
-// Define buffer manager error messages here
-//enum bufErrCodes  {...};
-// Define error message here
 static const char *bufErrMsgs[] = {
     // error message strings go here
     "Not enough memory to allocate hash entry",
