@@ -7,10 +7,7 @@
 /************Defined global variables here ***********************************/
 //Started to modified April 10, 2020
 int a = 1, b = 0;
-int next_id = 0, depth = 2, flg_partion = 1; // declare next_id, depth, flg_partition for tracking
-int hashbuf = HTSIZE + 1;
-void hash_build(PageId PageNo, int frameNo);
-void hash_remove(int page);
+int next_id = 0, depth = 2, flg_partion = 1, hash_max_size = HTSIZE + 1; // declare next_id, depth, flg_partition for tracking
 int hash_search(int pageID, int &frameNo);
 void print_hash();
 void Hash_delte();
@@ -125,7 +122,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
         cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
     }
 
-    hash_remove(this->bufFrame[i].pageNo); // remove from hash table
+    remove_from_hash_table(this->bufFrame[i].pageNo); // remove from hash table
 
     Page *replace = new Page();
     Status buf_read = MINIBASE_DB->read_page(PageId_in_a_DB, replace); // read page from disk , copy it to the buf pool
@@ -143,7 +140,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       return FAIL;
     }
 
-    hash_build(PageId_in_a_DB, i); // insert new page record into hash table
+    build_hash_table(PageId_in_a_DB, i); // insert new page record into hash table
                                    //               flag_buf_full=1;
   }
   else if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1) || this->numBuffers > 4294967200) // page not in the buf pool, not full
@@ -160,7 +157,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       this->bufFrame[this->numBuffers].pageNo = PageId_in_a_DB;
       this->bufFrame[this->numBuffers].num_pin++;
       this->bufFrame[this->numBuffers].is_clean = false;
-      hash_build(PageId_in_a_DB, this->numBuffers); // insert new page record into hash table
+      build_hash_table(PageId_in_a_DB, this->numBuffers); // insert new page record into hash table
       if (this->numBuffers == (NUMBUF - 1))
         flag_buf_full = 1; // buf pool full
     }
@@ -174,7 +171,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
              this->bufFrame[this->numBuffers].pageNo=PageId_in_a_DB;
              this->bufFrame[this->numBuffers].num_pin++;
              this->bufFrame[this->numBuffers].is_clean=false;
-              hash_build(PageId_in_a_DB,this->numBuffers);   // insert
+              build_hash_table(PageId_in_a_DB,this->numBuffers);   // insert
               */
     }
   }
@@ -198,11 +195,11 @@ Author: xing Yuan
 Date: 2017-10-20
 Return: void
 */
-void hash_build(PageId PageNo, int frameNo)
+void build_hash_table(PageId PageNo, int frameNo)
 {
 
   int Max_next = pow(2, depth) * 2  - 1; // N*Pow(2,depth)  number of Buck times two over depth equal total current hash length above overflow page
-  int index = (a * PageNo + b) % hashbuf;      //get  key
+  int index = (a * PageNo + b) % hash_max_size;      //get  key
   LL frame;                              // pair<pageid, frameid> structure
   frame.PageId = PageNo;
   frame.frameID = frameNo;
@@ -226,12 +223,12 @@ void hash_build(PageId PageNo, int frameNo)
         if (Max_next == next_id)
         {
           depth++;
-          hashbuf = 2 * hashbuf;
+          hash_max_size = 2 * hash_max_size;
         } // parition when next equal to Max_next
-        hash_table.resize(2 * (hashbuf), NULL);
+        hash_table.resize(2 * (hash_max_size), NULL);
         flg_partion = 0; // first parition flag
       }
-      int hash_size = (hashbuf)*2;               // double length of hash table
+      int hash_size = (hash_max_size)*2;               // double length of hash table
       int index1 = (a * PageNo + b) % hash_size; // find new index for insert record
       int partion_index;
       list<LL>::iterator it = buck->begin();
@@ -289,7 +286,7 @@ Author: xing yuan
 */
 void print_hash()
 {
-  cout << "size of hash buf " << hashbuf << " size of  hash" << hash_table.size() << "next =" << next_id << endl;
+  cout << "size of hash buf " << hash_max_size << " size of  hash" << hash_table.size() << "next =" << next_id << endl;
   for (int i = 0; i < hash_table.size(); i++)
   {
 
@@ -314,9 +311,9 @@ Paremeter: page number
 Author: xing yuan
 Return: void
 */
-void hash_remove(int page)
+void remove_from_hash_table(int page)
 {
-  int index = (a * page + b) % hashbuf;     //key    find in the no partion page
+  int index = (a * page + b) % hash_max_size;     //key    find in the no partion page
   list<LL> *buck = hash_table[index]; // get the buck
   list<LL>::iterator it = buck->begin();
   while (it != buck->end()) // find the element and remove it
@@ -329,7 +326,7 @@ void hash_remove(int page)
     it++;
   }
 
-  index = (a * page + b) % (2 * hashbuf); //key , find in the parition pages or overflow pages
+  index = (a * page + b) % (2 * hash_max_size); //key , find in the parition pages or overflow pages
   if (index <= hash_table.size())
   {
     buck = hash_table[index];
@@ -354,7 +351,7 @@ Return: 1 success find  0 do not exit in the hash table
 */
 int hash_search(int pageID, int &frameNo)
 {
-  int index = (a * pageID + b) % hashbuf; //key  find in the no partion page
+  int index = (a * pageID + b) % hash_max_size; //key  find in the no partion page
   if (!hash_table[index])
     return 0;
   list<LL> *buck = hash_table[index];
@@ -368,7 +365,7 @@ int hash_search(int pageID, int &frameNo)
     }
     it++;
   }
-  index = (a * pageID + b) % (2 * hashbuf); //key
+  index = (a * pageID + b) % (2 * hash_max_size); //key
   if (index <= hash_table.size())           //key , find in the parition pages or overflow pages
   {
     if (!hash_table[index])
@@ -404,7 +401,7 @@ void Hash_delte()
   next_id = 0;
   depth = 2;
   flg_partion = 1;
-  hashbuf = HTSIZE + 1;
+  hash_max_size = HTSIZE + 1;
 #endif
 
   // hash_table(7,NULL);
@@ -605,7 +602,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
         cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
     }
 
-    hash_remove(this->bufFrame[i].pageNo); // remove from hash table
+    remove_from_hash_table(this->bufFrame[i].pageNo); // remove from hash table
     Page *replace = new Page();
     Status buf_read = MINIBASE_DB->read_page(PageId_in_a_DB, replace);
     if (buf_read == OK)
@@ -622,7 +619,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       return FAIL;
     }
 
-    hash_build(PageId_in_a_DB, i); // insert new record into hash table
+    build_hash_table(PageId_in_a_DB, i); // insert new record into hash table
   }
 
 #if 1
@@ -640,7 +637,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       this->bufFrame[this->numBuffers].pageNo = PageId_in_a_DB;
       this->bufFrame[this->numBuffers].num_pin++;
       this->bufFrame[this->numBuffers].is_clean = false;
-      hash_build(PageId_in_a_DB, this->numBuffers); // insert into hash table
+      build_hash_table(PageId_in_a_DB, this->numBuffers); // insert into hash table
                                                     // cout<<"page "<<PageId_in_a_DB<<" num_pin "<<this->bufFrame[this->numBuffers].num_pin<<endl;
       if (this->numBuffers == (NUMBUF - 1))
         flag_buf_full = 1;
@@ -677,7 +674,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
             this->bufFrame[this->numBuffers].pageNo=PageId_in_a_DB;
             this->bufFrame[this->numBuffers].num_pin++;
             this->bufFrame[this->numBuffers].is_clean=false;
-            hash_build(PageId_in_a_DB,this->numBuffers); 
+            build_hash_table(PageId_in_a_DB,this->numBuffers); 
           }
          else 
          {
@@ -686,7 +683,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
             this->bufFrame[frame].pageNo=PageId_in_a_DB;
             this->bufFrame[frame].num_pin++;
             this->bufFrame[frame].is_clean=false;
-           // hash_build(PageId_in_a_DB,this->numBuffers);   // insert into hash table
+           // build_hash_table(PageId_in_a_DB,this->numBuffers);   // insert into hash table
          }
 #endif
 
