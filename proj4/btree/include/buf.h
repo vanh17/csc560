@@ -47,7 +47,7 @@ class FrameDesc {
     int    pageNo; //store the id of the current page that holds our FramDesc
 
     unsigned int num_pin;  // The pin count for the page in this frame
-    bool dirtybit;
+    bool is_clean;
 
 
     FrameDesc() {
@@ -56,14 +56,6 @@ class FrameDesc {
     }
 
    ~FrameDesc() {}
-
-  public:
-    int pin_count() { return(pin_cnt); }
-    int pin() { return(++pin_cnt); }
-    int unpin() {
-        pin_cnt = (pin_cnt <= 0) ? 0 : pin_cnt - 1;
-        return(pin_cnt);
-    }
 };
 
 class BufMgr {
