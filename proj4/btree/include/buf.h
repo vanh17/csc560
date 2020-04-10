@@ -22,6 +22,7 @@
 #define NUMBUF 20   
 // Default number of frames, artifically small number for ease of debugging.
 #define HTSIZE 7
+#define INT_MAX 4294967200
 // Hash Table size
 // define largest integer for storage calcualtion
 
