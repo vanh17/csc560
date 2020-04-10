@@ -8,12 +8,12 @@
 //Started to modified April 10, 2020
 int a = 1, b = 0;
 int next_id = 0, depth = 2, flg_partion = 1, hash_max_size = HTSIZE + 1; // declare next_id, depth, flg_partition for tracking
-vector<PageId> disk_page;
-int flag_buf_full;
+vector<PageId> dsk_storage;
+int is_buf_full;
 vector<int> copy_stack; // create this so we can update loved, hated queue
 vector<HL> hash_table(8, NULL); // declare hash_table to store value key pairs for hashing
-stack<int> hate_stack; // stack to keep hate page
-queue<int> love_queue; // queue to keep love page
+stack<int> hate_queue; // stack to keep hate page
+queue<int> love_stack; // queue to keep love page
 /****************End GlobalVariables Declaration******************************/
 // Define error message here
 static const char *bufErrMsgs[] = {
@@ -53,7 +53,7 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer)
     love_stack.pop();
   delete_pair();
   init_frame(-1);
-  flag_buf_full = 0;
+  is_buf_full = 0;
 
   //    cout<<"bufmgr "<<this->numBuffers<<endl;
   // put your code here
@@ -78,7 +78,7 @@ BufMgr::~BufMgr()
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
       Status buf_write = MINIBASE_DB->write_page(this->bufFrame[i].pageNo, replace); //write disk
-      disk_page.push_back(this->bufFrame[i].pageNo);
+      dsk_storage.push_back(this->bufFrame[i].pageNo);
       if (buf_write != OK)
         cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
     }
@@ -114,7 +114,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
       Status buf_write = MINIBASE_DB->write_page(this->bufFrame[i].pageNo, replace); //write disk
-      disk_page.push_back(PageId_in_a_DB);
+      dsk_storage.push_back(PageId_in_a_DB);
       if (buf_write != OK)
         cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
     }
@@ -138,7 +138,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
     }
 
     build_hash_table(PageId_in_a_DB, i); // insert new page record into hash table
-                                   //               flag_buf_full=1;
+                                   //               is_buf_full=1;
   }
   else if (!hashing(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1) || this->numBuffers > 4294967200) // page not in the buf pool, not full
   {
@@ -156,7 +156,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       this->bufFrame[this->numBuffers].is_clean = false;
       build_hash_table(PageId_in_a_DB, this->numBuffers); // insert new page record into hash table
       if (this->numBuffers == (NUMBUF - 1))
-        flag_buf_full = 1; // buf pool full
+        is_buf_full = 1; // buf pool full
     }
     else
     {
@@ -426,7 +426,7 @@ Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany)
     cout << "Error: can not allocate a page from DB" << endl;
   get_new = MINIBASE_DB->read_page(allocate_page, new_page);
   //  if(this->numBuffers>=(NUMBUF-1))
-  if (flag_buf_full) // if buf pool is full , dellocate it
+  if (is_buf_full) // if buf pool is full , dellocate it
   {
     deallocte = MINIBASE_DB->deallocate_page(allocate_page, howmany);
     if (deallocte != OK)
@@ -488,7 +488,7 @@ Status BufMgr::flushPage(PageId pageid)
     Page *replace = new Page();
     memcpy(replace, &this->bufPool[frameid], sizeof(Page));
     Status buf_write = MINIBASE_DB->write_page(pageid, replace); //write disk
-    disk_page.push_back(pageid);
+    dsk_storage.push_back(pageid);
     if (buf_write != OK)
     {
       cout << "Error: write buf page " << this->bufFrame[frameid].pageNo << "into to disk" << endl;
@@ -521,7 +521,7 @@ Status BufMgr::flushAllPages()
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
       Status buf_write = MINIBASE_DB->write_page(this->bufFrame[i].pageNo, replace); //write disk
-      disk_page.push_back(this->bufFrame[i].pageNo);
+      dsk_storage.push_back(this->bufFrame[i].pageNo);
       if (buf_write != OK)
         cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
     }
@@ -565,7 +565,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
       Status buf_write = MINIBASE_DB->write_page(this->bufFrame[i].pageNo, replace); //write disk
-      disk_page.push_back(PageId_in_a_DB);
+      dsk_storage.push_back(PageId_in_a_DB);
       if (buf_write != OK)
         cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
     }
@@ -608,7 +608,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       build_hash_table(PageId_in_a_DB, this->numBuffers); // insert into hash table
                                                     // cout<<"page "<<PageId_in_a_DB<<" num_pin "<<this->bufFrame[this->numBuffers].num_pin<<endl;
       if (this->numBuffers == (NUMBUF - 1))
-        flag_buf_full = 1;
+        is_buf_full = 1;
     }
     else
     {
