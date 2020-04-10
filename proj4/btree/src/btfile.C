@@ -189,7 +189,7 @@ Status BTreeFile::insert(const void *key, const RID rid)
   Page *leaf_write = new Page();
   char *recPtr_comp;
   RID Big_rid, dataRid;
- // void *key2 = new char[220];
+  void *key2 = new char[220]; //Hoang altered April 9th
   // first insert
   if (!flag_tree_insert)
   {
