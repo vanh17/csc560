@@ -135,7 +135,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       memcpy(&this->bufPool[i], replace, sizeof(Page));
       page = &this->bufPool[i];
       this->bufDescr[i].pageNo = PageId_in_a_DB;
-      this->bufDescr[i].pin_cnt = 1;
+      this->bufDescr[i].num_pin = 1;
       this->bufDescr[i].dirtybit = false;
     }
     else
@@ -159,7 +159,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
         memcpy(&this->bufPool[this->numBuffers], replace, sizeof(Page));
       page = &this->bufPool[this->numBuffers]; // allocate into buf
       this->bufDescr[this->numBuffers].pageNo = PageId_in_a_DB;
-      this->bufDescr[this->numBuffers].pin_cnt++;
+      this->bufDescr[this->numBuffers].num_pin++;
       this->bufDescr[this->numBuffers].dirtybit = false;
       hash_build(PageId_in_a_DB, this->numBuffers); // insert new page record into hash table
       if (this->numBuffers == (NUMBUF - 1))
@@ -173,7 +173,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       /*   this->numBuffers++;
               page=&this->bufPool[this->numBuffers];      // allocate into buf
              this->bufDescr[this->numBuffers].pageNo=PageId_in_a_DB;
-             this->bufDescr[this->numBuffers].pin_cnt++;
+             this->bufDescr[this->numBuffers].num_pin++;
              this->bufDescr[this->numBuffers].dirtybit=false;
               hash_build(PageId_in_a_DB,this->numBuffers);   // insert
               */
@@ -181,7 +181,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
   }
   else if (hash_search(PageId_in_a_DB, frame)) // in the buf pool , pin ++
   {
-    this->bufDescr[frame].pin_cnt++;
+    this->bufDescr[frame].num_pin++;
     page = &this->bufPool[frame];
   }
   else
@@ -419,13 +419,13 @@ Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE)
   int frameid;
   if (hash_search(page_num, frameid)) // in the buf pool
   {
-    if (this->bufDescr[frameid].pin_cnt == 0)
+    if (this->bufDescr[frameid].num_pin == 0)
     {
       return FAIL;
-    } // can not pin a page which pin_cnt=0
-    this->bufDescr[frameid].pin_cnt--;
+    } // can not pin a page which num_pin=0
+    this->bufDescr[frameid].num_pin--;
     this->bufDescr[frameid].dirtybit = dirty;
-    if (this->bufDescr[frameid].pin_cnt == 0)
+    if (this->bufDescr[frameid].num_pin == 0)
     {
       if (hate == FALSE)
       {
@@ -488,7 +488,7 @@ Status BufMgr::freePage(PageId globalPageId)
   int frame;
   if (hash_search(globalPageId, frame)) // find frame no and free it
   {
-    if (this->bufDescr[frame].pin_cnt)
+    if (this->bufDescr[frame].num_pin)
       return FAIL;
     else
     {
@@ -614,7 +614,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       memcpy(&this->bufPool[i], replace, sizeof(Page));
       page = &this->bufPool[i];
       this->bufDescr[i].pageNo = PageId_in_a_DB;
-      this->bufDescr[i].pin_cnt = 1;
+      this->bufDescr[i].num_pin = 1;
       this->bufDescr[i].dirtybit = false;
     }
     else
@@ -639,10 +639,10 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
         memcpy(&this->bufPool[this->numBuffers], replace, sizeof(Page));
       page = &this->bufPool[this->numBuffers]; // allocate into buf
       this->bufDescr[this->numBuffers].pageNo = PageId_in_a_DB;
-      this->bufDescr[this->numBuffers].pin_cnt++;
+      this->bufDescr[this->numBuffers].num_pin++;
       this->bufDescr[this->numBuffers].dirtybit = false;
       hash_build(PageId_in_a_DB, this->numBuffers); // insert into hash table
-                                                    // cout<<"page "<<PageId_in_a_DB<<" pin_cnt "<<this->bufDescr[this->numBuffers].pin_cnt<<endl;
+                                                    // cout<<"page "<<PageId_in_a_DB<<" num_pin "<<this->bufDescr[this->numBuffers].num_pin<<endl;
       if (this->numBuffers == (NUMBUF - 1))
         flag_buf_full = 1;
     }
@@ -655,7 +655,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
   }
   else if (hash_search(PageId_in_a_DB, frame))
   {
-    this->bufDescr[frame].pin_cnt++;
+    this->bufDescr[frame].num_pin++;
     page = &this->bufPool[frame];
   }
   else
@@ -676,7 +676,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
             page=&this->bufPool[this->numBuffers];
             memcpy(&this->bufPool[this->numBuffers],replace,sizeof(Page));
             this->bufDescr[this->numBuffers].pageNo=PageId_in_a_DB;
-            this->bufDescr[this->numBuffers].pin_cnt++;
+            this->bufDescr[this->numBuffers].num_pin++;
             this->bufDescr[this->numBuffers].dirtybit=false;
             hash_build(PageId_in_a_DB,this->numBuffers); 
           }
@@ -685,7 +685,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
           //  this->numBuffers++;
              page=&this->bufPool[frame];      // allocate into buf
             this->bufDescr[frame].pageNo=PageId_in_a_DB;
-            this->bufDescr[frame].pin_cnt++;
+            this->bufDescr[frame].num_pin++;
             this->bufDescr[frame].dirtybit=false;
            // hash_build(PageId_in_a_DB,this->numBuffers);   // insert into hash table
          }
@@ -705,18 +705,18 @@ Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *fil
   if (hash_search(globalPageId_in_a_DB, frameid)) // find page frame id and unpin it
   {
 
-    if (this->bufDescr[frameid].pin_cnt == 0)
+    if (this->bufDescr[frameid].num_pin == 0)
     {
       cout << "unpind page_cnt=0. pagde id=" << globalPageId_in_a_DB << endl;
       return FAIL;
     }
-    this->bufDescr[frameid].pin_cnt--;
-    if (this->bufDescr[frameid].pin_cnt == 0 && find(copy_stack.begin(), copy_stack.end(), frameid) == copy_stack.end())
+    this->bufDescr[frameid].num_pin--;
+    if (this->bufDescr[frameid].num_pin == 0 && find(copy_stack.begin(), copy_stack.end(), frameid) == copy_stack.end())
     {
       Hated_Frame.push(frameid);     // Hate policy
       copy_stack.push_back(frameid); // copy a stack for seach
     }
-    //    cout<<"unpin file "<<globalPageId_in_a_DB<<" pin_cnt"<<this->bufDescr[frameid].pin_cnt<<endl;
+    //    cout<<"unpin file "<<globalPageId_in_a_DB<<" num_pin"<<this->bufDescr[frameid].num_pin<<endl;
   }
   else
   {
@@ -740,7 +740,7 @@ unsigned int BufMgr::getNumUnpinnedBuffers()
     this->numBuffers++;
   while (i <= this->numBuffers)
   {
-    if (!this->bufDescr[i].pin_cnt) // cout total unpin page
+    if (!this->bufDescr[i].num_pin) // cout total unpin page
       count++;
     i++;
   }

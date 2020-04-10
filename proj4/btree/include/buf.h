@@ -44,16 +44,15 @@ class FrameDesc {
   friend class BufMgr;
 
   private:
-    int    pageNo;     // the page within file, or INVALID_PAGE if
-                       // the frame is empty.
+    int    pageNo; //store the id of the current page that holds our FramDesc
 
-    unsigned int pin_cnt;  // The pin count for the page in this frame
+    unsigned int num_pin;  // The pin count for the page in this frame
     bool dirtybit;
 
 
     FrameDesc() {
         pageNo  = INVALID_PAGE;
-        pin_cnt = 0;
+        num_pin = 0; //start the total pin = 0 because there are no pinned pages when first created
     }
 
    ~FrameDesc() {}
