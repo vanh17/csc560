@@ -4,7 +4,24 @@
 
 #include "buf.h"
 
-
+/************Defined global variables here ***********************************/
+//Started to modified April 10, 2020
+vector<HL> hash_table(8, NULL);
+int a = 1, b = 0;
+int Next = 0, level = 2;
+int partion_flag = 1;
+int hashbuf = HTSIZE + 1;
+void hash_build(PageId PageNo, int frameNo);
+void hash_remove(int page);
+int hash_search(int pageID, int &frameNo);
+void print_hash();
+void Hash_delte();
+vector<PageId> disk_page;
+stack<int> Hated_Frame;
+queue<int> Loved_Frame;
+vector<int> copy_stack;
+int flag_buf_full;
+/****************End GlobalVariables Declaration******************************/
 // Define error message here
 static const char *bufErrMsgs[] = {
     // error message strings go here
@@ -28,25 +45,6 @@ static error_string_table bufTable(BUFMGR, bufErrMsgs);
 //** This is the implementation of BufMgr
 //************************************************************
 
-/************Defined global variables here ***********************************/
-//Started to modified April 10, 2020
-int a = 1, b = 0;
-int next_id = 0, depth = 2, partion_id = 1; // declare next_id, depth for tracking purposes
-int hash_size = HTSIZE + 1; //size of a buffer hash table
-void hash_build(PageId PageNo, int frameNo);
-void hash_remove(int page);
-int hash_search(int pageID, int &frameNo);
-void print_hash();
-void Hash_delte();
-int is_buf_full; // whether the buffer is full or not so that we can increase the size
-vector<PageId> storage; // disk holder
-queue<int> loved_queue;
-vector<int> copy_stack; // define copy stack for modifying hated_stack and loved_queue
-stack<int> hated_stack; // Hated Frame holder
-vector<HL> hash_table(8, NULL); // create global hash_table here so we can store key-value pairs
-
-/****************End GlobalVariables Declaration******************************/
-
 BufMgr::BufMgr(int numbuf, Replacer *replacer)
 {
 
@@ -56,13 +54,13 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer)
   this->bufFrame = BufDesript;
   this->numBuffers = -1; // init 0   it from biggest number ++ become 0
                          //   cout<<"bufmgr "<<this->numBuffers<<endl;
-  while (!hated_stack.empty())
-    hated_stack.pop();
-  while (!loved_queue.empty())
-    loved_queue.pop();
+  while (!Hated_Frame.empty())
+    Hated_Frame.pop();
+  while (!Loved_Frame.empty())
+    Loved_Frame.pop();
   Hash_delte();
   init_frame(-1);
-  is_buf_full = 0;
+  flag_buf_full = 0;
 
   //    cout<<"bufmgr "<<this->numBuffers<<endl;
   // put your code here
@@ -87,7 +85,7 @@ BufMgr::~BufMgr()
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
       Status buf_write = MINIBASE_DB->write_page(this->bufFrame[i].pageNo, replace); //write disk
-      storage.push_back(this->bufFrame[i].pageNo);
+      disk_page.push_back(this->bufFrame[i].pageNo);
       if (buf_write != OK)
         cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
     }
@@ -107,23 +105,23 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
   if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers == (NUMBUF - 1)) //page  not in the buf pool and buf pool full
   {
     int i = 0;
-    if (!hated_stack.empty()) // love and hate replace policy
+    if (!Hated_Frame.empty()) // love and hate replace policy
     {
-      i = hated_stack.top(); //MRU.  use stack
-      hated_stack.pop();
+      i = Hated_Frame.top(); //MRU.  use stack
+      Hated_Frame.pop();
     }
-    else if (!loved_queue.empty())
+    else if (!Loved_Frame.empty())
     {
 
-      i = loved_queue.front(); // LRU   use queue
-      loved_queue.pop();
+      i = Loved_Frame.front(); // LRU   use queue
+      Loved_Frame.pop();
     }
     if (this->bufFrame[i].is_clean == true) // if it is dirty , write to disk
     {
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
       Status buf_write = MINIBASE_DB->write_page(this->bufFrame[i].pageNo, replace); //write disk
-      storage.push_back(PageId_in_a_DB);
+      disk_page.push_back(PageId_in_a_DB);
       if (buf_write != OK)
         cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
     }
@@ -147,7 +145,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
     }
 
     hash_build(PageId_in_a_DB, i); // insert new page record into hash table
-                                   //               is_buf_full=1;
+                                   //               flag_buf_full=1;
   }
   else if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1) || this->numBuffers > 4294967200) // page not in the buf pool, not full
   {
@@ -165,7 +163,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       this->bufFrame[this->numBuffers].is_clean = false;
       hash_build(PageId_in_a_DB, this->numBuffers); // insert new page record into hash table
       if (this->numBuffers == (NUMBUF - 1))
-        is_buf_full = 1; // buf pool full
+        flag_buf_full = 1; // buf pool full
     }
     else
     {
@@ -204,8 +202,8 @@ Return: void
 void hash_build(PageId PageNo, int frameNo)
 {
 
-  int Max_next = pow(2, depth) * 2  - 1; // N*Pow(2,depth)  number of Buck times two over depth equal total current hash length above overflow page
-  int index = (a * PageNo + b) % hash_size;      //get  key
+  int Max_next = pow(2, level) * 2  - 1; // N*Pow(2,level)  number of Buck times two over level equal total current hash length above overflow page
+  int index = (a * PageNo + b) % hashbuf;      //get  key
   LL frame;                              // pair<pageid, frameid> structure
   frame.PageId = PageNo;
   frame.frameID = frameNo;
@@ -224,21 +222,21 @@ void hash_build(PageId PageNo, int frameNo)
       buck->push_back(frame);    // insert into the buck
     else                         // bigger , overflow or partiion
     {
-      if (partion_id || Max_next == next_id)
+      if (partion_flag || Max_next == Next)
       {
-        if (Max_next == next_id)
+        if (Max_next == Next)
         {
-          depth++;
-          hash_size = 2 * hash_size;
+          level++;
+          hashbuf = 2 * hashbuf;
         } // parition when next equal to Max_next
-        hash_table.resize(2 * (hash_size), NULL);
-        partion_id = 0; // first parition flag
+        hash_table.resize(2 * (hashbuf), NULL);
+        partion_flag = 0; // first parition flag
       }
-      int hash_size = (hash_size)*2;               // double length of hash table
+      int hash_size = (hashbuf)*2;               // double length of hash table
       int index1 = (a * PageNo + b) % hash_size; // find new index for insert record
       int partion_index;
       list<LL>::iterator it = buck->begin();
-      if (index1 <= next_id) // if index less than next, parition
+      if (index1 <= Next) // if index less than next, parition
       {
         int overflow = 0;
         while (it != buck->end())
@@ -275,7 +273,7 @@ void hash_build(PageId PageNo, int frameNo)
         else
           hash_table[index1]->push_back(frame);
         if (!overflow) // no overflow ++
-          next_id++;      // next move
+          Next++;      // next move
       }
       else
       {
@@ -292,7 +290,7 @@ Author: xing yuan
 */
 void print_hash()
 {
-  cout << "size of hash buf " << hash_size << " size of  hash" << hash_table.size() << "next =" << next_id << endl;
+  cout << "size of hash buf " << hashbuf << " size of  hash" << hash_table.size() << "next =" << Next << endl;
   for (int i = 0; i < hash_table.size(); i++)
   {
 
@@ -319,7 +317,7 @@ Return: void
 */
 void hash_remove(int page)
 {
-  int index = (a * page + b) % hash_size;     //key    find in the no partion page
+  int index = (a * page + b) % hashbuf;     //key    find in the no partion page
   list<LL> *buck = hash_table[index]; // get the buck
   list<LL>::iterator it = buck->begin();
   while (it != buck->end()) // find the element and remove it
@@ -332,7 +330,7 @@ void hash_remove(int page)
     it++;
   }
 
-  index = (a * page + b) % (2 * hash_size); //key , find in the parition pages or overflow pages
+  index = (a * page + b) % (2 * hashbuf); //key , find in the parition pages or overflow pages
   if (index <= hash_table.size())
   {
     buck = hash_table[index];
@@ -357,7 +355,7 @@ Return: 1 success find  0 do not exit in the hash table
 */
 int hash_search(int pageID, int &frameNo)
 {
-  int index = (a * pageID + b) % hash_size; //key  find in the no partion page
+  int index = (a * pageID + b) % hashbuf; //key  find in the no partion page
   if (!hash_table[index])
     return 0;
   list<LL> *buck = hash_table[index];
@@ -371,7 +369,7 @@ int hash_search(int pageID, int &frameNo)
     }
     it++;
   }
-  index = (a * pageID + b) % (2 * hash_size); //key
+  index = (a * pageID + b) % (2 * hashbuf); //key
   if (index <= hash_table.size())           //key , find in the parition pages or overflow pages
   {
     if (!hash_table[index])
@@ -404,10 +402,10 @@ void Hash_delte()
     hash_table[index] = NULL;
     buck->~list<LL>();
   }
-  next_id = 0;
-  depth = 2;
-  partion_id = 1;
-  hash_size = HTSIZE + 1;
+  Next = 0;
+  level = 2;
+  partion_flag = 1;
+  hashbuf = HTSIZE + 1;
 #endif
 
   // hash_table(7,NULL);
@@ -431,11 +429,11 @@ Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE)
     {
       if (hate == FALSE)
       {
-        loved_queue.push(frameid);
+        Loved_Frame.push(frameid);
       } // hata and love replace policy
       else
       {
-        hated_stack.push(frameid);
+        Hated_Frame.push(frameid);
       }
     }
     //   cout<<"unpin a page  pageid="<<page_num<<endl;
@@ -463,7 +461,7 @@ Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany)
     cout << "Error: can not allocate a page from DB" << endl;
   get_new = MINIBASE_DB->read_page(allocate_page, new_page);
   //  if(this->numBuffers>=(NUMBUF-1))
-  if (is_buf_full) // if buf pool is full , dellocate it
+  if (flag_buf_full) // if buf pool is full , dellocate it
   {
     deallocte = MINIBASE_DB->deallocate_page(allocate_page, howmany);
     if (deallocte != OK)
@@ -525,7 +523,7 @@ Status BufMgr::flushPage(PageId pageid)
     Page *replace = new Page();
     memcpy(replace, &this->bufPool[frameid], sizeof(Page));
     Status buf_write = MINIBASE_DB->write_page(pageid, replace); //write disk
-    storage.push_back(pageid);
+    disk_page.push_back(pageid);
     if (buf_write != OK)
     {
       cout << "Error: write buf page " << this->bufFrame[frameid].pageNo << "into to disk" << endl;
@@ -558,7 +556,7 @@ Status BufMgr::flushAllPages()
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
       Status buf_write = MINIBASE_DB->write_page(this->bufFrame[i].pageNo, replace); //write disk
-      storage.push_back(this->bufFrame[i].pageNo);
+      disk_page.push_back(this->bufFrame[i].pageNo);
       if (buf_write != OK)
         cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
     }
@@ -583,19 +581,19 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
   {
 
     int i;
-    //    cout<<"size of hate "<<hated_stack.size()<<endl;
-    if (!hated_stack.empty())
+    //    cout<<"size of hate "<<Hated_Frame.size()<<endl;
+    if (!Hated_Frame.empty())
     {
-      i = hated_stack.top(); // file pin and unpin all use Hate replace policy
-                             //     cout<<"size of hate "<<hated_stack.size()<<" i="<<i<<endl;
-      hated_stack.pop();
+      i = Hated_Frame.top(); // file pin and unpin all use Hate replace policy
+                             //     cout<<"size of hate "<<Hated_Frame.size()<<" i="<<i<<endl;
+      Hated_Frame.pop();
       copy_stack.erase(copy_stack.end() - 1); // use a copy stack for search frame no in order to not let same frame to push into stack
     }
-    else if (!loved_queue.empty()) // miss love policy , no any paremeter indicate love may be in the future test case
+    else if (!Loved_Frame.empty()) // miss love policy , no any paremeter indicate love may be in the future test case
     {
 
-      i = loved_queue.front();
-      loved_queue.pop();
+      i = Loved_Frame.front();
+      Loved_Frame.pop();
     }
     // following code same as above pin function
     if (this->bufFrame[i].is_clean == true)
@@ -603,7 +601,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
       Status buf_write = MINIBASE_DB->write_page(this->bufFrame[i].pageNo, replace); //write disk
-      storage.push_back(PageId_in_a_DB);
+      disk_page.push_back(PageId_in_a_DB);
       if (buf_write != OK)
         cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
     }
@@ -646,7 +644,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       hash_build(PageId_in_a_DB, this->numBuffers); // insert into hash table
                                                     // cout<<"page "<<PageId_in_a_DB<<" num_pin "<<this->bufFrame[this->numBuffers].num_pin<<endl;
       if (this->numBuffers == (NUMBUF - 1))
-        is_buf_full = 1;
+        flag_buf_full = 1;
     }
     else
     {
@@ -715,7 +713,7 @@ Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *fil
     this->bufFrame[frameid].num_pin--;
     if (this->bufFrame[frameid].num_pin == 0 && find(copy_stack.begin(), copy_stack.end(), frameid) == copy_stack.end())
     {
-      hated_stack.push(frameid);     // Hate policy
+      Hated_Frame.push(frameid);     // Hate policy
       copy_stack.push_back(frameid); // copy a stack for seach
     }
     //    cout<<"unpin file "<<globalPageId_in_a_DB<<" num_pin"<<this->bufFrame[frameid].num_pin<<endl;
