@@ -19,7 +19,6 @@ typedef struct LinkList
   int frameID;
 } * List;
 typedef list<LinkList> *Linkhash;
-#define INT_MAX 4294967200
 #define BuckSize 2
 vector<Linkhash> hash_table(8, NULL);
 int a = 1, b = 0;
@@ -86,7 +85,7 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer)
 BufMgr::~BufMgr()
 {
 
-  if (this->numBuffers > INT_MAX)
+  if (this->numBuffers > 4294967200)
     this->numBuffers++; // avoid numBuffers init value which always biggest int number from my test
 
   // cout<<"number of frame="<<this->numBuffers<<endl;
@@ -161,9 +160,9 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
     hash_build(PageId_in_a_DB, i); // insert new page record into hash table
                                    //               flag_buf_full=1;
   }
-  else if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1) || this->numBuffers > INT_MAX) // page not in the buf pool, not full
+  else if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1) || this->numBuffers > 4294967200) // page not in the buf pool, not full
   {
-    //  if(this->numBuffers>INT_MAX) cout<<"biggerst number enter " <<endl;
+    //  if(this->numBuffers>4294967200) cout<<"biggerst number enter " <<endl;
     Page *replace = new Page();
     Status buf_read = MINIBASE_DB->read_page(PageId_in_a_DB, replace); // read this page to buf pool
     if (buf_read == OK)
@@ -560,7 +559,7 @@ Status BufMgr::flushAllPages()
   //flush all  , write all to disk
 
   int i = 0;
-  if (this->numBuffers > INT_MAX)
+  if (this->numBuffers > 4294967200)
     this->numBuffers++; // avoid numBuffers init value which always biggest int number from my test
   while (i <= this->numBuffers)
   {
@@ -641,9 +640,9 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
   }
 
 #if 1
-  else if ((!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1)) || this->numBuffers > INT_MAX)
+  else if ((!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1)) || this->numBuffers > 4294967200)
   {
-    //  if(this->numBuffers>INT_MAX) cout<<"biggerst number enter  pageid= " <<PageId_in_a_DB<<endl;
+    //  if(this->numBuffers>4294967200) cout<<"biggerst number enter  pageid= " <<PageId_in_a_DB<<endl;
     Page *replace = new Page();
     Status buf_read = MINIBASE_DB->read_page(PageId_in_a_DB, replace);
     if (buf_read == OK)
@@ -750,7 +749,7 @@ unsigned int BufMgr::getNumUnpinnedBuffers()
 
   int i = 0;
   int count = 0;
-  if (this->numBuffers > INT_MAX)
+  if (this->numBuffers > 4294967200)
     this->numBuffers++;
   while (i <= this->numBuffers)
   {
