@@ -51,7 +51,7 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer)
     Hated_Frame.pop();
   while (!Loved_Frame.empty())
     Loved_Frame.pop();
-  Hash_delte();
+  delete_pair();
   init_frame(-1);
   flag_buf_full = 0;
 
@@ -84,7 +84,7 @@ BufMgr::~BufMgr()
     }
     i++;
   }
-  Hash_delte();
+  delete_pair();
   // put your code here
 }
 
@@ -356,7 +356,7 @@ int hashing(int pageID, int &frameNo)
 /*
 Functiomn: clear hash table , destory buck
 */
-void Hash_delte()
+void delete_pair()
 {
 #if 1
   for (int index = 0; index < hash_table.size(); index++)

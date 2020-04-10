@@ -33,7 +33,7 @@ typedef list<LL> *HL;
 void build_hash_table(PageId PageNo, int frameNo);
 void remove_from_hash_table(int page);
 int hashing(int pageID, int &frameNo);
-void Hash_delte();
+void delete_pair();
 /*****************************End Global Variables Declaration*****************/
 /*******************ALL BELOW are purely local to buffer Manager********/
 
