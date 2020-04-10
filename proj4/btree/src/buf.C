@@ -31,7 +31,7 @@ static error_string_table bufTable(BUFMGR, bufErrMsgs);
 /************Defined global variables here ***********************************/
 //Started to modified April 10, 2020
 int a = 1, b = 0;
-unsigned int next_id = 0, depth = 2, partion_id = 1; // declare next_id, depth for tracking purposes
+int next_id = 0, depth = 2, partion_id = 1; // declare next_id, depth for tracking purposes
 int hash_size = HTSIZE + 1; //size of a buffer hash table
 void hash_build(PageId PageNo, int frameNo);
 void hash_remove(int page);
