@@ -26,9 +26,6 @@
 // Default number of frames, artifically small number for ease of debugging.
 #define HTSIZE 7
 // Hash Table size
-// define largest integer for storage calcualtion
-
-#define INT_MAX 4294967200
 
 /****** Global Type ********************************/
 typedef struct LL {int frameID; int PageId;} * List;
@@ -70,25 +67,11 @@ class FrameDesc {
     }
 };
 
-
-
-class HashTable{
-    friend BufMgr;
-    HashTable(int size);
-    void hash_build(PageId PageNo,int frameNo);
-    void hash_remove(int page);
-    int hash_search(int pageID,int &frameNo);
-    void print_hash();
-    void Hash_delte();
-};
-
-
 class BufMgr {
 
 private: 
    unsigned int    numBuffers;
    FrameDesc   *bufDescr;
-   HashTable    *hash;
    // fill in this area
 public:
     Page* bufPool; // The actual buffer pool
