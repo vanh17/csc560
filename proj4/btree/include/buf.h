@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 /////////////  The Header File for the Buffer Manager /////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-
+/////Modified on April 10 for proj4: Done to make sure there are upto date with proj3
 
 #ifndef BUF_H
 #define BUF_H
@@ -42,11 +42,8 @@ class Replacer; // may not be necessary as described below in the constructor
 class BufMgr {
 
     private: 
+        FrameDesc *bufFrame; // private variable to hold current frame for BufMgr
         unsigned int numBuffers;
-        // private variable to hold current frame for BufMgr
-        FrameDesc *bufFrame;
-        // hash table holder for this BufMgr
-        HashTable *hash_table_holder;
     public:
         Page* bufPool; // The actual buffer pool
         BufMgr (int numbuf, Replacer *replacer = 0); 
