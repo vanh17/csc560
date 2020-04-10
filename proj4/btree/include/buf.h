@@ -37,6 +37,22 @@ typedef list<LL> *HL;
 enum bufErrCodes  {HASHMEMORY, HASHDUPLICATEINSERT, HASHREMOVEERROR, HASHNOTFOUND, QMEMORYERROR, QEMPTY, INTERNALERROR, 
             BUFFERFULL, BUFMGRMEMORYERROR, BUFFERPAGENOTFOUND, BUFFERPAGENOTPINNED, BUFFERPAGEPINNED};
 
+class FrameDesc { //Declare FrameDesc here so it will compile
+    friend class BufMgr;
+        // to make sure the page is clean to unpin
+        bool is_clean;
+        // keep track if the pageNo is Invalid or not
+        int pageNo; 
+        //number of pin of the frame
+        unsigned int num_pin; 
+        // constructor of FramDesc
+        FrameDesc() {
+            pageNo  = INVALID_PAGE;
+            num_pin = 0;
+        }
+        // Deconstruct the instance so that we wont have overflow 
+        ~FrameDesc() {}
+};
 class Replacer; // may not be necessary as described below in the constructor
 
 class BufMgr {
@@ -99,23 +115,6 @@ class BufMgr {
 
         unsigned int getNumUnpinnedBuffers();
         // Get number of unpinned buffers
-};
-
-class FrameDesc {
-    friend class BufMgr;
-        // to make sure the page is clean to unpin
-        bool is_clean;
-        // keep track if the pageNo is Invalid or not
-        int pageNo; 
-        //number of pin of the frame
-        unsigned int num_pin; 
-        // constructor of FramDesc
-        FrameDesc() {
-            pageNo  = INVALID_PAGE;
-            num_pin = 0;
-        }
-        // Deconstruct the instance so that we wont have overflow 
-        ~FrameDesc() {}
 };
 
 #endif
