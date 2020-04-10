@@ -180,7 +180,6 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
   else
     cout << "can not pin this page  " << endl;
 
-  //   print_hash();
   // put your code here
   return OK;
 } //end pinPage
@@ -271,33 +270,6 @@ void build_hash_table(PageId PageNo, int frameNo)
       else
       {
         buck->push_back(frame); // overflow
-      }
-    }
-  }
-}
-/*
-Function: print whole hash table by key
-Paremeter: no
-return: no
-Author: xing yuan
-*/
-void print_hash()
-{
-  cout << "size of hash buf " << hash_max_size << " size of  hash" << hash_table.size() << "next =" << next_id << endl;
-  for (int i = 0; i < hash_table.size(); i++)
-  {
-
-    if (hash_table[i]) // no null , have buck
-    {
-      list<LL> *buck = hash_table[i];
-      if (!hash_table[i])
-        return;
-      cout << "hash key  " << i << endl;
-      list<LL>::iterator it = buck->begin();
-      while (it != buck->end())
-      {
-        cout << "  page id=" << (*it).PageId << endl;
-        it++;
       }
     }
   }
@@ -653,8 +625,6 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
   }
   else
     cout << "can not pin this page  " << endl;
-
-    //   print_hash();
 
 #endif
 
