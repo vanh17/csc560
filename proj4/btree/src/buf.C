@@ -8,9 +8,6 @@
 //Started to modified April 10, 2020
 int a = 1, b = 0;
 int next_id = 0, depth = 2, flg_partion = 1, hash_max_size = HTSIZE + 1; // declare next_id, depth, flg_partition for tracking
-int hash_search(int pageID, int &frameNo);
-void print_hash();
-void Hash_delte();
 vector<PageId> disk_page;
 stack<int> Hated_Frame;
 queue<int> Loved_Frame;
@@ -98,7 +95,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
 {
   int frame;
   //  cout<<"frame number  pin without filename"<<this->numBuffers<<"page number="<<PageId_in_a_DB<<endl;
-  if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers == (NUMBUF - 1)) //page  not in the buf pool and buf pool full
+  if (!hashing(PageId_in_a_DB, frame) && this->numBuffers == (NUMBUF - 1)) //page  not in the buf pool and buf pool full
   {
     int i = 0;
     if (!Hated_Frame.empty()) // love and hate replace policy
@@ -143,7 +140,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
     build_hash_table(PageId_in_a_DB, i); // insert new page record into hash table
                                    //               flag_buf_full=1;
   }
-  else if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1) || this->numBuffers > 4294967200) // page not in the buf pool, not full
+  else if (!hashing(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1) || this->numBuffers > 4294967200) // page not in the buf pool, not full
   {
     //  if(this->numBuffers>4294967200) cout<<"biggerst number enter " <<endl;
     Page *replace = new Page();
@@ -175,7 +172,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
               */
     }
   }
-  else if (hash_search(PageId_in_a_DB, frame)) // in the buf pool , pin ++
+  else if (hashing(PageId_in_a_DB, frame)) // in the buf pool , pin ++
   {
     this->bufFrame[frame].num_pin++;
     page = &this->bufPool[frame];
@@ -349,7 +346,7 @@ Author: xing yuan
 Data: 2017-10-19
 Return: 1 success find  0 do not exit in the hash table
 */
-int hash_search(int pageID, int &frameNo)
+int hashing(int pageID, int &frameNo)
 {
   int index = (a * pageID + b) % hash_max_size; //key  find in the no partion page
   if (!hash_table[index])
@@ -413,7 +410,7 @@ Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE)
 {
 
   int frameid;
-  if (hash_search(page_num, frameid)) // in the buf pool
+  if (hashing(page_num, frameid)) // in the buf pool
   {
     if (this->bufFrame[frameid].num_pin == 0)
     {
@@ -482,7 +479,7 @@ Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany)
 Status BufMgr::freePage(PageId globalPageId)
 {
   int frame;
-  if (hash_search(globalPageId, frame)) // find frame no and free it
+  if (hashing(globalPageId, frame)) // find frame no and free it
   {
     if (this->bufFrame[frame].num_pin)
       return FAIL;
@@ -514,7 +511,7 @@ Status BufMgr::flushPage(PageId pageid)
 {
 
   int frameid;
-  if (hash_search(pageid, frameid)) // find frame no , and flush it , write it to disk
+  if (hashing(pageid, frameid)) // find frame no , and flush it , write it to disk
   {
     Page *replace = new Page();
     memcpy(replace, &this->bufPool[frameid], sizeof(Page));
@@ -573,7 +570,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
   int frame;
   //  cout<<"file pin pade id"<<PageId_in_a_DB<<" frame "<<this->numBuffers<<endl;
 
-  if (!hash_search(PageId_in_a_DB, frame) && this->numBuffers == (NUMBUF - 1))
+  if (!hashing(PageId_in_a_DB, frame) && this->numBuffers == (NUMBUF - 1))
   {
 
     int i;
@@ -623,7 +620,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
   }
 
 #if 1
-  else if ((!hash_search(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1)) || this->numBuffers > 4294967200)
+  else if ((!hashing(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1)) || this->numBuffers > 4294967200)
   {
     //  if(this->numBuffers>4294967200) cout<<"biggerst number enter  pageid= " <<PageId_in_a_DB<<endl;
     Page *replace = new Page();
@@ -649,7 +646,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       return FAIL;
     }
   }
-  else if (hash_search(PageId_in_a_DB, frame))
+  else if (hashing(PageId_in_a_DB, frame))
   {
     this->bufFrame[frame].num_pin++;
     page = &this->bufPool[frame];
@@ -662,7 +659,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
 #endif
 
 #if 0
-         else if(!hash_search(PageId_in_a_DB,frame))
+         else if(!hashing(PageId_in_a_DB,frame))
           {
              cout<<"max test"<<"pageid="<<PageId_in_a_DB<<endl;
                Page *replace=new Page();
@@ -698,7 +695,7 @@ Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *fil
 {
 
   int frameid;
-  if (hash_search(globalPageId_in_a_DB, frameid)) // find page frame id and unpin it
+  if (hashing(globalPageId_in_a_DB, frameid)) // find page frame id and unpin it
   {
 
     if (this->bufFrame[frameid].num_pin == 0)

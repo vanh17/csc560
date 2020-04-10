@@ -32,6 +32,9 @@ typedef struct LL {int frameID; int PageId;} * List;
 typedef list<LL> *HL;
 void build_hash_table(PageId PageNo, int frameNo);
 void remove_from_hash_table(int page);
+int hashing(int pageID, int &frameNo);
+void print_hash();
+void Hash_delte();
 /*****************************End Global Variables Declaration*****************/
 /*******************ALL BELOW are purely local to buffer Manager********/
 
