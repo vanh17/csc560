@@ -51,13 +51,7 @@ void build_hash_table(PageId page_number, int frame_number) {
   frame.frameID = frame_number;
   frame.PageId = page_number;
 
-  if (!hash_table[index]) {
-    list<LL> *buck = new list<LL>;
-    buck->push_back(frame);
-    hash_table[index] = buck; // point to the buck
-  }
-  else {// have buck, jude how many
-    list<LL> *buck = hash_table[index];
+  if (hash_table[index]) { //found a right bucket, add the page here
     if (buck->size() < 2) {// less than bucksize
       buck->push_back(frame);    // insert into the buck
     } else  {                       // bigger , overflow or partiion
@@ -69,9 +63,8 @@ void build_hash_table(PageId page_number, int frame_number) {
         flg_partion = 0; // first parition flag
         hash_table.resize(2 * (hash_max_size), NULL);
       }
-      int hash_size = (hash_max_size)*2;               // double length of hash table
-      int index1 = (a * page_number + b) % hash_size; // find new index for insert record
-      int partion_index;
+      int index1 = (a * page_number + b) % (hash_max_size)*2; // doube hash table and hashing for bucket id
+      int index_partion;
       list<LL>::iterator it = buck->begin();
       if (index1 <= next_id) // if index less than next, parition
       {
@@ -79,21 +72,21 @@ void build_hash_table(PageId page_number, int frame_number) {
         while (it != buck->end())
         {
           //  cout<<"pade id "<<(*it).PageId<<endl;
-          partion_index = (*it).PageId;
-          partion_index = (a * partion_index + b) % hash_size; // find new index for insert record
-          if (index != partion_index)                          // if not the same , insert into new buck
+          index_partition = (*it).PageId;
+          index_partition = (a * index_partition + b) % hash_size; // find new index for insert record
+          if (index != index_partition)                          // if not the same , insert into new buck
           {
             LL frame1;
             frame1.PageId = (*it).PageId;
             frame1.frameID = (*it).frameID;
-            if (!hash_table[partion_index]) // no buck ,create a buck ,point to it
+            if (!hash_table[index_partition]) // no buck ,create a buck ,point to it
             {
               list<LL> *buck1 = new list<LL>;
               buck1->push_back(frame1);
-              hash_table[partion_index] = buck1;
+              hash_table[index_partition] = buck1;
             }
             else
-              hash_table[partion_index]->push_back(frame1); // have buck , insert
+              hash_table[index_partition]->push_back(frame1); // have buck , insert
             it = buck->erase(it);                           // delete copy
             overflow = 1;                                   // parition flag ,if all index is the same , then overflow
           }
@@ -117,6 +110,12 @@ void build_hash_table(PageId page_number, int frame_number) {
         buck->push_back(frame); // overflow
       }
     }
+  }
+  else {// no buck found, add new one
+    list<LL> *buck = new list<LL>;
+    buck->push_back(frame);
+    hash_table[index] = buck; // point to the buck
+    list<LL> *buck = hash_table[index];
   }
 }
 /*
