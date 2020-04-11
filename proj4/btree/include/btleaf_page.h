@@ -21,8 +21,8 @@ class BTLeafPage : public SortedPage {
    // No private variables should be declared.
 
  public:
-
- 		 AttrType  keytype;
+ 	// add public variable here Hoang April 10, need to modify later
+ 	AttrType  keytype;
 // In addition to initializing the  slot directory and internal structure
 // of the HFPage, this function sets up the type of the record page.
 
@@ -72,7 +72,7 @@ class BTLeafPage : public SortedPage {
 // It returns the dataRid component of the pair; note that this
 // is the rid of the DATA record, and NOT the rid of the data entry!
 
-   Status get_data_rid(const void *key, AttrType attrtype, RID & dataRid);
+   Status get_data_rid(void *key, AttrType attrtype, RID & dataRid);
 
 };
 

@@ -45,7 +45,7 @@ class BTIndexPage : public SortedPage {
 // child to be searched next.
 
    Status get_page_no(const void *key, AttrType key_type, PageId & pageNo);
-
+   //Additional method added by Hoang April 10, needed to modify later
    Status get_index_Page_no(const void *key, AttrType key_type, PageId & pageNo);
 // ------------------- Iterators ------------------------
 // The two functions get_first and get_next provide an
@@ -68,7 +68,7 @@ class BTIndexPage : public SortedPage {
 
    PageId getLeftLink(void) { return getPrevPage(); }
    void   setLeftLink(PageId left) { setPrevPage(left); }
-
+   // additional public variable Added by Hoang April 10, needed to modify later.   
    AttrType  keytype;
    int level;
    RID  first_index;
