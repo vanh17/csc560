@@ -28,6 +28,7 @@ public:
     // destructor
     ~BTreeFileScan();
 private:
+    // following added by Hoang april 10, needed to modify later
 	PageId begin;
     PageId end;
     AttrType keytype;
