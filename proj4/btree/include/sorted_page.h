@@ -74,6 +74,11 @@ class SortedPage : public HFPage {
   void  set_type(short t) { type = t; }
   // get node type
   short get_type()         { return type; }
+
+  // Additional method added by Hoang April 10 2020, needed to modify later
+  // to make sure that we can return the key from the hash table
+  Status  Big_key(AttrType key_type,void *key,int &keylen);
+
 };
 
 #endif
