@@ -29,7 +29,7 @@ static error_string_table bufTable(BUFMGR, bufErrMsgs);
 //************************************************************
 
 /************Defined global variables here ***********************************/
-//Started to modified April 10, 2020
+//Modified April 10, 2020
 int a = 1, b = 0;
 int next_id = 0, depth = 2, flg_partion = 1, hash_max_size = HTSIZE + 1; // declare next_id, depth, flg_partition for tracking
 vector<PageId> dsk_storage;
@@ -41,13 +41,17 @@ vector<HL> hash_table(8, NULL); // declare hash_table to store value key pairs f
 /****************End GlobalVariables Declaration******************************/
 
 /*******************************Global Helper Implementation*******************/
-void build_hash_table(PageId PageNo, int frameNo) {
+//Start Modifying April 10, 2020
+// This function dd page to the hash table
+// given the page_id, frame_id
+// return nothing, but alter the hash_table
+void build_hash_table(PageId page_number, int frame_number) {
 
   int Max_next = pow(2, depth) * 2  - 1; // N*Pow(2,depth)  number of Buck times two over depth equal total current hash length above overflow page
-  int index = (a * PageNo + b) % hash_max_size;      //get  key
+  int index = (a * page_number + b) % hash_max_size;      //get  key
   LL frame;                              // pair<pageid, frameid> structure
-  frame.PageId = PageNo;
-  frame.frameID = frameNo;
+  frame.PageId = page_number;
+  frame.frameID = frame_number;
 
   if (!hash_table[index]) // no buck , insert
   {
@@ -74,7 +78,7 @@ void build_hash_table(PageId PageNo, int frameNo) {
         flg_partion = 0; // first parition flag
       }
       int hash_size = (hash_max_size)*2;               // double length of hash table
-      int index1 = (a * PageNo + b) % hash_size; // find new index for insert record
+      int index1 = (a * page_number + b) % hash_size; // find new index for insert record
       int partion_index;
       list<LL>::iterator it = buck->begin();
       if (index1 <= next_id) // if index less than next, parition
