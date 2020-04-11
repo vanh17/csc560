@@ -17,7 +17,7 @@
 #define Max_index 50
 // Define your error code for B+ tree here
 // enum btErrCodes  {...}
-class HeadPage{
+class HeadPage{ // added this class by Hoang April 10, need to modify later
 
 public:
         PageId  root;
@@ -71,6 +71,7 @@ class BTreeFile: public IndexFile
     int keysize();
     
   private:
+    // following added by Hoang april 10, need to modify later
     PageId  header;
     short index_number;
     PageId  current_index;
