@@ -64,8 +64,8 @@ void build_hash_table(PageId page_number, int frame_number) {
         flg_partion = 0; // first parition flag
         hash_table.resize(2 * (hash_max_size), NULL);
       }
-      int index1 = (a * page_number + b) % (hash_max_size)*2; // doube hash table and hashing for bucket id
-      int index_partion;
+      int index1 = (a * page_number + b) % (hash_max_size*2); // doube hash table and hashing for bucket id
+      int index_partition;
       list<LL>::iterator it = buck->begin();
       if (index1 <= next_id) // if index less than next, parition
       {
@@ -74,7 +74,7 @@ void build_hash_table(PageId page_number, int frame_number) {
         {
           //  cout<<"pade id "<<(*it).PageId<<endl;
           index_partition = (*it).PageId;
-          index_partition = (a * index_partition + b) % hash_size; // find new index for insert record
+          index_partition = (a * index_partition + b) % (hash_max_size*2); // find new index for insert record
           if (index != index_partition)                          // if not the same , insert into new buck
           {
             LL frame1;
