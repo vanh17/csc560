@@ -52,6 +52,7 @@ void build_hash_table(PageId page_number, int frame_number) {
   frame.PageId = page_number;
 
   if (hash_table[index]) { //found a right bucket, add the page here
+    list<LL> *buck = hash_table[index]; // get hold of the bucket in hash_table
     if (buck->size() < 2) {// less than bucksize
       buck->push_back(frame);    // insert into the buck
     } else  {                       // bigger , overflow or partiion
@@ -115,7 +116,6 @@ void build_hash_table(PageId page_number, int frame_number) {
     list<LL> *buck = new list<LL>;
     buck->push_back(frame);
     hash_table[index] = buck; // point to the buck
-    list<LL> *buck = hash_table[index];
   }
 }
 /*
