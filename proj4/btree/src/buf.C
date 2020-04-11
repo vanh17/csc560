@@ -4,17 +4,7 @@
 
 #include "buf.h"
 
-/************Defined global variables here ***********************************/
-//Started to modified April 10, 2020
-int a = 1, b = 0;
-int next_id = 0, depth = 2, flg_partion = 1, hash_max_size = HTSIZE + 1; // declare next_id, depth, flg_partition for tracking
-vector<PageId> dsk_storage;
-int is_buf_full;
-vector<int> copy_stack; // create this so we can update loved, hated queue
-vector<HL> hash_table(8, NULL); // declare hash_table to store value key pairs for hashing
-stack<int> hate_queue; // stack to keep hate page
-queue<int> love_stack; // queue to keep love page
-/****************End GlobalVariables Declaration******************************/
+
 // Define error message here
 static const char *bufErrMsgs[] = {
     // error message strings go here
@@ -38,8 +28,20 @@ static error_string_table bufTable(BUFMGR, bufErrMsgs);
 //** This is the implementation of BufMgr
 //************************************************************
 
-BufMgr::BufMgr(int numbuf, Replacer *replacer)
-{
+/************Defined global variables here ***********************************/
+//Started to modified April 10, 2020
+int a = 1, b = 0;
+int next_id = 0, depth = 2, flg_partion = 1, hash_max_size = HTSIZE + 1; // declare next_id, depth, flg_partition for tracking
+vector<PageId> dsk_storage;
+int is_buf_full;
+vector<int> copy_stack; // create this so we can update loved, hated queue
+vector<HL> hash_table(8, NULL); // declare hash_table to store value key pairs for hashing
+stack<int> hate_queue; // stack to keep hate page
+queue<int> love_stack; // queue to keep love page
+/****************End GlobalVariables Declaration******************************/
+
+/************************Start BufMgr Implementation *************************/
+BufMgr::BufMgr(int numbuf, Replacer *replacer) {
 
   Page *BufPage = new Page[numbuf];
   FrameDesc *BufDesript = new FrameDesc[numbuf];

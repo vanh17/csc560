@@ -74,9 +74,6 @@ class SortedPage : public HFPage {
   void  set_type(short t) { type = t; }
   // get node type
   short get_type()         { return type; }
-
-  Status  Big_key(AttrType key_type,void *key,int &keylen);
-
 };
 
 #endif
