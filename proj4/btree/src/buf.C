@@ -46,36 +46,28 @@ vector<HL> hash_table(8, NULL); // declare hash_table to store value key pairs f
 // given the page_id, frame_id
 // return nothing, but alter the hash_table
 void build_hash_table(PageId page_number, int frame_number) {
-
-  int Max_next = pow(2, depth) * 2  - 1; // N*Pow(2,depth)  number of Buck times two over depth equal total current hash length above overflow page
-  int index = (a * page_number + b) % hash_max_size;      //get  key
-  LL frame;                              // pair<pageid, frameid> structure
-  frame.PageId = page_number;
+  int index = (a * page_number + b) % hash_max_size;      //hashing to get the bucket id
+  LL frame;                              // create tempory frame to keep track of changes and update
   frame.frameID = frame_number;
+  frame.PageId = page_number;
 
-  if (!hash_table[index]) // no buck , insert
-  {
+  if (!hash_table[index]) {
     list<LL> *buck = new list<LL>;
     buck->push_back(frame);
     hash_table[index] = buck; // point to the buck
   }
-  else // have buck, jude how many
-  {
-
+  else {// have buck, jude how many
     list<LL> *buck = hash_table[index];
-    if (buck->size() < 2) // less than bucksize
+    if (buck->size() < 2) {// less than bucksize
       buck->push_back(frame);    // insert into the buck
-    else                         // bigger , overflow or partiion
-    {
-      if (flg_partion || Max_next == next_id)
-      {
-        if (Max_next == next_id)
-        {
+    } else  {                       // bigger , overflow or partiion
+      if (next_id == pow(2, depth) * 2  - 1 || flg_partion) {// max_number for next iteration. Keep track of overflow
+        if (next_id == pow(2, depth) * 2  - 1) { // full so we need to increase the size, and also depth
           depth++;
           hash_max_size = 2 * hash_max_size;
-        } // parition when next equal to Max_next
-        hash_table.resize(2 * (hash_max_size), NULL);
+        } // parition when next equal to pow(2, depth) * 2  - 1
         flg_partion = 0; // first parition flag
+        hash_table.resize(2 * (hash_max_size), NULL);
       }
       int hash_size = (hash_max_size)*2;               // double length of hash table
       int index1 = (a * page_number + b) % hash_size; // find new index for insert record
