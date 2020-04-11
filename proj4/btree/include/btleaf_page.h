@@ -71,8 +71,8 @@ class BTLeafPage : public SortedPage {
 // of the form <key, dataRid>, where key is given in the call.
 // It returns the dataRid component of the pair; note that this
 // is the rid of the DATA record, and NOT the rid of the data entry!
-
-   Status get_data_rid(void *key, AttrType attrtype, RID & dataRid);
+   // Leave const in modified by Hoang april 10
+   Status get_data_rid(const void *key, AttrType attrtype, RID & dataRid);
 
 };
 
