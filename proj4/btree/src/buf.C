@@ -33,7 +33,7 @@ static error_string_table bufTable(BUFMGR, bufErrMsgs);
 int a = 1, b = 0;
 int next_id = 0, depth = 2, flg_partion = 1, hash_max_size = HTSIZE + 1; // declare next_id, depth, flg_partition for tracking
 vector<PageId> dsk_storage;
-int is_buf_full;
+bool is_buf_full;
 vector<int> copy_stack; // create this so we can update loved, hated queue
 vector<HL> hash_table(8, NULL); // declare hash_table to store value key pairs for hashing
 stack<int> hate_queue; // stack to keep hate page
@@ -55,7 +55,7 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer) {
     love_stack.pop();
   delete_pair();
   init_frame(-1);
-  is_buf_full = 0;
+  is_buf_full = false;
 
   //    cout<<"bufmgr "<<this->numBuffers<<endl;
   // put your code here
@@ -140,7 +140,6 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
     }
 
     build_hash_table(PageId_in_a_DB, i); // insert new page record into hash table
-                                   //               is_buf_full=1;
   }
   else if (!hashing(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1) || this->numBuffers > 4294967200) // page not in the buf pool, not full
   {
@@ -158,7 +157,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage)
       this->bufFrame[this->numBuffers].is_clean = false;
       build_hash_table(PageId_in_a_DB, this->numBuffers); // insert new page record into hash table
       if (this->numBuffers == (NUMBUF - 1))
-        is_buf_full = 1; // buf pool full
+        is_buf_full = true; // buf pool full
     }
     else
     {
@@ -610,7 +609,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       build_hash_table(PageId_in_a_DB, this->numBuffers); // insert into hash table
                                                     // cout<<"page "<<PageId_in_a_DB<<" num_pin "<<this->bufFrame[this->numBuffers].num_pin<<endl;
       if (this->numBuffers == (NUMBUF - 1))
-        is_buf_full = 1;
+        is_buf_full = true;
     }
     else
     {
