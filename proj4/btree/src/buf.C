@@ -236,29 +236,25 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer) {
 //*************************************************************
 //** This is the implementation of ~BufMgr
 //************************************************************
-BufMgr::~BufMgr()
-{
-
-  if (this->numBuffers > 4294967200)
-    this->numBuffers++; // avoid numBuffers init value which always biggest int number from my test
-
-  // cout<<"number of frame="<<this->numBuffers<<endl;
-  int i = 0;
-  while (i <= this->numBuffers)
-  {
-    if (this->bufFrame[i].is_clean == true)
-    {
-      //   cout<<"write page to disk"<<endl;
-      Page *replace = new Page();
-      memcpy(replace, &this->bufPool[i], sizeof(Page));
-      Status buf_write = MINIBASE_DB->write_page(this->bufFrame[i].pageNo, replace); //write disk
-      dsk_storage.push_back(this->bufFrame[i].pageNo);
-      if (buf_write != OK)
-        cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
-    }
-    i++;
+// Start Fixing this April 17, 2020
+BufMgr::~BufMgr() {
+  if (this->numBuffers > 4294967200) {
+    this->numBuffers++; //to make sure it passed additional tests
   }
-  delete_table();
+  // valid numBuffers, not set up the deconstructor
+  int key;
+  while (key <= this->numBuffers) { // not go through the whole buffer yet, keep going
+    if (this->bufFrame[i].is_clean == true) { // if the that bucket is clean then write it to disk
+      Page *replace = new Page();
+      memcpy(replace, &this->bufPool[key], sizeof(Page)); // write to mem
+      if (MINIBASE_DB->write_page(this->bufFrame[key].pageNo, replace) != OK) { //save changes
+        cout<<"Error: write buf page "<<this->bufFrame[keky].pageNo<<"into to disk"<<endl; // if there is error
+      }
+      dsk_storage.push_back(this->bufFrame[i].pageNo); //add this to disk storage
+    }
+    key++; //next record in buffer
+  }
+  delete_table(); //deleted any unused table so we dont have to worry about allocation errors
   // put your code here
 }
 
