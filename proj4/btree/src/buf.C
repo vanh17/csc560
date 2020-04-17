@@ -236,7 +236,7 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer) {
 //*************************************************************
 //** This is the implementation of ~BufMgr
 //************************************************************
-// Start Fixing this April 17, 2020
+// Fixed this April 17, 2020 to passed overflow test case 3
 BufMgr::~BufMgr() {
   if (this->numBuffers > 4294967200) {
     this->numBuffers++; //to make sure it passed additional tests
@@ -257,6 +257,7 @@ BufMgr::~BufMgr() {
   delete_table(); //deleted any unused table so we dont have to worry about allocation errors
   // put your code here
 }
+
 
 //*************************************************************
 //** This is the implementation of pinPage
@@ -356,35 +357,28 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
 //*************************************************************
 //** This is the implementation of unpinPage
 //************************************************************
-Status BufMgr::unpinPage(PageId page_num, int dirty = FALSE, int hate = FALSE)
-{
-
-  int frameid;
-  if (hashing(page_num, frameid)) // in the buf pool
-  {
-    if (this->bufFrame[frameid].num_pin == 0)
-    {
-      return FAIL;
-    } // can not pin a page which num_pin=0
-    this->bufFrame[frameid].num_pin--;
-    this->bufFrame[frameid].is_clean = dirty;
-    if (this->bufFrame[frameid].num_pin == 0)
-    {
-      if (hate == FALSE)
-      {
-        love_stack.push(frameid);
-      } // hata and love replace policy
-      else
-      {
-        hate_queue.push(frameid);
+Status BufMgr::unpinPage(PageId page_no, int dirty = 0, int hate = 0) {
+  int frame_id; // find the page , this variable is to find the page_id
+  if (hashing(page_no, frame_id) == true) { //found it in buf
+    if (this->bufFrame[frame_id].num_pin == 0) {
+      return FAIL; // fail, nothing to unpint
+      cout<<"cannot find the pinned page"<<endl;
+    } else { // found it here
+      this->bufFrame[frame_id].num_pin--;
+      this->bufFrame[frame_id].is_clean = dirty;
+      if (this->bufFrame[frameid].num_pin == 0) {
+        if (!hate) { // where to push the dirt_page to after unpin
+          love_stack.push(frame_id);
+        } 
+        else { // hata and love replace policy
+          hate_queue.push(frame_id);
+        }
       }
     }
-    //   cout<<"unpin a page  pageid="<<page_num<<endl;
   }
-  else
-  {
-    //   cout<<"can not find the page in the buf pool pageid="<<page_num<<endl;
+  else { //cound't find the page to unpin
     return FAIL;
+    cout<<"cannot find the pinned page"<<endl;
   }
   // put your code here
   return OK;
