@@ -445,6 +445,7 @@ Status BufMgr::freePage(PageId globalPageId) {
 //*************************************************************
 //** This is the implementation of flushPage
 //************************************************************
+// Added April 07,2020
 Status BufMgr::flushPage(PageId pageid) {
   int frame_id;
   bool is_hashable = hashing(pageid, frame_id);
@@ -453,38 +454,28 @@ Status BufMgr::flushPage(PageId pageid) {
       return FAIL;
     }
   }
-  // put your code here
-  return OK;
+  
+  return OK;// put your code here
 }
 
 //*************************************************************
 //** This is the implementation of flushAllPages
 //************************************************************
-Status BufMgr::flushAllPages()
-{
-
-  //flush all  , write all to disk
-
-  int i = 0;
-  if (this->numBuffers > 4294967200)
-    this->numBuffers++; // avoid numBuffers init value which always biggest int number from my test
-  while (i <= this->numBuffers)
-  {
-    if (this->bufFrame[i].is_clean == true)
-    {
-      //   cout<<"write page to disk"<<endl;
+Status BufMgr::flushAllPages(){
+  if (this->numBuffers > 4294967200) {
+    this->numBuffers++;
+  }
+  // valid numBuffers now flush all pages and write changes
+  for (int key = 0; key <= this->numBuffers, key++) {
+    if (this->bufFrame[i].is_clean == true) {
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
-      Status buf_write = MINIBASE_DB->write_page(this->bufFrame[i].pageNo, replace); //write disk
+      MINIBASE_DB->write_page(this->bufFrame[i].pageNo, replace); //write disk
       dsk_storage.push_back(this->bufFrame[i].pageNo);
-      if (buf_write != OK)
-        cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
     }
-    i++;
   }
-
-  //put your code here
-  return OK;
+  
+  return OK; //put your code here
 }
 
 /*** Methods for compatibility with project 1 ***/
