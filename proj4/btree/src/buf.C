@@ -191,17 +191,19 @@ bool hashing(int page_no, int &frame) {
 // delete the hastable we create and set everything back to their initial value
 // so that we dont have overflow or gabbage collection
 // Modified April 17, 2020
-void delete_pair() {
+void delete_table() {
   // start with key = 0 and increase the key later
   int key = 0;
-  while (key < hash_table.size()){
+  // looping through the hash table
+  while (key < hash_table.size()){ // as long as the key is less then hash_table_size, keep going
     // only delete the records if key are there, not move on
-    if (hash_table[key]) {
+    if (hash_table[key]) { //when there is bucket in the slot, deconstruct everhthing
       hash_table[key]->~list<LL>();
       hash_table[key] = NULL;
     }
     key++; // go to next key
   }
+
   // reset all variable keep track of status of the hash table to default value 
   flg_partion = 1;
   depth = 2;
@@ -224,7 +226,7 @@ BufMgr::BufMgr(int numbuf, Replacer *replacer) {
     hate_queue.pop();
   while (!love_stack.empty())
     love_stack.pop();
-  delete_pair();
+  delete_table();
   init_frame(-1);
   is_buf_full = false;
 
@@ -257,7 +259,7 @@ BufMgr::~BufMgr()
     }
     i++;
   }
-  delete_pair();
+  delete_table();
   // put your code here
 }
 

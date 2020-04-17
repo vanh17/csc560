@@ -31,7 +31,7 @@
 typedef struct LL {int frameID; int PageId;} * List;
 typedef list<LL> *HL;
 void build_hash_table(PageId PageNo, int frameNo);
-void delete_pair();
+void delete_table();
 bool hashing(int pageID, int &frameNo);
 void remove_from_hash_table(int page);
 /*****************************End Global Variables Declaration*****************/
