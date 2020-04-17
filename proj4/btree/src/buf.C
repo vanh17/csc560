@@ -30,7 +30,7 @@ static error_string_table bufTable(BUFMGR, bufErrMsgs);
 
 /************Defined global variables here ***********************************/
 //Modified April 10, 2020
-int a = 1, b = 0;
+// int a = 1, b = 0;
 int next_id = 0, depth = 2, flg_partion = 1, hash_max_size = HTSIZE + 1; // declare next_id, depth, flg_partition for tracking
 vector<PageId> dsk_storage;
 bool is_buf_full; // track whether buffer is full or not
@@ -47,7 +47,7 @@ vector<HL> hash_table(8, NULL); // declare hash_table to store value key pairs f
 // return nothing, but alter the hash_table
 void build_hash_table(PageId page_no, int fr_no) {
   // initialize local variables
-  int id = ((b+a*page_no)%hash_max_size);      //hashing to get the bucket id
+  int id = (page_no)%hash_max_size);      //hashing to get the bucket id
   LL frameid;                              // create tempory frame to keep track of changes and update
   frameid.PageId = page_no;
   frameid.frameID = fr_no;
@@ -67,16 +67,16 @@ void build_hash_table(PageId page_no, int fr_no) {
         hash_table.resize(double_hash_size, NULL);
       }
       list<LL>::iterator itr = bucket->begin(); // start iterating through bucket.
-      int id1 = ((b+a*page_no) % double_hash_size); // doube hash table and hashing for bucket id
+      int id1 = ((page_no) % double_hash_size); // doube hash table and hashing for bucket id
       int id_parti;
       if (id1 <= next_id) {
         bool has_overflow = false;
         while (itr != bucket->end()) {
-          id_parti = ((b+a*(*it).PageId) % double_hash_size); // find new index for insert record
+          id_parti = (((*it).PageId) % double_hash_size); // find new index for insert record
           if (id != id_parti) {//insert into new buck
             LL frameid1;
             frameid1.PageId = (*itr).PageId;
-            frame1.frameID = (*itr).frameID;
+            frameid1.frameID = (*itr).frameID;
             if (!hash_table[id_parti]) { //cannot find the bucket, crete one
               list<LL> *bucket1 = new list<LL>;
               bucket1->push_back(frameid1); // add frameid1 here for the referece
@@ -98,14 +98,14 @@ void build_hash_table(PageId page_no, int fr_no) {
           hash_table[id1] = bucket2; // update the hash function
         }
         else { 
-          hash_table[index1]->push_back(frameid); // bucket exist, no need to create, just add frame
+          hash_table[id1]->push_back(frameid); // bucket exist, no need to create, just add frame
         }
         if (!has_overflow) {//check if there is overflow
           next_id++;      //if not just increase next_id
         }
       }
       else {
-        buck->push_back(frameid); // just add to over flow, because the next_id is reached maximum value
+        bucket->push_back(frameid); // just add to over flow, because the next_id is reached maximum value
       }
     }
   }
@@ -123,7 +123,7 @@ Return: void
 */
 void remove_from_hash_table(int page)
 {
-  int index = (a * page + b) % hash_max_size;     //key    find in the no partion page
+  int index = (page) % hash_max_size;     //key    find in the no partion page
   list<LL> *buck = hash_table[index]; // get the buck
   list<LL>::iterator it = buck->begin();
   while (it != buck->end()) // find the element and remove it
@@ -136,7 +136,7 @@ void remove_from_hash_table(int page)
     it++;
   }
 
-  index = (a * page + b) % (2 * hash_max_size); //key , find in the parition pages or overflow pages
+  index = (page) % (2 * hash_max_size); //key , find in the parition pages or overflow pages
   if (index <= hash_table.size())
   {
     buck = hash_table[index];
@@ -161,7 +161,7 @@ Return: 1 success find  0 do not exit in the hash table
 */
 int hashing(int pageID, int &frameNo)
 {
-  int index = (a * pageID + b) % hash_max_size; //key  find in the no partion page
+  int index = (pageID) % hash_max_size; //key  find in the no partion page
   if (!hash_table[index])
     return 0;
   list<LL> *buck = hash_table[index];
@@ -175,7 +175,7 @@ int hashing(int pageID, int &frameNo)
     }
     it++;
   }
-  index = (a * pageID + b) % (2 * hash_max_size); //key
+  index = (pageID) % (2 * hash_max_size); //key
   if (index <= hash_table.size())           //key , find in the parition pages or overflow pages
   {
     if (!hash_table[index])
