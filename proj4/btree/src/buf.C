@@ -626,13 +626,14 @@ Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *fil
 //*************************************************************
 //** This is the implementation of getNumUnpinnedBuffers
 //************************************************************
+// Passed test case 2 04/17/2020
 unsigned int BufMgr::getNumUnpinnedBuffers() {
   if (this->numBuffers > 4294967200) { // check if valid numBuffers
     this->numBuffers++;
   }
   int pages;
   for(int buff_id = 0; buff_id <= this->numBuffers; buff_id++) {
-    if (is_unpinned(this->bufFrame[i].num_pin)) { pages+= 1;} // update page counter
+    if (is_unpinned(this->bufFrame[buff_id].num_pin)) { pages+= 1;} // update page counter
   }
   
 
