@@ -466,7 +466,7 @@ Status BufMgr::flushAllPages(){
     this->numBuffers++;
   }
   // valid numBuffers now flush all pages and write changes
-  for (int key = 0, key <= this->numBuffers, key++) {
+  for (int key = 0; key <= this->numBuffers; key++) {
     if (this->bufFrame[key].is_clean == true) {
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[key], sizeof(Page));
