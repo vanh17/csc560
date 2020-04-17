@@ -266,6 +266,28 @@ void BufMgr::set_this_object(PageId PageId_in_a_DB, bool is_clean, int num_pin, 
   this->bufFrame[key].pageNo = PageId_in_a_DB;
   this->bufFrame[key].num_pin = num_pin;
 }
+void set_buf_full(bool value) {
+  is_buf_full = value;
+}
+void BufMgr::set_pinningPage(PageId PageId_in_a_DB, bool is_clean, Page *replace) {
+  this->numBuffers++;
+  if (emptyPage == true) {
+    memcpy(&this->bufPool[this->numBuffers], replace, sizeof(Page)); // write changes to mem
+  }
+  page = &this->bufPool[this->numBuffers]; // allocate into buf
+  this->bufFrame[this->numBuffers].pageNo = PageId_in_a_DB;
+  this->bufFrame[this->numBuffers].num_pin++;
+  if (this->bufFrame[this->numBuffers].is_clean) {
+    this->bufFrame[this->numBuffers].is_clean = is_clean;
+  } else {
+    this->bufFrame[this->numBuffers].is_clean = is_clean;  
+  }
+  build_hash_table(PageId_in_a_DB, this->numBuffers); // add new page
+  bool check_num_Buff = this->numBuffers != (NUMBUF - 1);
+  if (!check_num_Buff) {
+    set_buf_full(true);
+  }
+}
 
 //*************************************************************
 //** This is the implementation of pinPage
@@ -307,23 +329,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
   else if (!(is_hashable || this->numBuffers >= (NUMBUF - 1) && this->numBuffers <= 4294967200)) {
     Page *replace = new Page();
     if (MINIBASE_DB->read_page(PageId_in_a_DB, replace) == OK) { //read the page from BufMgr
-      this->numBuffers++;
-      if (emptyPage == true) {
-        memcpy(&this->bufPool[this->numBuffers], replace, sizeof(Page)); // write changes to mem
-      }
-      page = &this->bufPool[this->numBuffers]; // allocate into buf
-      this->bufFrame[this->numBuffers].pageNo = PageId_in_a_DB;
-      this->bufFrame[this->numBuffers].num_pin++;
-      if (this->bufFrame[this->numBuffers].is_clean) {
-        this->bufFrame[this->numBuffers].is_clean = false;
-      } else {
-        this->bufFrame[this->numBuffers].is_clean = false;  
-      }
-      build_hash_table(PageId_in_a_DB, this->numBuffers); // add new page
-      bool check_num_Buff = this->numBuffers != (NUMBUF - 1);
-      if (!check_num_Buff) {
-        is_buf_full = true;
-      }
+      set_pinningPage(PageId_in_a_DB, false, replace);
     }
     else {
       return FAIL; build_hash_table(PageId_in_a_DB,this->numBuffers);
