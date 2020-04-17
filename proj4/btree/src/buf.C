@@ -357,13 +357,11 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
 //*************************************************************
 //** This is the implementation of unpinPage
 //************************************************************
+// FIxed to passed segmentation fault test 1 April 17,2020
 Status BufMgr::unpinPage(PageId page_no, int dirty = 0, int hate = 0) {
   int frame_id; // find the page , this variable is to find the page_id
-  if (hashing(page_no, frame_id) == true) { //found it in buf
-    if (this->bufFrame[frame_id].num_pin == 0) {
-      return FAIL; // fail, nothing to unpint
-      cout<<"cannot find the pinned page"<<endl;
-    } else { // found it here
+  if (hashing(page_no, frame_id) == true) { //found it here
+    if (this->bufFrame[frame_id].num_pin != 0) {
       this->bufFrame[frame_id].num_pin--;
       this->bufFrame[frame_id].is_clean = dirty;
       if (this->bufFrame[frame_id].num_pin == 0) {
@@ -374,6 +372,9 @@ Status BufMgr::unpinPage(PageId page_no, int dirty = 0, int hate = 0) {
           hate_queue.push(frame_id);
         }
       }
+    } else { // //found it in buf
+      return FAIL; // fail, nothing to unpint
+      cout<<"cannot find the pinned page"<<endl;
     }
   }
   else { //cound't find the page to unpin
