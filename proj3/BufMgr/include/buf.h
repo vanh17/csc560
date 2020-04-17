@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 /////////////  The Header File for the Buffer Manager /////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-
+/////Modified on April 10 for proj4: Done to make sure there are upto date with proj3
 
 #ifndef BUF_H
 #define BUF_H
@@ -9,6 +9,7 @@
 #include "db.h"
 #include "page.h"
 #include "new_error.h"
+
 
 /****************Include basic C packages***************************/
 #include<math.h>
@@ -19,28 +20,30 @@
 #include<queue>
 #include<algorithm>
 /*******************End Package including***************************/
+
+
 #define NUMBUF 20   
 // Default number of frames, artifically small number for ease of debugging.
 #define HTSIZE 7
 // Hash Table size
-// define largest integer for storage calcualtion
-
-#define INT_MAX 4294967200
 
 /****** Global Type ********************************/
 typedef struct LL {int frameID; int PageId;} * List;
 typedef list<LL> *HL;
+bool is_unpinned(int num_pin);
+void build_hash_table(PageId PageNo, int frameNo);
+void delete_table();
+void set_buf_full(bool value);
+bool hashing(int pageID, int &frameNo);
+void remove_from_hash_table(int page);
 /*****************************End Global Variables Declaration*****************/
-
-/*****************************************************************/
-
 /*******************ALL BELOW are purely local to buffer Manager********/
 
 // You could add more enums for internal errors in the buffer manager.
 enum bufErrCodes  {HASHMEMORY, HASHDUPLICATEINSERT, HASHREMOVEERROR, HASHNOTFOUND, QMEMORYERROR, QEMPTY, INTERNALERROR, 
             BUFFERFULL, BUFMGRMEMORYERROR, BUFFERPAGENOTFOUND, BUFFERPAGENOTPINNED, BUFFERPAGEPINNED};
 
-class FrameDesc {
+class FrameDesc { //Declare FrameDesc here so it will compile
     friend class BufMgr;
         // to make sure the page is clean to unpin
         bool is_clean;
@@ -57,25 +60,12 @@ class FrameDesc {
         ~FrameDesc() {}
 };
 class Replacer; // may not be necessary as described below in the constructor
-// HashTable Defnition 
-class HashTable{
-    friend BufMgr;
-        int next_ptr_value, prev_ptr_value;
-        vector<HL> hash_table;
-        int hash_buffer_size;
-        int next_id,level_id;
-        int partion_id;
-};
-
 
 class BufMgr {
 
     private: 
+        FrameDesc *bufFrame; // private variable to hold current frame for BufMgr
         unsigned int numBuffers;
-        // private variable to hold current frame for BufMgr
-        FrameDesc *bufFrame;
-        // hash table holder for this BufMgr
-        HashTable *hash_table_holder;
     public:
         Page* bufPool; // The actual buffer pool
         BufMgr (int numbuf, Replacer *replacer = 0); 
@@ -131,6 +121,11 @@ class BufMgr {
 
         unsigned int getNumUnpinnedBuffers();
         // Get number of unpinned buffers
+
+        //additional helper set object this of BufMgr
+        void set_this_object(PageId PageId_in_a_DB, bool is_clean, int num_pin, int key, Page *replace);
+        void set_pinningPage(PageId PageId_in_a_DB, Page *&page, bool is_clean, Page *replace, int emptyPage);
+        Status write_to_db(PageId pageid, int frame_id);
 };
 
 #endif
