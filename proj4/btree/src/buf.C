@@ -125,7 +125,7 @@ void remove_from_hash_table(int page_no) {
   list<LL>::iterator itr = bucket->begin(); // get the head of the bucket
   while (itr != bucket->end()) {//keep going down until the end of the bucket
     if ((*itr).PageId == page_no) {// if found it 
-      buck->erase(itr); // delete, and end the function, do nothing else
+      bucket->erase(itr); // delete, and end the function, do nothing else
       return;
     }
     itr++; // move to next one in the bucket
@@ -137,7 +137,7 @@ void remove_from_hash_table(int page_no) {
         hash_table[(page_no%double_hash_size)]->erase(itr);
         return;
       }
-      it++; // advance in the overflown bucket
+      itr++; // advance in the overflown bucket
     }
   }
 }
