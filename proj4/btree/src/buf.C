@@ -160,7 +160,7 @@ bool hashing(int page_no, int &frame) {
   }
   list<LL> *bucket = hash_table[id]; // key exist in hash_table, retrieve that bucket
   list<LL>::iterator itr = bucket->begin(); //start the iteration
-  while (itr != buck->end()) {// if not the end of bucket, if searching for it
+  while (itr != bucket->end()) {// if not the end of bucket, if searching for it
     if ((*itr).PageId == page_no) { //found the page, return 1
       frame = (*itr).frameID; //update that pointer to frame so it get the new value
       hashed_key = true; // found it set to 1
