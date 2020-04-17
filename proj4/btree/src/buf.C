@@ -29,8 +29,7 @@ static error_string_table bufTable(BUFMGR, bufErrMsgs);
 //************************************************************
 
 /************Defined global variables here ***********************************/
-//Modified April 10, 2020
-// int a = 1, b = 0;
+//Modified April 17, 2020
 int next_id = 0, depth = 2, flg_partion = 1, hash_max_size = HTSIZE + 1; // declare next_id, depth, flg_partition for tracking
 vector<PageId> dsk_storage;
 bool is_buf_full; // track whether buffer is full or not
@@ -41,7 +40,7 @@ vector<HL> hash_table(8, NULL); // declare hash_table to store value key pairs f
 /****************End GlobalVariables Declaration******************************/
 
 /*******************************Global Helper Implementation*******************/
-//Start Modifying April 10, 2020
+// Modified April 17, 2020
 // This function dd page to the hash table
 // given the page_id, frame_id
 // return nothing, but alter the hash_table
@@ -56,7 +55,7 @@ void build_hash_table(PageId page_no, int fr_no) {
     list<LL> *bucket = hash_table[id]; // get hold of the bucket in hash_table
     if (bucket->size() < 2) {
       bucket->push_back(frameid);    //add to current bucket
-    } else  { 
+    } else { 
       int double_hash_size = 2*hash_max_size;// bigger , overflow or partiion
       if (next_id == pow(2, depth) * 2  - 1 || flg_partion) {// max_number for next iteration. Keep track of overflow
         if (next_id == pow(2, depth) * 2  - 1) { // full so we need to increase the size, and also depth
@@ -66,9 +65,9 @@ void build_hash_table(PageId page_no, int fr_no) {
         flg_partion = 0; // first parition flag
         hash_table.resize(double_hash_size, NULL);
       }
-      list<LL>::iterator itr = bucket->begin(); // start iterating through bucket.
       int id1 = ((page_no) % double_hash_size); // doube hash table and hashing for bucket id
       int id_parti;
+      list<LL>::iterator itr = bucket->begin(); // start iterating through bucket.
       if (id1 <= next_id) {
         bool has_overflow = false;
         while (itr != bucket->end()) {
@@ -88,7 +87,7 @@ void build_hash_table(PageId page_no, int fr_no) {
             itr = bucket->erase(itr);// delete unnecessary code
             has_overflow = true;// parition flag ,if all index is the same , then overflow
           }
-
+          // update iteraor for next adding.
           itr++;
         }
 
@@ -103,8 +102,7 @@ void build_hash_table(PageId page_no, int fr_no) {
         if (!has_overflow) {//check if there is overflow
           next_id++;      //if not just increase next_id
         }
-      }
-      else {
+      } else { // we have to add overflow
         bucket->push_back(frameid); // just add to over flow, because the next_id is reached maximum value
       }
     }
@@ -115,40 +113,31 @@ void build_hash_table(PageId page_no, int fr_no) {
     hash_table[id] = bucket; // point to the buck
   }
 }
-/*
-Function: remove a pair from hash table
-Paremeter: page number
-Author: xing yuan
-Return: void
-*/
-void remove_from_hash_table(int page)
-{
-  int index = (page) % hash_max_size;     //key    find in the no partion page
-  list<LL> *buck = hash_table[index]; // get the buck
-  list<LL>::iterator it = buck->begin();
-  while (it != buck->end()) // find the element and remove it
-  {
-    if ((*it).PageId == page)
-    {
-      buck->erase(it);
+// Function name: remove_from_hash_table
+// parameter: int page id of that needs to be deleted
+// find the page, if exists, delete it from the hash table, and update the bucket next_id variable
+// corresponding and also this is void so it only change the hash table
+// Start Modifying April 17, 2020
+void remove_from_hash_table(int page_no) {
+  int double_hash_size = hash_max_size*2; //declare here in case we need to go into overflow page
+  int id = (page_no%hash_max_size);// hashing to find the bucket id of the given page_no
+  list<LL> *bucket = hash_table[id]; // retrieve bucket with the key
+  list<LL>::iterator itr = bucket->begin(); // get the head of the bucket
+  while (itr != bucket->end()) {//keep going down until the end of the bucket
+    if ((*itr).PageId == page_no) {// if found it 
+      buck->erase(it); // delete, and end the function, do nothing else
       return;
     }
-    it++;
+    it++; // move to next one in the bucket
   }
-
-  index = (page) % (2 * hash_max_size); //key , find in the parition pages or overflow pages
-  if (index <= hash_table.size())
-  {
-    buck = hash_table[index];
-    it = buck->begin();
-    while (it != buck->end()) // find and delete
-    {
-      if ((*it).PageId == page)
-      {
-        buck->erase(it);
-        break;
+  if ((page_no%double_hash_size) <= hash_table.size()) { //find in overflown // not found it in the bucket
+    itr = hash_table[(page_no%double_hash_size)]->begin();
+    while (it != hash_table[(page_no%double_hash_size)]->end()) {// find and delete
+      if ((*itr).PageId == page_no) { //found it in the overflow, earase and stop
+        hash_table[(page_no%double_hash_size)]->erase(it);
+        return;
       }
-      it++;
+      it++; // advance in the overflown bucket
     }
   }
 }
