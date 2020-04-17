@@ -385,37 +385,31 @@ Status BufMgr::unpinPage(PageId page_no, int dirty = 0, int hate = 0) {
   return OK;
 }
 
+
 //*************************************************************
 //** This is the implementation of newPage
 //************************************************************
-Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany)
-{
-  int allocate_page;
-  Page *new_page = new Page();
-  Status allocte, get_new, deallocte, pin;
-  howmany = 1;
-  allocte = MINIBASE_DB->allocate_page(allocate_page, howmany); // allocate a page
-  if (allocte != OK)
-    cout << "Error: can not allocate a page from DB" << endl;
-  get_new = MINIBASE_DB->read_page(allocate_page, new_page);
-  //  if(this->numBuffers>=(NUMBUF-1))
-  if (is_buf_full) // if buf pool is full , dellocate it
-  {
-    deallocte = MINIBASE_DB->deallocate_page(allocate_page, howmany);
-    if (deallocte != OK)
-      cout << "Fata Error: can not dellocate page  pageid" << allocate_page << endl;
+Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany=1) {
+  Page *new_page = new Page(); //create the new page instant here for holding newPage
+  int page_no; //new page id
+  if (MINIBASE_DB->allocate_page(page_no, howmany) != OK) { //allocate new page
+    cout << "Error: fail to allocate new page" << endl;
     return FAIL;
   }
-  else
-  {
-    pin = pinPage(allocate_page, new_page, 1); // not full, pin it
-    firstPageId = allocate_page;
+  MINIBASE_DB->read_page(page_no, new_page); //read new page from DB
+  if (!is_buf_full) { // not full add it, and pin
+    pinPage(page_no, new_page, 1); // not full, pin it
+    firstPageId = page_no;
     firstpage = new_page;
   }
-  //   firstPageId=allocate_page;
-  //   firstpage=new_page;
-  // put your code here
-  return OK;
+  else { // full, free some space
+    if (MINIBASE_DB->deallocate_page(page_no, howmany); != OK) {
+      cout << "Fata Error: cannot free space page" << page_no << endl;
+      return FAIL;
+    }
+    return FAIL;
+  }
+  return OK; //good to go
 }
 
 //*************************************************************
