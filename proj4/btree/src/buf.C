@@ -258,6 +258,14 @@ BufMgr::~BufMgr() {
   // put your code here
 }
 
+// Helper of the BufMgr
+
+void BufMgr::set_this_object(PageId PageId_in_a_DB, bool is_clean, int num_pin, int key) {
+  memcpy(&this->bufPool[key], replace, sizeof(Page)); // write to mem
+  this->bufFrame[key].is_clean = is_clean;
+  this->bufFrame[key].pageNo = PageId_in_a_DB;
+  this->bufFrame[key].num_pin = num_pin;
+}
 
 //*************************************************************
 //** This is the implementation of pinPage
@@ -288,11 +296,8 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
     Page *replace = new Page();
     // read page from disk , copy it to the buf pool
     if (MINIBASE_DB->read_page(PageId_in_a_DB, replace) == OK) { // read the buffer for the page
-      memcpy(&this->bufPool[key], replace, sizeof(Page)); // write to mem
-       this->bufFrame[key].num_pin = 1;
-      this->bufFrame[key].is_clean = false;
-      this->bufFrame[key].pageNo = PageId_in_a_DB;
-     
+      set_this_object(PageId_in_a_DB, false, 1, key)
+      
       page = &this->bufPool[key]; // update page_id
     } else {
       return FAIL; cout<<"Error: cannot read from DB"<<endl;
