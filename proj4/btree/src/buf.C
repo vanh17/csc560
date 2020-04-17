@@ -604,7 +604,7 @@ Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *fil
 
     bool is_found = find(copy_stack.begin(), copy_stack.end(), frame_id) == copy_stack.end();
     num_pin = this->bufFrame[frame_id].num_pin;
-    if !(!is_unpinned(num_pin) or !is_found) {
+    if (!(!is_unpinned(num_pin) or !is_found)) {
 
       copy_stack.push_back(frame_id); // add to copy stack for hashing mechanism
       hate_queue.push(frameid);     // add to hated page
