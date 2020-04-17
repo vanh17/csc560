@@ -366,7 +366,7 @@ Status BufMgr::unpinPage(PageId page_no, int dirty = 0, int hate = 0) {
     } else { // found it here
       this->bufFrame[frame_id].num_pin--;
       this->bufFrame[frame_id].is_clean = dirty;
-      if (this->bufFrame[frameid].num_pin == 0) {
+      if (this->bufFrame[frame_id].num_pin == 0) {
         if (!hate) { // where to push the dirt_page to after unpin
           love_stack.push(frame_id);
         } 
