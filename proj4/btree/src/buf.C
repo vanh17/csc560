@@ -498,8 +498,7 @@ Status BufMgr::flushAllPages(){
 //*************************************************************
 //** This is the implementation of pinPage
 //************************************************************
-Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const char *filename)
-{
+Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const char *filename) {
 
   int frame;
   //  cout<<"file pin pade id"<<PageId_in_a_DB<<" frame "<<this->numBuffers<<endl;
@@ -551,47 +550,29 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
 
     build_hash_table(PageId_in_a_DB, i); // insert new record into hash table
   }
-  else if ((!hashing(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1)) || this->numBuffers > 4294967200)
-  {
-    //  if(this->numBuffers>4294967200) cout<<"biggerst number enter  pageid= " <<PageId_in_a_DB<<endl;
+  else if ((!hashing(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1)) || this->numBuffers > 4294967200) {
     Page *replace = new Page();
-    Status buf_read = MINIBASE_DB->read_page(PageId_in_a_DB, replace);
-    if (buf_read == OK)
-    {
-      this->numBuffers++;
-      if (emptyPage) // if it is a empty page , do not need to copy it from the disk
-        memcpy(&this->bufPool[this->numBuffers], replace, sizeof(Page));
-      page = &this->bufPool[this->numBuffers]; // allocate into buf
-      this->bufFrame[this->numBuffers].pageNo = PageId_in_a_DB;
-      this->bufFrame[this->numBuffers].num_pin++;
-      this->bufFrame[this->numBuffers].is_clean = false;
-      build_hash_table(PageId_in_a_DB, this->numBuffers); // insert into hash table
-                                                    // cout<<"page "<<PageId_in_a_DB<<" num_pin "<<this->bufFrame[this->numBuffers].num_pin<<endl;
-      if (this->numBuffers == (NUMBUF - 1))
-        is_buf_full = true;
+    if (MINIBASE_DB->read_page(PageId_in_a_DB, replace) == OK) {// read the page
+      set_pinningPage(PageId_in_a_DB, page, false, replace, emptyPage);
     }
-    else
-    {
-      //detect a error code
-      cout << "Error: can not read page from disk" << endl;
-      return FAIL;
+    else {
+
+      return FAIL; cout<<"Error: cannot read this page"<<endl;
+      
     }
-  }
-  else if (hashing(PageId_in_a_DB, frame))
-  {
+  } else if (hashing(PageId_in_a_DB, frame)) {
     this->bufFrame[frame].num_pin++;
     page = &this->bufPool[frame];
   }
-  else
-    cout << "can not pin this page  " << endl;
 
-  //put your code here
-  return OK;
+  
+  return OK; //put your code here
 }
 
 //*************************************************************
 //** This is the implementation of unpinPage
 //************************************************************
+// Done by 04/16/2020
 Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *filename) {
   int frame_id;
   bool is_hashable = hashing(globalPageId_in_a_DB, frame_id);
