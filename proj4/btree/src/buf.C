@@ -370,7 +370,7 @@ Status BufMgr::unpinPage(PageId page_no, int dirty = 0, int hate = 0) {
 //** This is the implementation of newPage
 //************************************************************
 // Fixed April 17, 2020, test passed 2
-Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany=1) {
+Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany) {
   Page *new_page = new Page(); //create the new page instant here for holding newPage
   int page_no; //new page id
   if (MINIBASE_DB->allocate_page(page_no, howmany) != OK) { //allocate new page
