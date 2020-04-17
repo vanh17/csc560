@@ -219,7 +219,7 @@ void delete_table() {
 BufMgr::BufMgr(int numbuf, Replacer *replacer) {
   this->numBuffers = -1; //start out with -1 so it wont be allocate until necessary
   this->bufPool = new Page[numbuf];
-  this->bufFrame = new FrameDesc[this->bufPool];
+  this->bufFrame = new FrameDesc[numbuf];
   while (!love_stack.empty()) { // clear out love_stack for new BufMgr
     love_stack.pop(); // popping
   }
