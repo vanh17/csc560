@@ -30,6 +30,7 @@
 /****** Global Type ********************************/
 typedef struct LL {int frameID; int PageId;} * List;
 typedef list<LL> *HL;
+bool is_unpinned(int num_pin);
 void build_hash_table(PageId PageNo, int frameNo);
 void delete_table();
 void set_buf_full(bool value);

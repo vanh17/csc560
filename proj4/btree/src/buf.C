@@ -258,17 +258,26 @@ BufMgr::~BufMgr() {
   // put your code here
 }
 
-// Helper of the BufMgr
 
+bool is_unpinned(int num_pin) {
+  return num_pin == 0;
+}
+
+
+// Helper of the BufMgr
 void BufMgr::set_this_object(PageId PageId_in_a_DB, bool is_clean, int num_pin, int key, Page *replace) {
   memcpy(&this->bufPool[key], replace, sizeof(Page)); // write to mem
   this->bufFrame[key].is_clean = is_clean;
   this->bufFrame[key].pageNo = PageId_in_a_DB;
   this->bufFrame[key].num_pin = num_pin;
 }
+
+
 void set_buf_full(bool value) {
   is_buf_full = value;
 }
+
+
 void BufMgr::set_pinningPage(PageId PageId_in_a_DB, Page *&page, bool is_clean, Page *replace, int emptyPage) {
   this->numBuffers++;
   if (emptyPage == true) {
@@ -405,6 +414,8 @@ Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany) {
   }
   return OK; //good to go
 }
+
+
 // helper write to db and update DB function
 // Added April 18, 2020
 Status BufMgr::write_to_db(PageId pageid, int frame_id) {
@@ -416,6 +427,8 @@ Status BufMgr::write_to_db(PageId pageid, int frame_id) {
     }
     return OK;
 }
+
+
 //*************************************************************
 //** This is the implementation of freePage
 //************************************************************
@@ -442,6 +455,7 @@ Status BufMgr::freePage(PageId globalPageId) {
   return OK;// put your code here  
 }
 
+
 //*************************************************************
 //** This is the implementation of flushPage
 //************************************************************
@@ -458,9 +472,11 @@ Status BufMgr::flushPage(PageId pageid) {
   return OK;// put your code here
 }
 
+
 //*************************************************************
 //** This is the implementation of flushAllPages
 //************************************************************
+// Okay 04/12/20
 Status BufMgr::flushAllPages(){
   if (this->numBuffers > 4294967200) {
     this->numBuffers++;
@@ -606,22 +622,19 @@ Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *fil
   return OK;
 }
 
+
 //*************************************************************
 //** This is the implementation of getNumUnpinnedBuffers
 //************************************************************
-unsigned int BufMgr::getNumUnpinnedBuffers()
-{
-
-  int i = 0;
-  int count = 0;
-  if (this->numBuffers > 4294967200)
+unsigned int BufMgr::getNumUnpinnedBuffers() {
+  if (this->numBuffers > 4294967200) { // check if valid numBuffers
     this->numBuffers++;
-  while (i <= this->numBuffers)
-  {
-    if (!this->bufFrame[i].num_pin) // cout total unpin page
-      count++;
-    i++;
   }
-  //put your code here
-  return count;
+  int pages;
+  for(int buff_id = 0; buff_id <= this->numBuffers; buff_id++) {
+    if (is_unpinned(this->bufFrame[i].num_pin)) { pages+= 1;} // update page counter
+  }
+  
+
+  return pages; //put your code here
 }
