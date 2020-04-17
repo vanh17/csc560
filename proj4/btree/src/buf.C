@@ -213,26 +213,25 @@ void delete_table() {
 }
 /*******************************End Global Helper Implementation***************/
 
+
 /************************Start BufMgr Implementation *************************/
+//Modified April 17, 2020 to pass test case 4
 BufMgr::BufMgr(int numbuf, Replacer *replacer) {
-
-  Page *BufPage = new Page[numbuf];
-  FrameDesc *BufDesript = new FrameDesc[numbuf];
-  this->bufPool = BufPage;
-  this->bufFrame = BufDesript;
-  this->numBuffers = -1; // init 0   it from biggest number ++ become 0
-                         //   cout<<"bufmgr "<<this->numBuffers<<endl;
-  while (!hate_queue.empty())
-    hate_queue.pop();
-  while (!love_stack.empty())
-    love_stack.pop();
-  delete_table();
-  init_frame(-1);
-  is_buf_full = false;
-
-  //    cout<<"bufmgr "<<this->numBuffers<<endl;
+  this->numBuffers = -1; //start out with -1 so it wont be allocate until necessary
+  this->bufPool = new Page[numbuf];
+  this->bufFrame = new FrameDesc[this->bufPool];
+  while (!love_stack.empty()) { // clear out love_stack for new BufMgr
+    love_stack.pop(); // popping
+  }
+  while (!hate_queue.empty()) { //clear out hate_queue
+    hate_queue.pop(); // clear it out
+  }
+  delete_table(); //clear any hash_table  previously allocated
+  init_frame(-1); // reset frame_id
+  is_buf_full = false; // not thing is full here
   // put your code here
 }
+
 
 //*************************************************************
 //** This is the implementation of ~BufMgr
