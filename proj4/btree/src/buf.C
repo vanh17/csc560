@@ -596,13 +596,15 @@ Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *fil
   int frame_id;
   bool is_hashable = hashing(globalPageId_in_a_DB, frame_id);
   if (is_hashable) {// if we can hash it, unpin the page
-    if (is_unpinned(this->bufFrame[frameid].num_pin)) { // failed...
+    int num_pin = this->bufFrame[frame_id].num_pin;
+    if (is_unpinned(num_pin)) { // failed...
       return FAIL; cout << "unpind page_cnt=0. pagde id=" << globalPageId_in_a_DB << endl;
     }
-    this->bufFrame[frameid].num_pin -= 1; // reduce num_pin because we are now unpinning that page
+    this->bufFrame[frame_id].num_pin -= 1; // reduce num_pin because we are now unpinning that page
 
     bool is_found = find(copy_stack.begin(), copy_stack.end(), frame_id) == copy_stack.end();
-    if !(!is_unpinned(this->bufFrame[frameid].num_pin) or !is_found) {
+    num_pin = this->bufFrame[frame_id].num_pin;
+    if !(!is_unpinned(num_pin) or !is_found) {
 
       copy_stack.push_back(frame_id); // add to copy stack for hashing mechanism
       hate_queue.push(frameid);     // add to hated page
