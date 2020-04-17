@@ -292,6 +292,7 @@ void BufMgr::set_pinningPage(PageId PageId_in_a_DB, Page *&page, bool is_clean, 
 //*************************************************************
 //** This is the implementation of pinPage
 //************************************************************
+//Fixed April 18, 2020 passed test case 3
 Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
   int frame_id; //initialize the frame_id for searching purposes
   bool is_hashable = hashing(PageId_in_a_DB, frame_id);
@@ -408,32 +409,27 @@ Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany) {
 //*************************************************************
 //** This is the implementation of freePage
 //************************************************************
-Status BufMgr::freePage(PageId globalPageId)
-{
-  int frame;
-  if (hashing(globalPageId, frame)) // find frame no and free it
-  {
-    if (this->bufFrame[frame].num_pin)
+//
+Status BufMgr::freePage(PageId globalPageId) {
+  int frame_id;
+  if (hashing(globalPageId, frame)) { //found the bucket now free it from BufMgr
+    bool is_pinned = this->bufFrame[frame].num_pin > 0;
+    if (is_pinned) {
       return FAIL;
-    else
-    {
-      int i = frame + 1;
-      while (i <= this->numBuffers) // move forward to fill the gap
-      {
-
-        memcpy(&this->bufFrame[frame], &this->bufFrame[i], sizeof(FrameDesc));
-        frame++;
-        i++;
+    } else {
+      while (frame_id + 1 <= this->numBuffers) {
+        memcpy(&this->bufFrame[frame_id], &this->bufFrame[frame_id + 1], sizeof(FrameDesc));
+        frame_id++;
       }
-      this->numBuffers--;
+      this->numBuffers--; //decrease number of Buffer, delted one
     }
+  } // deloocate it from the disk
+  if (MINIBASE_DB->deallocate_page(globalPageId) != OK) {
+    cout<<"ERROR: fail to dellocate pageid="<<globalPageId<<endl;
   }
-  Status deallocte = MINIBASE_DB->deallocate_page(globalPageId); // deloocate it from the disk
-  if (deallocte != OK)
-    cout << "ERROR: can not dellocate a page  pageid=" << globalPageId << endl;
 
-  // put your code here
-  return OK;
+
+  return OK;// put your code here  
 }
 
 //*************************************************************
