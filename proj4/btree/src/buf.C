@@ -275,6 +275,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
       page_id = love_stack.front();
       love_stack.pop();
     }
+    int key = page_id;
     if (this->bufFrame[key].is_clean) {// if it is clean, then write to disk
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[key], sizeof(Page)); //write disk
@@ -294,9 +295,9 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
      
       page = &this->bufPool[key]; // update page_id
     } else {
-      return FAIL; cout<<"Fata error: page cannot be read in DB"<<endl;
+      return FAIL; cout<<"Error: cannot read from DB"<<endl;
     }
-    build_hash_table(PageId_in_a_DB, i); //expend the hash table with new page
+    build_hash_table(PageId_in_a_DB, key); //expend the hash table with new page
   }
   else if (!(is_hashable || this->numBuffers >= (NUMBUF - 1) && this->numBuffers <= 4294967200)) {
     Page *replace = new Page();
@@ -314,7 +315,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
         this->bufFrame[this->numBuffers].is_clean = false;  
       }
       build_hash_table(PageId_in_a_DB, this->numBuffers); // add new page
-      bool check_num_Buff = this->numBuffers != (NUMBUF - 1)
+      bool check_num_Buff = this->numBuffers != (NUMBUF - 1);
       if (!check_num_Buff) {
         is_buf_full = true;
       }
