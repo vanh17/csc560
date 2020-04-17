@@ -407,13 +407,14 @@ Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany) {
 }
 // helper write to db and update DB function
 // Added April 18, 2020
-void BufMgr::write_to_db(PageId pageid, int frame_id) {
+Status BufMgr::write_to_db(PageId pageid, int frame_id) {
     Page *replace = new Page();
     memcpy(replace, &this->bufPool[frame_id], sizeof(Page));
     if (MINIBASE_DB->write_page(pageid, replace) != OK) { //save changes to disk
-      return FAIL; cout<<"Error: write buf page "<<this->bufFrame[frame_id].pageNo<<endl;
+      dsk_storage.push_back(pageid);
+      return FAIL;cout<<"Error: write buf page "<<this->bufFrame[frame_id].pageNo<<endl;
     }
-    dsk_storage.push_back(pageid);
+    return OK;
 }
 //*************************************************************
 //** This is the implementation of freePage
@@ -448,7 +449,9 @@ Status BufMgr::flushPage(PageId pageid) {
   int frame_id;
   bool is_hashable = hashing(pageid, frame_id);
   if (is_hashable) {
-    write_to_db(pageid, frame_id);
+    if (write_to_db(pageid, frame_id) == FAIL) {
+      return FAIL;
+    }
   }
   // put your code here
   return OK;
