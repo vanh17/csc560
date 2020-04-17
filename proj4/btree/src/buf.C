@@ -129,7 +129,7 @@ void remove_from_hash_table(int page_no) {
       return;
     }
     itr++; // move to next one in the bucket
-  }
+  } //end find in bucket, if here, have to check over flown,
   if ((page_no%double_hash_size) <= hash_table.size()) { //find in overflown // not found it in the bucket
     itr = hash_table[(page_no%double_hash_size)]->begin();
     while (itr != hash_table[(page_no%double_hash_size)]->end()) {// find and delete
@@ -139,7 +139,8 @@ void remove_from_hash_table(int page_no) {
       }
       itr++; // advance in the overflown bucket
     }
-  }
+  } // the page is not exist, just do nothing here.
+  return;
 }
 /*
 Function: find a frame number from hash table
