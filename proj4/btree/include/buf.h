@@ -124,6 +124,7 @@ class BufMgr {
         //additional helper set object this of BufMgr
         void set_this_object(PageId PageId_in_a_DB, bool is_clean, int num_pin, int key, Page *replace);
         void set_pinningPage(PageId PageId_in_a_DB, Page *&page, bool is_clean, Page *replace, int emptyPage);
+        void write_to_db(PageId pageid, int frame_id);
 };
 
 #endif

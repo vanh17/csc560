@@ -405,11 +405,20 @@ Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany) {
   }
   return OK; //good to go
 }
-
+// helper write to db and update DB function
+// Added April 18, 2020
+void BufMgr::write_to_db(PageId pageid, int frame_id) {
+    Page *replace = new Page();
+    memcpy(replace, &this->bufPool[frame_id], sizeof(Page));
+    if (MINIBASE_DB->write_page(pageid, replace) != OK) { //save changes to disk
+      return FAIL; cout<<"Error: write buf page "<<this->bufFrame[frame_id].pageNo<<endl;
+    }
+    dsk_storage.push_back(pageid);
+}
 //*************************************************************
 //** This is the implementation of freePage
 //************************************************************
-//
+// Fixed April 18, 2020 
 Status BufMgr::freePage(PageId globalPageId) {
   int frame_id;
   if (hashing(globalPageId, frame_id)) { //found the bucket now free it from BufMgr
@@ -417,7 +426,7 @@ Status BufMgr::freePage(PageId globalPageId) {
     if (is_pinned) {
       return FAIL;
     } else {
-      while (frame_id + 1 <= this->numBuffers) {
+      while (frame_id + 1 <= this->numBuffers) { // keep moving forward to free pages...
         memcpy(&this->bufFrame[frame_id], &this->bufFrame[frame_id + 1], sizeof(FrameDesc));
         frame_id++;
       }
@@ -435,25 +444,12 @@ Status BufMgr::freePage(PageId globalPageId) {
 //*************************************************************
 //** This is the implementation of flushPage
 //************************************************************
-Status BufMgr::flushPage(PageId pageid)
-{
-
-  int frameid;
-  if (hashing(pageid, frameid)) // find frame no , and flush it , write it to disk
-  {
-    Page *replace = new Page();
-    memcpy(replace, &this->bufPool[frameid], sizeof(Page));
-    Status buf_write = MINIBASE_DB->write_page(pageid, replace); //write disk
-    dsk_storage.push_back(pageid);
-    if (buf_write != OK)
-    {
-      cout << "Error: write buf page " << this->bufFrame[frameid].pageNo << "into to disk" << endl;
-      return FAIL;
-    }
+Status BufMgr::flushPage(PageId pageid) {
+  int frame_id;
+  bool is_hashable = hashing(pageid, frame_id);
+  if (is_hashable) {
+    write_to_db(pageid, frame_id);
   }
-  else
-    cout << "can not find the page in the buf pool pageid=" << pageid << endl;
-
   // put your code here
   return OK;
 }
@@ -545,8 +541,6 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
 
     build_hash_table(PageId_in_a_DB, i); // insert new record into hash table
   }
-
-#if 1
   else if ((!hashing(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1)) || this->numBuffers > 4294967200)
   {
     //  if(this->numBuffers>4294967200) cout<<"biggerst number enter  pageid= " <<PageId_in_a_DB<<endl;
@@ -580,34 +574,6 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
   }
   else
     cout << "can not pin this page  " << endl;
-
-#endif
-
-#if 0
-         else if(!hashing(PageId_in_a_DB,frame))
-          {
-             cout<<"max test"<<"pageid="<<PageId_in_a_DB<<endl;
-               Page *replace=new Page();
-              Status buf_read=MINIBASE_DB->read_page(PageId_in_a_DB,replace);
-
-            this->numBuffers++;
-            page=&this->bufPool[this->numBuffers];
-            memcpy(&this->bufPool[this->numBuffers],replace,sizeof(Page));
-            this->bufFrame[this->numBuffers].pageNo=PageId_in_a_DB;
-            this->bufFrame[this->numBuffers].num_pin++;
-            this->bufFrame[this->numBuffers].is_clean=false;
-            build_hash_table(PageId_in_a_DB,this->numBuffers); 
-          }
-         else 
-         {
-          //  this->numBuffers++;
-             page=&this->bufPool[frame];      // allocate into buf
-            this->bufFrame[frame].pageNo=PageId_in_a_DB;
-            this->bufFrame[frame].num_pin++;
-            this->bufFrame[frame].is_clean=false;
-           // build_hash_table(PageId_in_a_DB,this->numBuffers);   // insert into hash table
-         }
-#endif
 
   //put your code here
   return OK;
