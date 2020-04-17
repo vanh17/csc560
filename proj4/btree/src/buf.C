@@ -149,11 +149,12 @@ void remove_from_hash_table(int page_no) {
 // Function name: hashing
 // parameter: int page_id, frame_no of that needs to be hashing for key id in bucket
 // return the key of the bucket
-// Start Modifying April 17, 2020
+// Modified April 17, 2020
 bool hashing(int page_no, int &frame) {
   int double_hash_size = (hash_max_size*2); // in case we need to go to overflow page
-  int id = (page_no%hash_max_size); //hasing to find key corresponding with the page_no
   bool hashed_key;
+  int id = (page_no%hash_max_size); //hasing to find key corresponding with the page_no
+  
   if (!hash_table[id]) { // if cannot find the bucket associate with the key, return 0 not found
     hashed_key = false; // cannot find the hashed_key so it is zero by default
     return hashed_key; // end hashing
@@ -185,26 +186,28 @@ bool hashing(int page_no, int &frame) {
   }
   return hashed_key;
 };
-/*
-Functiomn: clear hash table , destory buck
-*/
-void delete_pair() {
-#if 1
-  for (int index = 0; index < hash_table.size(); index++)
-  {
-    if (!hash_table[index])
-      continue;
-    list<LL> *buck = hash_table[index];
-    hash_table[index] = NULL;
-    buck->~list<LL>();
-  }
-  next_id = 0;
-  depth = 2;
-  flg_partion = 1;
-  hash_max_size = HTSIZE + 1;
-#endif
 
-  // hash_table(7,NULL);
+
+// delete the hastable we create and set everything back to their initial value
+// so that we dont have overflow or gabbage collection
+// Modified April 17, 2020
+void delete_pair() {
+  // start with key = 0 and increase the key later
+  int key = 0;
+  while (key < hash_table.size()){
+    // only delete the records if key are there, not move on
+    if (hash_table[key]) {
+      hash_table[key]->~list<LL>();
+      hash_table[key] = NULL;
+    }
+    key++; // go to next key
+  }
+  // reset all variable keep track of status of the hash table to default value 
+  flg_partion = 1;
+  depth = 2;
+  hash_max_size = HTSIZE + partion_id;
+  depth = 2;
+  next_id = 0;
 }
 /*******************************End Global Helper Implementation***************/
 
