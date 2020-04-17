@@ -113,11 +113,13 @@ void build_hash_table(PageId page_no, int fr_no) {
     hash_table[id] = bucket; // point to the buck
   }
 }
+
+
 // Function name: remove_from_hash_table
 // parameter: int page id of that needs to be deleted
 // find the page, if exists, delete it from the hash table, and update the bucket next_id variable
 // corresponding and also this is void so it only change the hash table
-// Start Modifying April 17, 2020
+// Modified April 17, 2020
 void remove_from_hash_table(int page_no) {
   int double_hash_size = hash_max_size*2; //declare here in case we need to go into overflow page
   int id = (page_no%hash_max_size);// hashing to find the bucket id of the given page_no
@@ -142,47 +144,46 @@ void remove_from_hash_table(int page_no) {
   } // the page is not exist, just do nothing here.
   return;
 }
-/*
-Function: find a frame number from hash table
-Paremeter: pageid  page number ,  frameNo output vaules - frame number
-Author: xing yuan
-Data: 2017-10-19
-Return: 1 success find  0 do not exit in the hash table
-*/
-int hashing(int pageID, int &frameNo)
-{
-  int index = (pageID) % hash_max_size; //key  find in the no partion page
-  if (!hash_table[index])
-    return 0;
-  list<LL> *buck = hash_table[index];
-  list<LL>::iterator it = buck->begin();
-  while (it != buck->end())
-  {
-    if ((*it).PageId == pageID)
-    {
-      frameNo = (*it).frameID;
-      return 1;
-    }
-    it++;
+
+
+// Function name: hashing
+// parameter: int page_id, frame_no of that needs to be hashing for key id in bucket
+// return the key of the bucket
+// Start Modifying April 17, 2020
+bool hashing(int page_no, int &frame) {
+  int double_hash_size = (hash_max_size*2); // in case we need to go to overflow page
+  int id = (page_no%hash_max_size); //hasing to find key corresponding with the page_no
+  bool hashed_key;
+  if (!hash_table[id]) { // if cannot find the bucket associate with the key, return 0 not found
+    hashed_key = false; // cannot find the hashed_key so it is zero by default
+    return hashed_key; // end hashing
   }
-  index = (pageID) % (2 * hash_max_size); //key
-  if (index <= hash_table.size())           //key , find in the parition pages or overflow pages
-  {
-    if (!hash_table[index])
-      return 0;
-    buck = hash_table[index];
-    it = buck->begin();
-    while (it != buck->end())
-    {
-      if ((*it).PageId == pageID)
-      {
-        frameNo = (*it).frameID;
-        return 1;
+  list<LL> *bucket = hash_table[id]; // key exist in hash_table, retrieve that bucket
+  list<LL>::iterator itr = bucket->begin(); //start the iteration
+  while (itr != buck->end()) {// if not the end of bucket, if searching for it
+    if ((*itr).PageId == page_no) { //found the page, return 1
+      frame = (*it).frameID; //update that pointer to frame so it get the new value
+      hashed_key = true; // found it set to 1
+      return hashed_key; //stop hashing
+    }
+    itr++; //go to next page in the bucket
+  }
+  if ((page_no%double_hash_size) <= hash_table.size()) {//key in the overflow page, double the hash_sz
+    if (!hash_table[(page_no%double_hash_size)]) { // not in overflown neither
+      hashed_key = false;
+      return hashed_key;
+    }
+    itr = hash_table[(page_no%double_hash_size)]->begin(); //found it in the overflow bucket
+    while (itr != hash_table[(page_no%double_hash_size)]->end()) { //search through this bucket
+      if ((*it).PageId == pageID) { //found
+        frame = (*it).frameID; //update pointer to frame
+        hashed_key = true;
+        return hashed_key;
       }
-      it++;
+      itr++; //advance to next page
     }
   }
-  return 0;
+  return hashed_key;
 };
 /*
 Functiomn: clear hash table , destory buck
