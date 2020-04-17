@@ -592,34 +592,28 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
 //*************************************************************
 //** This is the implementation of unpinPage
 //************************************************************
-Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *filename)
-{
-
-  int frameid;
-  if (hashing(globalPageId_in_a_DB, frameid)) // find page frame id and unpin it
-  {
-
-    if (this->bufFrame[frameid].num_pin == 0)
-    {
-      cout << "unpind page_cnt=0. pagde id=" << globalPageId_in_a_DB << endl;
-      return FAIL;
+Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *filename) {
+  int frame_id;
+  bool is_hashable = hashing(globalPageId_in_a_DB, frame_id);
+  if (is_hashable) {// if we can hash it, unpin the page
+    if (is_unpinned(this->bufFrame[frameid].num_pin)) { // failed...
+      return FAIL; cout << "unpind page_cnt=0. pagde id=" << globalPageId_in_a_DB << endl;
     }
-    this->bufFrame[frameid].num_pin--;
-    if (this->bufFrame[frameid].num_pin == 0 && find(copy_stack.begin(), copy_stack.end(), frameid) == copy_stack.end())
-    {
-      hate_queue.push(frameid);     // Hate policy
-      copy_stack.push_back(frameid); // copy a stack for seach
+    this->bufFrame[frameid].num_pin -= 1; // reduce num_pin because we are now unpinning that page
+
+    bool is_found = find(copy_stack.begin(), copy_stack.end(), frame_id) == copy_stack.end();
+    if !(!is_unpinned(this->bufFrame[frameid].num_pin) or !is_found) {
+
+      copy_stack.push_back(frame_id); // add to copy stack for hashing mechanism
+      hate_queue.push(frameid);     // add to hated page
+      
     }
-    //    cout<<"unpin file "<<globalPageId_in_a_DB<<" num_pin"<<this->bufFrame[frameid].num_pin<<endl;
-  }
-  else
-  {
-    // cout<<"can not find the page in the buf pool pageid="<<globalPageId_in_a_DB<<endl;
-    return FAIL;
+  } else {
+    return FAIL; cout<<"fail to find page "<<globalPageId_in_a_DB<<endl;
   }
 
-  //put your code here
-  return OK;
+  
+  return OK; //put your code here
 }
 
 
