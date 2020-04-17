@@ -162,7 +162,7 @@ bool hashing(int page_no, int &frame) {
   list<LL>::iterator itr = bucket->begin(); //start the iteration
   while (itr != buck->end()) {// if not the end of bucket, if searching for it
     if ((*itr).PageId == page_no) { //found the page, return 1
-      frame = (*it).frameID; //update that pointer to frame so it get the new value
+      frame = (*itr).frameID; //update that pointer to frame so it get the new value
       hashed_key = true; // found it set to 1
       return hashed_key; //stop hashing
     }
@@ -175,8 +175,8 @@ bool hashing(int page_no, int &frame) {
     }
     itr = hash_table[(page_no%double_hash_size)]->begin(); //found it in the overflow bucket
     while (itr != hash_table[(page_no%double_hash_size)]->end()) { //search through this bucket
-      if ((*it).PageId == pageID) { //found
-        frame = (*it).frameID; //update pointer to frame
+      if ((*itr).PageId == page_no) { //found
+        frame = (*itr).frameID; //update pointer to frame
         hashed_key = true;
         return hashed_key;
       }
