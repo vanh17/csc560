@@ -45,77 +45,74 @@ vector<HL> hash_table(8, NULL); // declare hash_table to store value key pairs f
 // This function dd page to the hash table
 // given the page_id, frame_id
 // return nothing, but alter the hash_table
-void build_hash_table(PageId page_number, int frame_number) {
-  int index = (a * page_number + b) % hash_max_size;      //hashing to get the bucket id
-  LL frame;                              // create tempory frame to keep track of changes and update
-  frame.frameID = frame_number;
-  frame.PageId = page_number;
-
-  if (hash_table[index]) { //found a right bucket, add the page here
-    list<LL> *buck = hash_table[index]; // get hold of the bucket in hash_table
-    if (buck->size() < 2) {// less than bucksize
-      buck->push_back(frame);    // insert into the buck
-    } else  {                       // bigger , overflow or partiion
+void build_hash_table(PageId page_no, int fr_no) {
+  // initialize local variables
+  int id = ((b+a*page_no)%hash_max_size);      //hashing to get the bucket id
+  LL frameid;                              // create tempory frame to keep track of changes and update
+  frameid.PageId = page_no;
+  frameid.frameID = fr_no;
+  // starting logical code
+  if (hash_table[id]) { //if exist, then add page here.
+    list<LL> *bucket = hash_table[id]; // get hold of the bucket in hash_table
+    if (bucket->size() < 2) {
+      bucket->push_back(frameid);    //add to current bucket
+    } else  { 
+      int double_hash_size = 2*hash_max_size;// bigger , overflow or partiion
       if (next_id == pow(2, depth) * 2  - 1 || flg_partion) {// max_number for next iteration. Keep track of overflow
         if (next_id == pow(2, depth) * 2  - 1) { // full so we need to increase the size, and also depth
           depth++;
           hash_max_size = 2 * hash_max_size;
         } // parition when next equal to pow(2, depth) * 2  - 1
         flg_partion = 0; // first parition flag
-        hash_table.resize(2 * (hash_max_size), NULL);
+        hash_table.resize(double_hash_size, NULL);
       }
-      int index1 = (a * page_number + b) % (hash_max_size*2); // doube hash table and hashing for bucket id
-      int index_partition;
-      list<LL>::iterator it = buck->begin();
-      if (index1 <= next_id) // if index less than next, parition
-      {
-        int overflow = 0;
-        while (it != buck->end())
-        {
-          //  cout<<"pade id "<<(*it).PageId<<endl;
-          index_partition = (*it).PageId;
-          index_partition = (a * index_partition + b) % (hash_max_size*2); // find new index for insert record
-          if (index != index_partition)                          // if not the same , insert into new buck
-          {
-            LL frame1;
-            frame1.PageId = (*it).PageId;
-            frame1.frameID = (*it).frameID;
-            if (!hash_table[index_partition]) // no buck ,create a buck ,point to it
-            {
-              list<LL> *buck1 = new list<LL>;
-              buck1->push_back(frame1);
-              hash_table[index_partition] = buck1;
+      list<LL>::iterator itr = bucket->begin(); // start iterating through bucket.
+      int id1 = ((b+a*page_no) % double_hash_size); // doube hash table and hashing for bucket id
+      int id_parti;
+      if (id1 <= next_id) {
+        bool has_overflow = false;
+        while (itr != bucket->end()) {
+          id_parti = ((b+a*(*it).PageId) % double_hash_size); // find new index for insert record
+          if (id != id_parti) {//insert into new buck
+            LL frameid1;
+            frameid1.PageId = (*itr).PageId;
+            frame1.frameID = (*itr).frameID;
+            if (!hash_table[id_parti]) { //cannot find the bucket, crete one
+              list<LL> *bucket1 = new list<LL>;
+              bucket1->push_back(frameid1); // add frameid1 here for the referece
+              hash_table[id_parti] = bucket1;
             }
-            else
-              hash_table[index_partition]->push_back(frame1); // have buck , insert
-            it = buck->erase(it);                           // delete copy
-            overflow = 1;                                   // parition flag ,if all index is the same , then overflow
+            else{ // found the bucket, no need to create new bucket, just add frame here
+              hash_table[id_parti]->push_back(frameid1); // have buck , insert
+            } 
+            it = bucket->erase(it);// delete unnecessary code
+            has_overflow = true;// parition flag ,if all index is the same , then overflow
           }
 
           it++;
         }
 
-        if (!hash_table[index1]) // find new index for new insert reocrd
-        {
-          list<LL> *buck2 = new list<LL>;
-          buck2->push_back(frame);
-          hash_table[index1] = buck2;
+        if (!hash_table[id1]){ // if cannot id1 bucket, create one and add frameid there to that bucket
+          list<LL> *bucket2 = new list<LL>;
+          bucket2->push_back(frameid); // add frame to new bucket
+          hash_table[id1] = bucket2; // update the hash function
         }
-        else
-          hash_table[index1]->push_back(frame);
-        if (!overflow) // no overflow ++
-          next_id++;      // next move
+        else { 
+          hash_table[index1]->push_back(frameid); // bucket exist, no need to create, just add frame
+        }
+        if (!has_overflow) {//check if there is overflow
+          next_id++;      //if not just increase next_id
+        }
       }
-      else
-      {
-        buck->push_back(frame); // overflow
+      else {
+        buck->push_back(frameid); // just add to over flow, because the next_id is reached maximum value
       }
     }
   }
   else {// no buck found, add new one
-    list<LL> *buck = new list<LL>;
-    buck->push_back(frame);
-    hash_table[index] = buck; // point to the buck
+    list<LL> *bucket = new list<LL>;
+    bucket->push_back(frameid); // just add
+    hash_table[id] = bucket; // point to the buck
   }
 }
 /*
