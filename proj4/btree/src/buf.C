@@ -244,13 +244,13 @@ BufMgr::~BufMgr() {
   // valid numBuffers, not set up the deconstructor
   int key;
   while (key <= this->numBuffers) { // not go through the whole buffer yet, keep going
-    if (this->bufFrame[i].is_clean == true) { // if the that bucket is clean then write it to disk
+    if ((!this->bufFrame[key].is_clean) == false) { // if the that bucket is clean then write it to disk
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[key], sizeof(Page)); // write to mem
       if (MINIBASE_DB->write_page(this->bufFrame[key].pageNo, replace) != OK) { //save changes
-        cout<<"Error: write buf page "<<this->bufFrame[keky].pageNo<<"into to disk"<<endl; // if there is error
+        cout<<"Error: write buf page "<<this->bufFrame[key].pageNo<<"into to disk"<<endl; // if there is error
       }
-      dsk_storage.push_back(this->bufFrame[i].pageNo); //add this to disk storage
+      dsk_storage.push_back(this->bufFrame[key].pageNo); //add this to disk storage
     }
     key++; //next record in buffer
   }
