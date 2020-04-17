@@ -125,16 +125,16 @@ void remove_from_hash_table(int page_no) {
   list<LL>::iterator itr = bucket->begin(); // get the head of the bucket
   while (itr != bucket->end()) {//keep going down until the end of the bucket
     if ((*itr).PageId == page_no) {// if found it 
-      buck->erase(it); // delete, and end the function, do nothing else
+      buck->erase(itr); // delete, and end the function, do nothing else
       return;
     }
-    it++; // move to next one in the bucket
+    itr++; // move to next one in the bucket
   }
   if ((page_no%double_hash_size) <= hash_table.size()) { //find in overflown // not found it in the bucket
     itr = hash_table[(page_no%double_hash_size)]->begin();
-    while (it != hash_table[(page_no%double_hash_size)]->end()) {// find and delete
+    while (itr != hash_table[(page_no%double_hash_size)]->end()) {// find and delete
       if ((*itr).PageId == page_no) { //found it in the overflow, earase and stop
-        hash_table[(page_no%double_hash_size)]->erase(it);
+        hash_table[(page_no%double_hash_size)]->erase(itr);
         return;
       }
       it++; // advance in the overflown bucket
