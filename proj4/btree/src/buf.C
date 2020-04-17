@@ -264,7 +264,7 @@ BufMgr::~BufMgr() {
 //************************************************************
 Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
   int frame_id; //initialize the frame_id for searching purposes
-  bool is_hashable = hashing(PageId_in_a_DB, frame);
+  bool is_hashable = hashing(PageId_in_a_DB, frame_id);
   if (!(this->numBuffers != (NUMBUF - 1) || is_hashable)) {
     int page_id = 0;
     if (hate_queue.empty() == false) {
