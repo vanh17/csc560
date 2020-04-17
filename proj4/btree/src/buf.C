@@ -205,7 +205,7 @@ void delete_pair() {
   // reset all variable keep track of status of the hash table to default value 
   flg_partion = 1;
   depth = 2;
-  hash_max_size = HTSIZE + partion_id;
+  hash_max_size = HTSIZE + flg_partion ;
   depth = 2;
   next_id = 0;
 }
