@@ -526,6 +526,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
     remove_from_hash_table(this->bufFrame[i].pageNo); // delete page from hash table
     Page *replace = new Page();
     if (MINIBASE_DB->read_page(PageId_in_a_DB, replace) == OK) {
+      int key = i;
       set_this_object(PageId_in_a_DB, false, 1, key, replace);
     }
     else {
