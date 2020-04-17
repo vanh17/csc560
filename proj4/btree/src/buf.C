@@ -47,7 +47,7 @@ vector<HL> hash_table(8, NULL); // declare hash_table to store value key pairs f
 // return nothing, but alter the hash_table
 void build_hash_table(PageId page_no, int fr_no) {
   // initialize local variables
-  int id = (page_no)%hash_max_size);      //hashing to get the bucket id
+  int id = (page_no%hash_max_size);      //hashing to get the bucket id
   LL frameid;                              // create tempory frame to keep track of changes and update
   frameid.PageId = page_no;
   frameid.frameID = fr_no;
@@ -72,7 +72,7 @@ void build_hash_table(PageId page_no, int fr_no) {
       if (id1 <= next_id) {
         bool has_overflow = false;
         while (itr != bucket->end()) {
-          id_parti = (((*it).PageId) % double_hash_size); // find new index for insert record
+          id_parti = (((*itr).PageId) % double_hash_size); // find new index for insert record
           if (id != id_parti) {//insert into new buck
             LL frameid1;
             frameid1.PageId = (*itr).PageId;
@@ -85,11 +85,11 @@ void build_hash_table(PageId page_no, int fr_no) {
             else{ // found the bucket, no need to create new bucket, just add frame here
               hash_table[id_parti]->push_back(frameid1); // have buck , insert
             } 
-            it = bucket->erase(it);// delete unnecessary code
+            itr = bucket->erase(itr);// delete unnecessary code
             has_overflow = true;// parition flag ,if all index is the same , then overflow
           }
 
-          it++;
+          itr++;
         }
 
         if (!hash_table[id1]){ // if cannot id1 bucket, create one and add frameid there to that bucket
