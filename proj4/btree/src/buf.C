@@ -466,12 +466,12 @@ Status BufMgr::flushAllPages(){
     this->numBuffers++;
   }
   // valid numBuffers now flush all pages and write changes
-  for (int key = 0; key <= this->numBuffers, key++) {
-    if (this->bufFrame[i].is_clean == true) {
+  for (int key = 0, key <= this->numBuffers, key++) {
+    if (this->bufFrame[key].is_clean == true) {
       Page *replace = new Page();
-      memcpy(replace, &this->bufPool[i], sizeof(Page));
-      MINIBASE_DB->write_page(this->bufFrame[i].pageNo, replace); //write disk
-      dsk_storage.push_back(this->bufFrame[i].pageNo);
+      memcpy(replace, &this->bufPool[key], sizeof(Page));
+      MINIBASE_DB->write_page(this->bufFrame[key].pageNo, replace); //write disk
+      dsk_storage.push_back(this->bufFrame[key].pageNo);
     }
   }
   
