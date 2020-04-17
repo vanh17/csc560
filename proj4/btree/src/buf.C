@@ -384,7 +384,7 @@ Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany=1) {
     firstpage = new_page;
   }
   else { // full, free some space
-    if (MINIBASE_DB->deallocate_page(page_no, howmany); != OK) {
+    if (MINIBASE_DB->deallocate_page(page_no, howmany) != OK) {
       cout << "Fata Error: cannot free space page" << page_no << endl;
       return FAIL;
     }
