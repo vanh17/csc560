@@ -499,58 +499,42 @@ Status BufMgr::flushAllPages(){
 //** This is the implementation of pinPage
 //************************************************************
 Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const char *filename) {
-
+  // initialize variables for pinning search
+  int i = 0;
   int frame;
-  //  cout<<"file pin pade id"<<PageId_in_a_DB<<" frame "<<this->numBuffers<<endl;
-
-  if (!hashing(PageId_in_a_DB, frame) && this->numBuffers == (NUMBUF - 1))
-  {
-
+  bool is_hashable = hashing(PageId_in_a_DB, frame);
+  if (!is_hashable && this->numBuffers == (NUMBUF - 1)){
     int i;
-    if (!hate_queue.empty())
-    {
-      i = hate_queue.top(); // file pin and unpin all use Hate replace policy
-                             //     cout<<"size of hate "<<hate_queue.size()<<" i="<<i<<endl;
-      hate_queue.pop();
-      copy_stack.erase(copy_stack.end() - 1); // use a copy stack for search frame no in order to not let same frame to push into stack
+    if (hate_queue.empty()==false) {
+      i = hate_queue.top(); hate_queue.pop();
+      copy_stack.erase(copy_stack.end() - 1);
+    } else if (love_stack.empty()==false) {
+      i = love_stack.front(); love_stack.pop();
     }
-    else if (!love_stack.empty()) // miss love policy , no any paremeter indicate love may be in the future test case
-    {
-
-      i = love_stack.front();
-      love_stack.pop();
-    }
-    // following code same as above pin function
-    if (this->bufFrame[i].is_clean == true)
-    {
+    if (this->bufFrame[i].is_clean == true) {
       Page *replace = new Page();
       memcpy(replace, &this->bufPool[i], sizeof(Page));
-      Status buf_write = MINIBASE_DB->write_page(this->bufFrame[i].pageNo, replace); //write disk
-      dsk_storage.push_back(PageId_in_a_DB);
-      if (buf_write != OK)
-        cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
-    }
+      
 
-    remove_from_hash_table(this->bufFrame[i].pageNo); // remove from hash table
-    Page *replace = new Page();
-    Status buf_read = MINIBASE_DB->read_page(PageId_in_a_DB, replace);
-    if (buf_read == OK)
-    {
-      memcpy(&this->bufPool[i], replace, sizeof(Page));
-      page = &this->bufPool[i];
-      this->bufFrame[i].pageNo = PageId_in_a_DB;
-      this->bufFrame[i].num_pin = 1;
-      this->bufFrame[i].is_clean = false;
+      if (MINIBASE_DB->write_page(this->bufFrame[i].pageNo, replace) != OK) {
+        cout << "Error: write buf page " << this->bufFrame[i].pageNo << "into to disk" << endl;
+        dsk_storage.push_back(PageId_in_a_DB);
+      } else {
+        dsk_storage.push_back(PageId_in_a_DB);
+      }
     }
-    else
-    {
-      cout << "Fata error: can not read page in the disk" << endl;
-      return FAIL;
+    remove_from_hash_table(this->bufFrame[i].pageNo); // delete page from hash table
+    Page *replace = new Page();
+    if (MINIBASE_DB->read_page(PageId_in_a_DB, replace) == OK) {
+      set_this_object(PageId_in_a_DB, false, 1, key, replace);
+    }
+    else {
+      return FAIL; cout<<"Error: can not read page"<<endl;
     }
 
     build_hash_table(PageId_in_a_DB, i); // insert new record into hash table
   }
-  else if ((!hashing(PageId_in_a_DB, frame) && this->numBuffers < (NUMBUF - 1)) || this->numBuffers > 4294967200) {
+  else if ((!is_hashable && this->numBuffers < (NUMBUF - 1)) || this->numBuffers > 4294967200) {
     Page *replace = new Page();
     if (MINIBASE_DB->read_page(PageId_in_a_DB, replace) == OK) {// read the page
       set_pinningPage(PageId_in_a_DB, page, false, replace, emptyPage);
@@ -560,7 +544,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage, const 
       return FAIL; cout<<"Error: cannot read this page"<<endl;
       
     }
-  } else if (hashing(PageId_in_a_DB, frame)) {
+  } else if (is_hashable) {
     this->bufFrame[frame].num_pin++;
     page = &this->bufPool[frame];
   }
