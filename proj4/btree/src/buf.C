@@ -412,8 +412,8 @@ Status BufMgr::newPage(PageId &firstPageId, Page *&firstpage, int howmany) {
 //
 Status BufMgr::freePage(PageId globalPageId) {
   int frame_id;
-  if (hashing(globalPageId, frame)) { //found the bucket now free it from BufMgr
-    bool is_pinned = this->bufFrame[frame].num_pin > 0;
+  if (hashing(globalPageId, frame_id)) { //found the bucket now free it from BufMgr
+    bool is_pinned = this->bufFrame[frame_id].num_pin > 0;
     if (is_pinned) {
       return FAIL;
     } else {
