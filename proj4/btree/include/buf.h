@@ -121,7 +121,7 @@ class BufMgr {
         // Get number of unpinned buffers
 
         //additional helper set object this of BufMgr
-        void set_this_object(PageId PageId_in_a_DB, bool is_clean, int num_pin, int key)
+        void set_this_object(PageId PageId_in_a_DB, bool is_clean, int num_pin, int key);
 };
 
 #endif
