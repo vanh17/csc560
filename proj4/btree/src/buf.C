@@ -260,7 +260,7 @@ BufMgr::~BufMgr() {
 
 // Helper of the BufMgr
 
-void BufMgr::set_this_object(PageId PageId_in_a_DB, bool is_clean, int num_pin, int key) {
+void BufMgr::set_this_object(PageId PageId_in_a_DB, bool is_clean, int num_pin, int key, Page *replace) {
   memcpy(&this->bufPool[key], replace, sizeof(Page)); // write to mem
   this->bufFrame[key].is_clean = is_clean;
   this->bufFrame[key].pageNo = PageId_in_a_DB;
@@ -296,7 +296,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page *&page, int emptyPage) {
     Page *replace = new Page();
     // read page from disk , copy it to the buf pool
     if (MINIBASE_DB->read_page(PageId_in_a_DB, replace) == OK) { // read the buffer for the page
-      set_this_object(PageId_in_a_DB, false, 1, key)
+      set_this_object(PageId_in_a_DB, false, 1, key, replace);
       
       page = &this->bufPool[key]; // update page_id
     } else {
