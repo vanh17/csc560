@@ -115,47 +115,52 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
 // Compacts remaining records but leaves a hole in the slot array.
 // Use memmove() rather than memcpy() as space may overlap.
 Status HFPage::deleteRecord(const RID &rid) {
-  bool first_condition = (rid.slotNo - 1) >= -1; int slot_arry[100];
+  bool first_condition = (rid.slotNo - 1) >= -1; int slot_array[200];
   bool second_condition = rid.slotNo + 1 <= slotCnt + 1; int slot_id = 0;
-  int key, j, temp_offset, curr_slot_id, curr_len;
+  int k, j, temp_offset, curr_slot_id, curr_len;
+  int curr_offset;
   if (first_condition && second_condition) {
     int offset1 = this->slot[rid.slotNo].offset;
-    slot_arry[slot_id++] = rid.slotNo;
-    // find the slot number with smaller offset than delete slot
-    for (int i = 0; i <= this->slotCnt - 1; i++) {
-      if (this->slot[i].offset < offset1 && this->slot[i].length != -1) {
-        slot_arry[slot_id++] = i;
+    slot_array[slot_id++] = rid.slotNo;
+    for (int i = 0; i < slotCnt; i++) {
+      first_condition = slot[i].offset >= offset1;
+      second_condition = this->slot[i].length == -1
+      if (first_condition || second_condition) {
+        continue;
+      } else {
+        slot_array[slot_id++] = i;
       }
     }
-    for (int i = 1; i < slot_id; i++) {
-      key = this->slot[slot_arry[i]].offset;
-      temp = slot_arry[i];
+    int i = 1;
+    while (i < slot_id) {
+      k = this->slot[slot_array[i]].offset;
+      temp_offset = slot_array[i];
       j = i - 1;
-      while (j >= 0 && this->slot[slot_arry[j]].offset < key) {
-        slot_arry[j + 1] = slot_arry[j];
+      while (j >= 0 && this->slot[slot_array[j]].offset < k) {
+        slot_array[j + 1] = slot_array[j];
         j--;
       }
-      slot_arry[j + 1] = temp;
+      slot_array[j + 1] = temp_offset;
+      i++;
     }
     curr_offset = slot[rid.slotNo].offset;
     for (int i = 1; i < slot_id; i++) {
-      curr_slot_id = slot_arry[i];
+      curr_slot_id = slot_array[i];
       temp_offset = slot[curr_slot_id].offset;
-      curr_len = lot[curr_slot_id].length;
+      curr_len = slot[curr_slot_id].length;
       slot[curr_slot_id].offset = curr_offset;
-      memcpy(&data[slot[curr_slot_id].offset], &data[temp], slot[curr_slot_id].length);
+      memcpy(&data[slot[curr_slot_id].offset], &data[temp_offset], slot[curr_slot_id].length);
       if (i != (slot_id - 1)) {
         bool checker = false;
       } else {
         break;
       }
       slot_t *rid_slot = &(slot[curr_slot_id]);
-      curr_slot_id = curr_slot_id[i+1];
+      curr_slot_id = slot_array[i+1];
       slot_t *rid_next = &(slot[curr_slot_id]);
       curr_offset = (curr_len - rid_next->length) + temp_offset;
     }
-    int curr_offset;
-    curr_slot_id = slot_arry[slot_id - 1];
+    curr_slot_id = slot_array[slot_id - 1];
     if (slot_id != 1) {
       curr_offset = slot[curr_slot_id].offset;
       this->usedPtr = this->slot[curr_slot_id].offset;
