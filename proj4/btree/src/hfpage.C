@@ -229,12 +229,13 @@ Status HFPage::firstRecord(RID &firstRid) {
 Status HFPage::nextRecord(RID curRid, RID &nextRid) {
   bool first_condition = curRid.slotNo < 0; bool second_condition = curRid.slotNo > this->slotCnt;
   bool third_condition = curRid.slotNo == this->slotCnt - 1;
+  short Begin_slot_address, record_offset, i;
   if (first_condition || second_condition) {
     return FAIL; cout << "No records to get" << endl;
   }
   else if (!third_condition) {
     nextRid.pageNo = this->curPage;
-    short Begin_slot_address, record_offset, i;
+    
     char slot_char[sizeof(slot_t)];
     for (i = curRid.slotNo; i < (this->slotCnt - 1); i++) {
     Begin_slot_address = i * sizeof(slot_t);                      // next slot in the array
