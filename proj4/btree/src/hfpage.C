@@ -131,7 +131,7 @@ Status HFPage::deleteRecord(const RID &rid) {
     int key, j;
     int temp;
     // quick sort , for slot offset arry
-    for (int i = 1; i < k; i++) {
+    for (int i = 1; i < slot_id; i++) {
       key = this->slot[slot_arry[i]].offset;
       temp = slot_arry[i];
       j = i - 1;
