@@ -158,7 +158,7 @@ Status HFPage::deleteRecord(const RID &rid) {
       cover_offset = temp + (current_length - rid_next->length);
     }
     int curr_offset, curr_slot_id;
-    if (slot_id == 1) {
+    if (slot_id != 1) {
       curr_slot_id = slot_arry[slot_id - 1];
       curr_offset = slot[curr_slot_id].offset;
       this->usedPtr = this->slot[curr_slot_id].offset;
