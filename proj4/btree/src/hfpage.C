@@ -184,12 +184,10 @@ Status HFPage::deleteRecord(const RID &rid) {
 
 // **********************************************************
 // returns RID of first record on page
+// Hoang
 Status HFPage::firstRecord(RID &firstRid) {
-  //find the first record
-  firstRid.pageNo = curPage;
-  bool is_empty = empty();
-  char slot_char[sizeof(slot_t)];
-  int curr_slot_len = slot[0].length;
+  firstRid.pageNo = curPage; bool is_empty = empty();
+  char slot_char[sizeof(slot_t)]; int curr_slot_len = slot[0].length;
   if (!is_empty) {
     int first_condition = curr_slot_len >= 1;
     if (first_condition) {
@@ -211,6 +209,7 @@ Status HFPage::firstRecord(RID &firstRid) {
     }
     if (!(i > slotCnt-1)) {
       int checker_for_slot = 1;
+      checker_for_slot ++; 
       // check for slot here
     } else { // fail, not exist
       return DONE; cout <<"Cannot get the first Record"<<endl;
@@ -226,35 +225,38 @@ Status HFPage::firstRecord(RID &firstRid) {
 // **********************************************************
 // returns RID of next record on the page
 // returns DONE if no more records exist on the page; otherwise OK
-Status HFPage::nextRecord(RID curRid, RID &nextRid)
-{
-  if (curRid.slotNo > this->slotCnt || curRid.slotNo < 0)
-    return FAIL;
-  else if (curRid.slotNo == this->slotCnt - 1) {
-    return DONE;
+// Hoang
+Status HFPage::nextRecord(RID curRid, RID &nextRid) {
+  bool first_condition = curRid.slotNo < 0; bool second_condition = curRid.slotNo > this->slotCnt;
+  bool third_condition = curRid.slotNo == this->slotCnt - 1;
+  if (first_condition || second_condition) {
+    return FAIL; cout << "No records to get" << endl;
   }
-  nextRid.pageNo = this->curPage;
-  short Begin_slot_address, record_offset, i;
-  char slot_char[sizeof(slot_t)];
-  for (i = curRid.slotNo; i < (this->slotCnt - 1); i++)
-  {
+  else if (!third_condition) {
+    nextRid.pageNo = this->curPage;
+    short Begin_slot_address, record_offset, i;
+    char slot_char[sizeof(slot_t)];
+    for (i = curRid.slotNo; i < (this->slotCnt - 1); i++) {
     Begin_slot_address = i * sizeof(slot_t);                      // next slot in the array
     memcpy(slot_char, &data[Begin_slot_address], sizeof(slot_t)); //get slot
     slot_t *rid_slot = (slot_t *)(slot_char);
-    if (rid_slot->length > 0 && rid_slot->length < 1000)
-    {
+    if (rid_slot->length > 0 && rid_slot->length < 1000) {
 
       nextRid.slotNo = i + 1; //find next record rid number
                               //  cout<<"test  next rid "<<rid_slot->offset<<endl;
       break;
     }
-    //     else
-    //     return  FAIL;
+    }
+  } else {
+    return DONE;
   }
-  if (i >= (this->slotCnt - 1))
-    return DONE; // no record rid find
-  else
-    return OK;
+  if (!((i + 1)>= this->slotCnt)) {
+    return OK; 
+  }
+  else if ((i + 1)>= this->slotCnt) {
+    return DONE;
+  }
+  return OK;
 }
 
 // **********************************************************
@@ -266,14 +268,8 @@ Status HFPage::getRecord(RID rid, char *recPtr, int &recLen)
   short Begin_slot_address, record_offset;
   char slot_char[sizeof(slot_t)];
   Begin_slot_address = (offset_rid - 1) * sizeof(slot_t);
-  memcpy(slot_char, &data[Begin_slot_address], sizeof(slot_t)); // get record from memory
-  slot_t *rid_slot = (slot_t *)(slot_char);                // fomat the char array into slot_t
-#if 0     
-     if(rid.slotNo>=1)
-     cout<<"offset="<<rid_slot->offset<<" length "<<rid_slot->length<<endl;
-     else 
-      cout<<"offset 0="<<this->slot[0].offset<<" length 0 "<<this->slot[0].length<<endl;
-#endif
+  memcpy(slot_char, &data[Begin_slot_address], sizeof(slot_t)); 
+  slot_t *rid_slot = (slot_t *)(slot_char);  
   if (rid.slotNo >= 1) {
     memcpy(recPtr, &(this->data[rid_slot->offset]), rid_slot->length);
     recLen = rid_slot->length;
