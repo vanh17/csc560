@@ -47,7 +47,7 @@ void HFPage::init(PageId pageNo) {
     // usedPtr = 1 byte
     // freeSpace = 1 byte
     // type = 1 byte -- an arbitrary value used by subclasses as needed
-    freeSpace = DPFIXED + sizeof(slot_t) * (1 - slotCnt);
+    freeSpace = MAX_SPACE - DPFIXED + sizeof(this->slot[0]); //DPFIXED + sizeof(slot_t) * (1 - slotCnt);
 }
 
 // **********************************************************
