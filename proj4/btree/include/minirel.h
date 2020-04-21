@@ -4,7 +4,7 @@
 #define _MINIREL_H
 
 #include <iostream>
-#include <string.h>
+// #include <string.h>
 #include "da_types.h"
 #include "new_error.h"
 #include "system_defs.h"
