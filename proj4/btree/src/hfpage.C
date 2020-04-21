@@ -88,8 +88,8 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
   }
   else {
     short first_Insert_ptr, slot_offset;
-    rid.pageNo = curPage;
-    rid.slotNo = slotCnt;
+    rid.pageNo = this->curPage;
+    rid.slotNo = this->slotCnt;
     this->slotCnt++;
     first_Insert_ptr = this->usedPtr - recLen;
     memcpy(&(this->data[first_Insert_ptr]), recPtr, recLen);
@@ -102,8 +102,8 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
       memcpy(&(this->data[slot_offset]), slot_record, sizeof(slot_t));
     }
     else {
-      slot[0].length = recLen;
-      slot[0].offset = first_Insert_ptr;
+      this->slot[0].length = recLen;
+      this->slot[0].offset = first_Insert_ptr;
     }
   // fill this body
   }
