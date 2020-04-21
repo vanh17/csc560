@@ -124,7 +124,7 @@ Status HFPage::deleteRecord(const RID &rid) {
     slot_array[slot_id++] = rid.slotNo;
     for (int i = 0; i < slotCnt; i++) {
       first_condition = slot[i].offset >= offset1;
-      second_condition = this->slot[i].length == -1
+      second_condition = this->slot[i].length == -1;
       if (first_condition || second_condition) {
         continue;
       } else {
