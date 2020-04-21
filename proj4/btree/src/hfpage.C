@@ -117,7 +117,7 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
 Status HFPage::deleteRecord(const RID &rid) {
   // delete record and compress memory
   bool first_condition = (rid.slotNo - 1) >= -1; int slot_arry[100];
-  bool second_condition = rid.slotNo + 1 < slotCnt; k = 0;
+  bool second_condition = rid.slotNo + 1 < slotCnt; int k = 0;
   if ( first_condition && second_condition) {
   int offset1 = this->slot[rid.slotNo].offset;
   slot_arry[k++] = rid.slotNo;
