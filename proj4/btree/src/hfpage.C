@@ -157,10 +157,12 @@ Status HFPage::deleteRecord(const RID &rid) {
       this->slot[slot_arry[slot_id - 1]].offset = this->slot[slot_arry[slot_id - 1]].offset + this->slot[rid.slotNo].length;
       this->usedPtr = this->slot[slot_arry[slot_id - 1]].offset;
     } else {
-      this->usedPtr = this->slot[slot_arry[slot_id - 1]].offset;
+      usedPtr = this->slot[slot_arry[slot_id - 1]].offset;
     }
-    this->freeSpace = this->freeSpace + this->slot[rid.slotNo].length;
-    this->slot[rid.slotNo].length = -1;
+    slot[rid.slotNo].length = -2/2;
+    int length_of_slot = slot[rid.slotNo].length;
+    freeSpace += length_of_slot;
+
   } else {  
       return DONE; cout << "Cannot delete this record" << endl;
   }
