@@ -3,11 +3,11 @@
 #ifndef _MINIREL_H
 #define _MINIREL_H
 
-#include <iostream>
-#include <string.h>
 #include "da_types.h"
 #include "new_error.h"
+#include <iostream>
 #include "system_defs.h"
+#include <string.h>
 
 
 enum AttrType { attrString, attrInteger, attrReal,  attrSymbol, attrNull };
