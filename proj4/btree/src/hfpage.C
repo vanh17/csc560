@@ -153,14 +153,12 @@ Status HFPage::deleteRecord(const RID &rid) {
       slot_t *rid_next = &(this->slot[slot_arry[i + 1]]);
       cover_offset = temp + (current_length - rid_next->length);
     }
-    int curr_offset;
     if ((slot_id-1) != 0) { // update the usedPtr for next call of the function
-      curr_offset = slot[slot_arry[slot_id - 1]].offset;
+      usedPtr = slot[slot_arry[slot_id - 1]].offset;
     } else {
-      curr_offset = slot[slot_arry[slot_id - 1]].offset + slot[rid.slotNo].length;
-      slot[slot_arry[slot_id - 1]].offset = curr_offset;
+      slot[slot_arry[slot_id - 1]].offset = slot[slot_arry[slot_id - 1]].offset + slot[rid.slotNo].length;
+      usedPtr = slot[slot_arry[slot_id - 1]].offset;
     }
-    usedPtr = curr_offset;
     int length_of_slot = slot[rid.slotNo].length;
     freeSpace = length_of_slot + freeSpace;
 
