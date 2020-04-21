@@ -55,30 +55,25 @@ void HFPage::dumpPage() {
 }
 
 // **********************************************************
-PageId HFPage::getPrevPage()
-{
+PageId HFPage::getPrevPage() {
     // fill in the body
     return prevPage;
 }
 
 // **********************************************************
-void HFPage::setPrevPage(PageId pageNo)
-{
-
+void HFPage::setPrevPage(PageId pageNo) {
     // fill in the body
     prevPage = pageNo;
 }
 
 // **********************************************************
-PageId HFPage::getNextPage()
-{
+PageId HFPage::getNextPage() {
     // fill in the body
     return nextPage;
 }
 
 // **********************************************************
-void HFPage::setNextPage(PageId pageNo)
-{
+void HFPage::setNextPage(PageId pageNo) {
     // fill in the body
     nextPage = pageNo;
 }

@@ -8,8 +8,6 @@
 #include "db.h"
 
 // **********************************************************
-// page class constructor
-#define InitPtr 1000             // inital offset
 #define Slot_size sizeof(slot_t) //sizeof of slot_t
 struct Rec
 {
@@ -19,68 +17,84 @@ struct Rec
 };
 short Max_slot_no = 0;
 ;
-void HFPage::init(PageId pageNo)
-{
+void HFPage::init(PageId pageNo) {
 
-  this->curPage = pageNo;
-  this->nextPage = INVALID_PAGE;
-  this->prevPage = INVALID_PAGE;
-  this->slotCnt = 0;
-  this->usedPtr = InitPtr;
-  this->freeSpace = MAX_SPACE - DPFIXED + sizeof(this->slot[0]);
+  // memset(this->data, 0, 1000);
 
-  memset(this->data, 0, 1000);
-  //  cout<<"test sizeof DFX="<<this->DPFIXED<<endl;
+  // this->freeSpace = MAX_SPACE - DPFIXED + sizeof(this->slot[0]);
   // fill in the body
+    // set the first slot to default values
+    // length is 0 bc there are no values stored
+    slot[1].length = 0;
+    // set the offset to -1 to indicate that the slot is empty 
+    slot[1].offset = 1002;
+    // set current page to pageNo 
+    curPage = pageNo;
+    // usedPtr is the pointer to the first used byte in data
+    // data grows from end to beginning
+    usedPtr = 1000;
+    // initiallize prev and next page with the constant recommended in the project description 
+    prevPage = -1;
+    nextPage = -1;
+    // slotCnt is the the number of slots in use
+    slotCnt = 0;
+    
+    // freeSpace on the data array is goint to be
+    // MAX_SPACE - DP_FIXED
+    // MAX_SPACE = 1024 -- default size of a page
+    // DPFIXED = size of one slot + size of page_id + 4 bytes:
+    // slotCnt = 1 byte
+    // usedPtr = 1 byte
+    // freeSpace = 1 byte
+    // type = 1 byte -- an arbitrary value used by subclasses as needed
+    freeSpace = DPFIXED + sizeof(slot_t) * (1 - slotCnt);
 }
 
 // **********************************************************
 // dump page utlity
-void HFPage::dumpPage()
-{
-  int i;
-  cout << "dumpPage, this: " << this << endl;
-  cout << "curPage= " << curPage << ", nextPage=" << nextPage << endl;
-  cout << "usedPtr=" << usedPtr << ",  freeSpace=" << freeSpace
-       << ", slotCnt=" << slotCnt << endl;
+// Hoang
+void HFPage::dumpPage() {
+    int i;
 
-  for (i = 0; i < slotCnt; i++)
-  {
-    cout << "slot[" << i << "].offset=" << slot[i].offset
-         << ", slot[" << i << "].length=" << slot[i].length << endl;
-  }
+    cout << "dumpPage, this: " << this << endl;
+    cout << "curPage= " << curPage << ", nextPage=" << nextPage << endl;
+    cout << "usedPtr=" << usedPtr << ",  freeSpace=" << freeSpace
+         << ", slotCnt=" << slotCnt << endl;
+
+    for (i = 0; i < slotCnt; i++)
+    {
+        cout << "slot[" << i << "].offset=" << slot[i].offset
+             << ", slot[" << i << "].length=" << slot[i].length << endl;
+    }
 }
 
 // **********************************************************
-PageId HFPage::getPrevPage()
-{
-  PageId pre_page = this->prevPage;
-  return pre_page;
-  // fill in the body
-  //  return 0;
+// Hoang
+PageId HFPage::getPrevPage() {
+    // fill in the body
+    return prevPage;
 }
 
 // **********************************************************
-void HFPage::setPrevPage(PageId pageNo)
-{
-  this->prevPage = pageNo;
-  // fill in the body
+// Hoang
+void HFPage::setPrevPage(PageId pageNo) {
+    // fill in the body
+    prevPage = pageNo;
 }
 
 // **********************************************************
-PageId HFPage::getNextPage()
-{
-  PageId next_page = this->nextPage;
-  return next_page;
-  // fill in the body
-  //  return 0;
+// Hoang
+PageId HFPage::getNextPage() {
+    // fill in the body
+    return nextPage;
 }
 
 // **********************************************************
-void HFPage::setNextPage(PageId pageNo)
-{
-  this->nextPage = pageNo;
-  // fill in the body
+// **********************************************************
+// Hoang
+void HFPage::setNextPage(PageId pageNo) {
+    // fill in the body
+    nextPage = pageNo;
 }
 
 // **********************************************************
