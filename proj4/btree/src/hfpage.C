@@ -81,9 +81,9 @@ void HFPage::setNextPage(PageId pageNo) {
 // otherwise, returns DONE if sufficient space does not exist
 // RID of the new record is returned via rid parameter.
 Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
-  bool is_still_space = this->freeSpace >= (sizeof(slot_t) + recLen);
-  bool is_free_Space_postive = this->freeSpace > 0;
-  if (!(!is_free_Space_postive && !is_free_Space_postive)) {
+  bool is_still_space = this->freeSpace < (sizeof(slot_t) + recLen);
+  bool is_free_Space_postive = this->freeSpace <= 0;
+  if (is_free_Space_postive || is_free_Space_postive) {
     return DONE; cout<<"Full, cannot insert anymore"<<endl;
   }
   if (true) {
