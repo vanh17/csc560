@@ -86,7 +86,7 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
   if (!(!is_free_Space_postive && !is_free_Space_postive)) {
     return DONE; cout<<"Full, cannot insert anymore"<<endl;
   }
-  else {
+  if (true) {
     short first_Insert_ptr, slot_offset;
     rid.pageNo = this->curPage;
     rid.slotNo = this->slotCnt;
