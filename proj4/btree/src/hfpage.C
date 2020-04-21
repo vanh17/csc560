@@ -115,70 +115,10 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
 // Compacts remaining records but leaves a hole in the slot array.
 // Use memmove() rather than memcpy() as space may overlap.
 Status HFPage::deleteRecord(const RID &rid) {
-  // delete record and compress memory
-  // bool first_condition = (rid.slotNo - 1) >= -1; int slot_arry[100];
-  // bool second_condition = rid.slotNo + 1 < slotCnt; int slot_id = 0;
-  // if ( first_condition && second_condition) {
-  //   int offset1 = this->slot[rid.slotNo].offset;
-  //   slot_arry[slot_id++] = rid.slotNo;
-  //   for (int i = 0; i <= this->slotCnt - 1; i++) {
-  //     if (this->slot[i].offset < offset1 && this->slot[i].length != -1) {
-  //       slot_arry[slot_id++] = i;
-  //     }
-  //   }
-  //   int sort_slot[slot_id];
-  //   int key, j;
-  //   int temp;
-  //   for (int i = 1; i < slot_id; i++) {
-  //     key = this->slot[slot_arry[i]].offset;
-  //     temp = slot_arry[i];
-  //     j = i - 1;
-  //     while (j >= 0 && this->slot[slot_arry[j]].offset < key) {
-  //       slot_arry[j + 1] = slot_arry[j];
-  //       j--;
-  //     }
-  //     slot_arry[j + 1] = temp;
-  //   }
-  //   int cover_offset = 0, current_length;
-  //   cover_offset = this->slot[rid.slotNo].offset;
-  //   for (int i = 1; i < slot_id; i++) {
-  //     temp = this->slot[slot_arry[i]].offset;
-  //     current_length = this->slot[slot_arry[i]].length;
-  //     this->slot[slot_arry[i]].offset = cover_offset;
-  //     memcpy(&data[this->slot[slot_arry[i]].offset], &data[temp], this->slot[slot_arry[i]].length);
-  //     if (i == slot_id - 1) {
-  //       break;
-  //     }
-  //     slot_t *rid_slot = &(this->slot[slot_arry[i]]);
-  //     slot_t *rid_next = &(this->slot[slot_arry[i + 1]]);
-  //     cover_offset = temp + (current_length - rid_next->length);
-  //   }
-  //   if (slot_id == 1)
-  // {
-  //   // the end of
-  //   this->slot[slot_arry[slot_id - 1]].offset = this->slot[slot_arry[slot_id - 1]].offset + this->slot[rid.slotNo].length;
-  //   this->usedPtr = this->slot[slot_arry[slot_id - 1]].offset;
-  // }
-  // else
-  //   this->usedPtr = this->slot[slot_arry[slot_id - 1]].offset;
-  //   // int length_of_slot = slot[rid.slotNo].length;
-  //   freeSpace = slot[rid.slotNo].length + freeSpace;
-  //   slot[rid.slotNo].length = -1;
-
-  // } else {  
-  //     return DONE; cout << "Cannot delete this record" << endl;
-  // }
-
-  
-  // return OK; //fill in the body
-  // delete record and compress memory
-  if (rid.slotNo > this->slotCnt || rid.slotNo < 0) //slot and rid number should be offical
-  {
-    //cout<<rid.slotNo<<"   slotCnt ="<<this->slotCnt<<endl;
-    return DONE;
-  }
-
-  int slot_arry[100], k = 0;
+  bool first_condition = (rid.slotNo - 1) >= -1; int slot_arry[100];
+  bool second_condition = rid.slotNo + 1 < slotCnt; int slot_id = 0;
+  if (first_condition && second_condition) {
+    int slot_arry[100], k = 0;
   int offset1 = this->slot[rid.slotNo].offset;
   slot_arry[k++] = rid.slotNo;
   // find the slot number with smaller offset than delete slot
@@ -210,9 +150,6 @@ Status HFPage::deleteRecord(const RID &rid) {
     slot_arry[j + 1] = temp;
     //    this->slot[j+1]=temp;
   }
-
-#if 1
-  // compress memory
 
   int cover_offset = 0, current_length;
   cover_offset = this->slot[rid.slotNo].offset;
@@ -247,9 +184,13 @@ Status HFPage::deleteRecord(const RID &rid) {
   //update freespace
   this->freeSpace = this->freeSpace + this->slot[rid.slotNo].length;
   this->slot[rid.slotNo].length = -1;
+  } else {
+    return DONE;
+  }
+
+  
 
   return OK;
-#endif
 }
 
 // **********************************************************
