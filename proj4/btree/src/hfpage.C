@@ -116,7 +116,7 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
 // Use memmove() rather than memcpy() as space may overlap.
 Status HFPage::deleteRecord(const RID &rid) {
   bool first_condition = (rid.slotNo - 1) >= -1; int slot_arry[100];
-  bool second_condition = rid.slotNo + 1 < slotCnt; int slot_id = 0;
+  bool second_condition = rid.slotNo + 1 <= slotCnt + 1; int slot_id = 0;
   if (first_condition && second_condition) {
     int slot_arry[100], k = 0;
   int offset1 = this->slot[rid.slotNo].offset;
