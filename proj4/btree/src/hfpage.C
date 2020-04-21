@@ -119,7 +119,7 @@ Status HFPage::deleteRecord(const RID &rid) {
   bool second_condition = rid.slotNo + 1 <= slotCnt + 1; int slot_id = 0;
   if (first_condition && second_condition) {
     int offset1 = this->slot[rid.slotNo].offset;
-    slot_arry[k++] = rid.slotNo;
+    slot_arry[slot_id++] = rid.slotNo;
     // find the slot number with smaller offset than delete slot
     for (int i = 0; i <= this->slotCnt - 1; i++) {
       if (this->slot[i].offset < offset1 && this->slot[i].length != -1) {
@@ -144,7 +144,7 @@ Status HFPage::deleteRecord(const RID &rid) {
 
     int cover_offset = 0, current_length;
     cover_offset = this->slot[rid.slotNo].offset;
-    for (int i = 1; i < k; i++) {
+    for (int i = 1; i < slot_id; i++) {
       temp = this->slot[slot_arry[i]].offset;
       current_length = this->slot[slot_arry[i]].length;
   
@@ -161,7 +161,7 @@ Status HFPage::deleteRecord(const RID &rid) {
       this->slot[slot_arry[slot_id - 1]].offset = this->slot[slot_arry[slot_id - 1]].offset + this->slot[rid.slotNo].length;
       this->usedPtr = this->slot[slot_arry[slot_id - 1]].offset;
     } else {
-      this->usedPtr = this->slot[slot_arry[k - 1]].offset;
+      this->usedPtr = this->slot[slot_arry[slot_id - 1]].offset;
     }
 
   this->freeSpace = this->freeSpace + this->slot[rid.slotNo].length;
