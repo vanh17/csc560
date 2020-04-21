@@ -80,10 +80,10 @@ void HFPage::setNextPage(PageId pageNo) {
 // Add a new record to the page. Returns OK if everything went OK
 // otherwise, returns DONE if sufficient space does not exist
 // RID of the new record is returned via rid parameter.
+// Hoang
 Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
   bool first_condition = freeSpace < ((sizeof(slot_t) + recLen));
-  bool second_condition = freeSpace <= 0;
-  int curr_ptr;
+  bool second_condition = freeSpace <= 0; int curr_ptr;
   if (!(first_condition || second_condition)) {
     curr_ptr = usedPtr - recLen; 
     rid.slotNo = slotCnt;
@@ -114,17 +114,12 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
 // Delete a record from a page. Returns OK if everything went okay.
 // Compacts remaining records but leaves a hole in the slot array.
 // Use memmove() rather than memcpy() as space may overlap.
-Status HFPage::deleteRecord(const RID &rid)
-{
-
+Status HFPage::deleteRecord(const RID &rid) {
   // delete record and compress memory
-  if (rid.slotNo > this->slotCnt || rid.slotNo < 0) //slot and rid number should be offical
-  {
-    //cout<<rid.slotNo<<"   slotCnt ="<<this->slotCnt<<endl;
-    return DONE;
-  }
-
-  int slot_arry[100], k = 0;
+  bool first_condition = (rid.slotNo - 1) >= -1;
+  bool second_condition = rid.slotNo + 1 < slotCnt
+  if ( first_condition && second_condition) {
+    int slot_arry[100], k = 0;
   int offset1 = this->slot[rid.slotNo].offset;
   slot_arry[k++] = rid.slotNo;
   // find the slot number with smaller offset than delete slot
@@ -185,8 +180,11 @@ Status HFPage::deleteRecord(const RID &rid)
   }
   else
     this->usedPtr = this->slot[slot_arry[k - 1]].offset;
-
-  //update freespace
+    
+  }
+  else {  
+    return DONE; cout << "Cannot delete this record" << endl;
+  }
   this->freeSpace = this->freeSpace + this->slot[rid.slotNo].length;
   this->slot[rid.slotNo].length = -1;
 
