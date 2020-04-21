@@ -156,10 +156,6 @@ Status HFPage::deleteRecord(const RID &rid)
     slot_arry[j + 1] = temp;
     //    this->slot[j+1]=temp;
   }
-
-#if 1
-  // compress memory
-
   int cover_offset = 0, current_length;
   cover_offset = this->slot[rid.slotNo].offset;
   for (int i = 1; i < k; i++)
@@ -195,7 +191,6 @@ Status HFPage::deleteRecord(const RID &rid)
   this->slot[rid.slotNo].length = -1;
 
   return OK;
-#endif
 }
 
 // **********************************************************
