@@ -8,8 +8,6 @@
 #include "db.h"
 
 // **********************************************************
-#define Slot_size sizeof(slot_t) //sizeof of slot_t
-
 short Max_slot_no = 0;
 // Hoang
 void HFPage::init(PageId pageNo) {
@@ -109,7 +107,7 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid)
     slot_t *slot_record = new slot_t;
     slot_record->length = recLen;
     slot_record->offset = first_Insert_ptr;
-    slot_offset = (this->slotCnt - 2) * Slot_size;
+    slot_offset = (this->slotCnt - 2) * sizeof(slot_t);
     memcpy(&(this->data[slot_offset]), slot_record, sizeof(slot_t)); //put slot into memeory
                                                                      //  this->freeSpace=(this->freeSpace)-recLen-sizeof(slot_t);
                                                                      //  cout<<"insert  slotoffset"<<slot_record->offset<<"  length "<<slot_record->length<<endl;
@@ -221,12 +219,12 @@ Status HFPage::firstRecord(RID &firstRid)
     return OK;
   }
   short Begin_slot_address, record_offset, i;
-  char slot_char[Slot_size];
+  char slot_char[sizeof(slot_t)];
   //   cout<<"i= "<<i<<"slot "<<this->slotCnt<<endl;
   for (i = 0; i < this->slotCnt; i++)
   {
-    Begin_slot_address = i * Slot_size;                      // next slot in the array
-    memcpy(slot_char, &data[Begin_slot_address], Slot_size); //get slot
+    Begin_slot_address = i * sizeof(slot_t);                      // next slot in the array
+    memcpy(slot_char, &data[Begin_slot_address], sizeof(slot_t)); //get slot
     slot_t *rid_slot = (slot_t *)(slot_char);
 
     if (rid_slot->length > 0)
@@ -257,11 +255,11 @@ Status HFPage::nextRecord(RID curRid, RID &nextRid)
   }
   nextRid.pageNo = this->curPage;
   short Begin_slot_address, record_offset, i;
-  char slot_char[Slot_size];
+  char slot_char[sizeof(slot_t)];
   for (i = curRid.slotNo; i < (this->slotCnt - 1); i++)
   {
-    Begin_slot_address = i * Slot_size;                      // next slot in the array
-    memcpy(slot_char, &data[Begin_slot_address], Slot_size); //get slot
+    Begin_slot_address = i * sizeof(slot_t);                      // next slot in the array
+    memcpy(slot_char, &data[Begin_slot_address], sizeof(slot_t)); //get slot
     slot_t *rid_slot = (slot_t *)(slot_char);
     if (rid_slot->length > 0 && rid_slot->length < 1000)
     {
@@ -286,9 +284,9 @@ Status HFPage::getRecord(RID rid, char *recPtr, int &recLen)
 
   short offset_rid = rid.slotNo;
   short Begin_slot_address, record_offset;
-  char slot_char[Slot_size];
-  Begin_slot_address = (offset_rid - 1) * Slot_size;
-  memcpy(slot_char, &data[Begin_slot_address], Slot_size); // get record from memory
+  char slot_char[sizeof(slot_t)];
+  Begin_slot_address = (offset_rid - 1) * sizeof(slot_t);
+  memcpy(slot_char, &data[Begin_slot_address], sizeof(slot_t)); // get record from memory
   slot_t *rid_slot = (slot_t *)(slot_char);                // fomat the char array into slot_t
 #if 0     
      if(rid.slotNo>=1)
@@ -296,9 +294,7 @@ Status HFPage::getRecord(RID rid, char *recPtr, int &recLen)
      else 
       cout<<"offset 0="<<this->slot[0].offset<<" length 0 "<<this->slot[0].length<<endl;
 #endif
-  if (rid.slotNo >= 1)
-  {
-    // if(rid.slotNo==1) rid_slot->length=Slot_size;
+  if (rid.slotNo >= 1) {
     memcpy(recPtr, &(this->data[rid_slot->offset]), rid_slot->length);
     recLen = rid_slot->length;
   }
@@ -320,9 +316,9 @@ Status HFPage::returnRecord(RID rid, char *&recPtr, int &recLen)
 {
   short offset_rid = rid.slotNo;
   short Begin_slot_address, record_offset;
-  char slot_char[Slot_size];
-  Begin_slot_address = (offset_rid - 1) * Slot_size; //get offset of record
-  memcpy(slot_char, &data[Begin_slot_address], Slot_size);
+  char slot_char[sizeof(slot_t)];
+  Begin_slot_address = (offset_rid - 1) * sizeof(slot_t); //get offset of record
+  memcpy(slot_char, &data[Begin_slot_address], sizeof(slot_t));
   slot_t *rid_slot = (slot_t *)(slot_char);
   if (rid.slotNo >= 1)
   {
