@@ -8,7 +8,6 @@
 #include "db.h"
 
 // **********************************************************
-short Max_slot_no = 0;
 // Hoang
 void HFPage::init(PageId pageNo) {
     // fill in the body
@@ -90,7 +89,6 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid)
   rid.pageNo = this->curPage;
   rid.slotNo = this->slotCnt;
   this->slotCnt++;
-  Max_slot_no++;
   //  Max_N=this->slotCnt;
   first_Insert_ptr = this->usedPtr - recLen;               // get the offset of data
                                                            // cout<<first_Insert_ptr<<endl; // test
@@ -248,9 +246,7 @@ Status HFPage::nextRecord(RID curRid, RID &nextRid)
 {
   if (curRid.slotNo > this->slotCnt || curRid.slotNo < 0)
     return FAIL;
-  else if (curRid.slotNo == this->slotCnt - 1)
-  {
-    // cout<<"Max slot_no="<<Max_slot_no<<"  this->slot"<<this->slotCnt<<endl;
+  else if (curRid.slotNo == this->slotCnt - 1) {
     return DONE;
   }
   nextRid.pageNo = this->curPage;
