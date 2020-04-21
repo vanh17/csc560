@@ -118,70 +118,52 @@ Status HFPage::deleteRecord(const RID &rid) {
   bool first_condition = (rid.slotNo - 1) >= -1; int slot_arry[100];
   bool second_condition = rid.slotNo + 1 <= slotCnt + 1; int slot_id = 0;
   if (first_condition && second_condition) {
-    int slot_arry[100], k = 0;
-  int offset1 = this->slot[rid.slotNo].offset;
-  slot_arry[k++] = rid.slotNo;
-  // find the slot number with smaller offset than delete slot
-  for (int i = 0; i <= this->slotCnt - 1; i++)
-  {
-    if (this->slot[i].offset < offset1 && this->slot[i].length != -1)
-    {
-      slot_arry[k++] = i;
-      // cout<<" slot number after compress "<<i<<endl;
+    int offset1 = this->slot[rid.slotNo].offset;
+    slot_arry[k++] = rid.slotNo;
+    // find the slot number with smaller offset than delete slot
+    for (int i = 0; i <= this->slotCnt - 1; i++) {
+      if (this->slot[i].offset < offset1 && this->slot[i].length != -1) {
+        slot_arry[slot_id++] = i;
+      }
     }
-  }
 
-  int sort_slot[k];
-  int key, j;
-  int temp;
-  // quick sort , for slot offset arry
-  for (int i = 1; i < k; i++)
-  {
-    key = this->slot[slot_arry[i]].offset;
-    temp = slot_arry[i];
-    j = i - 1;
-    while (j >= 0 && this->slot[slot_arry[j]].offset < key)
-    {
-
-      slot_arry[j + 1] = slot_arry[j];
-      // this->slot[j+1]=this->slot[j];
-      j--;
+    int sort_slot[slot_id];
+    int key, j;
+    int temp;
+    // quick sort , for slot offset arry
+    for (int i = 1; i < k; i++) {
+      key = this->slot[slot_arry[i]].offset;
+      temp = slot_arry[i];
+      j = i - 1;
+      while (j >= 0 && this->slot[slot_arry[j]].offset < key) {
+        slot_arry[j + 1] = slot_arry[j];
+        j--;
+      }
+      slot_arry[j + 1] = temp;
     }
-    slot_arry[j + 1] = temp;
-    //    this->slot[j+1]=temp;
-  }
 
-  int cover_offset = 0, current_length;
-  cover_offset = this->slot[rid.slotNo].offset;
-  for (int i = 1; i < k; i++)
-  {
-
-    temp = this->slot[slot_arry[i]].offset;
-    current_length = this->slot[slot_arry[i]].length;
-    // update offset
-    this->slot[slot_arry[i]].offset = cover_offset;
-    // data  move forward
-    memcpy(&data[this->slot[slot_arry[i]].offset], &data[temp], this->slot[slot_arry[i]].length);
-    if (i == k - 1)
-    {
-      break;
+    int cover_offset = 0, current_length;
+    cover_offset = this->slot[rid.slotNo].offset;
+    for (int i = 1; i < k; i++) {
+      temp = this->slot[slot_arry[i]].offset;
+      current_length = this->slot[slot_arry[i]].length;
+  
+      this->slot[slot_arry[i]].offset = cover_offset;
+      memcpy(&data[this->slot[slot_arry[i]].offset], &data[temp], this->slot[slot_arry[i]].length);
+      if (i == slot_id - 1) {
+        break;
+      }
+      slot_t *rid_slot = &(this->slot[slot_arry[i]]);
+      slot_t *rid_next = &(this->slot[slot_arry[i + 1]]);
+      cover_offset = temp + (current_length - rid_next->length);
     }
-    // caculate the new offset
-    slot_t *rid_slot = &(this->slot[slot_arry[i]]);
-    slot_t *rid_next = &(this->slot[slot_arry[i + 1]]);
-    cover_offset = temp + (current_length - rid_next->length);
-  }
-  //  update usedPtr
-  if (k == 1)
-  {
-    // the end of
-    this->slot[slot_arry[k - 1]].offset = this->slot[slot_arry[k - 1]].offset + this->slot[rid.slotNo].length;
-    this->usedPtr = this->slot[slot_arry[k - 1]].offset;
-  }
-  else
-    this->usedPtr = this->slot[slot_arry[k - 1]].offset;
+    if (slot_id == 1) {
+      this->slot[slot_arry[slot_id - 1]].offset = this->slot[slot_arry[slot_id - 1]].offset + this->slot[rid.slotNo].length;
+      this->usedPtr = this->slot[slot_arry[slot_id - 1]].offset;
+    } else {
+      this->usedPtr = this->slot[slot_arry[k - 1]].offset;
+    }
 
-  //update freespace
   this->freeSpace = this->freeSpace + this->slot[rid.slotNo].length;
   this->slot[rid.slotNo].length = -1;
   } else {
@@ -189,7 +171,6 @@ Status HFPage::deleteRecord(const RID &rid) {
   }
 
   
-
   return OK;
 }
 
