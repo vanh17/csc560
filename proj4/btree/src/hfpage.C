@@ -116,10 +116,9 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
 // Use memmove() rather than memcpy() as space may overlap.
 Status HFPage::deleteRecord(const RID &rid) {
   // delete record and compress memory
-  bool first_condition = (rid.slotNo - 1) >= -1;
-  bool second_condition = rid.slotNo + 1 < slotCnt
+  bool first_condition = (rid.slotNo - 1) >= -1; int slot_arry[100];
+  bool second_condition = rid.slotNo + 1 < slotCnt; k = 0;
   if ( first_condition && second_condition) {
-    int slot_arry[100], k = 0;
   int offset1 = this->slot[rid.slotNo].offset;
   slot_arry[k++] = rid.slotNo;
   // find the slot number with smaller offset than delete slot
@@ -178,8 +177,9 @@ Status HFPage::deleteRecord(const RID &rid) {
     this->slot[slot_arry[k - 1]].offset = this->slot[slot_arry[k - 1]].offset + this->slot[rid.slotNo].length;
     this->usedPtr = this->slot[slot_arry[k - 1]].offset;
   }
-  else
+  else{
     this->usedPtr = this->slot[slot_arry[k - 1]].offset;
+  }
     
   }
   else {  
