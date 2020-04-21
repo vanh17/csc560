@@ -82,7 +82,7 @@ void HFPage::setNextPage(PageId pageNo) {
 // RID of the new record is returned via rid parameter.
 Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
   bool is_still_space = freeSpace >= (sizeof(slot_t) + recLen);
-  bool is_free_Space_postive = freeSpace > 0
+  bool is_free_Space_postive = freeSpace > 0;
   if (!(!is_free_Space_postive && !is_free_Space_postive)) {
     return DONE; cout<<"Full, cannot insert anymore"<<endl;
   }
