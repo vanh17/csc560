@@ -80,55 +80,35 @@ void HFPage::setNextPage(PageId pageNo) {
 // Add a new record to the page. Returns OK if everything went OK
 // otherwise, returns DONE if sufficient space does not exist
 // RID of the new record is returned via rid parameter.
-Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid)
-{
-
-  // fill in the body
-    // initiall set no slot to free, if later we can find a free slot this
-    // set to true
-    bool available_slot = false;
-    // check if there is enough space store the record
-    if(recLen > available_space()){
-        return DONE;
+Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
+  bool is_still_space = freeSpace >= (sizeof(slot_t) + recLen);
+  bool is_free_Space_postive = freeSpace > 0
+  if (!(!is_free_Space_postive && !is_free_Space_postive)) {
+    return DONE; cout<<"Full, cannot insert anymore"<<endl;
+  }
+  else {
+    short first_Insert_ptr, slot_offset;
+    rid.pageNo = curPage;
+    rid.slotNo = slotCnt;
+    this->slotCnt++;
+    first_Insert_ptr = this->usedPtr - recLen;
+    memcpy(&(this->data[first_Insert_ptr]), recPtr, recLen);
+    this->usedPtr = first_Insert_ptr; 
+    if (this->slotCnt != 1) {
+      slot_t *slot_record = new slot_t;
+      slot_record->length = recLen;
+      slot_record->offset = first_Insert_ptr;
+      slot_offset = (this->slotCnt - 2) * sizeof(slot_t);
+      memcpy(&(this->data[slot_offset]), slot_record, sizeof(slot_t));
     }
-        /// copy recPtr to data[offSet]
-        memcpy(&data[usedPtr - recLen], recPtr, recLen * sizeof(char));
+    else {
+      slot[0].length = recLen;
+      slot[0].offset = first_Insert_ptr;
+    }
+  // fill this body
+  }
+  freeSpace = (this->freeSpace) - recLen - sizeof(slot_t); return OK;
 
-        // rid was passed by reference
-        rid.pageNo = curPage;
-        int i = 0;
-        while (i <= slotCnt - 1){
-            //find an empty slot with -1 offset
-            if (slot[i].offset == -1)
-            {
-                // calculate where to put the record
-                // Remark: we have to know that it populates starting from the end
-                slot[i].length = recLen;
-                slot[i].offset = usedPtr - (sizeof(slot_t)) * i;
-                
-                //insert the slot No in the rid
-                rid.slotNo = i;
-                //there is place to store what we need
-                available_slot = true;
-            }
-            i++;
-        }
-        if (available_slot == false)
-        {
-            // fill rid and slot info
-            // rid was passed by reference 
-            rid.slotNo = slotCnt;
-            // slotCnt is equivalent to currentSlot + 1
-            // slot info
-            // using slotId here is safe bc in the worst case we already created
-            // another slot previously
-            slot[slotCnt].offset = usedPtr - sizeof(slot_t) * slotCnt;
-            slot[slotCnt].length = recLen;
-            // increment the number of slots
-            slotCnt++;
-        }
-        usedPtr = usedPtr - recLen;
-        return OK;
 }
 
 // **********************************************************
@@ -349,8 +329,7 @@ Status HFPage::returnRecord(RID rid, char *&recPtr, int &recLen)
 
 // **********************************************************
 // Returns the amount of available space on the heap file page
-int HFPage::available_space(void)
-{
+int HFPage::available_space(void) {
   short space = this->freeSpace;
   if (this->slotCnt == 0)
     space = space - 4;

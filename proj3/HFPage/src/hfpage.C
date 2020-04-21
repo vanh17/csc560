@@ -83,7 +83,52 @@ void HFPage::setNextPage(PageId pageNo) {
 // otherwise, returns DONE if sufficient space does not exist
 // RID of the new record is returned via rid parameter.
 Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
-    
+    // fill in the body
+    // initiall set no slot to free, if later we can find a free slot this
+    // set to true
+    bool available_slot = false;
+    // check if there is enough space store the record
+    if(recLen > available_space()){
+        return DONE;
+    }
+        /// copy recPtr to data[offSet]
+        memcpy(&data[usedPtr - recLen], recPtr, recLen * sizeof(char));
+
+        // rid was passed by reference
+        rid.pageNo = curPage;
+        int i = 0;
+        while (i <= slotCnt - 1){
+            //find an empty slot with -1 offset
+            if (slot[i].offset == -1)
+            {
+                // calculate where to put the record
+                // Remark: we have to know that it populates starting from the end
+                slot[i].length = recLen;
+                slot[i].offset = usedPtr - (sizeof(slot_t)) * i;
+                
+                //insert the slot No in the rid
+                rid.slotNo = i;
+                //there is place to store what we need
+                available_slot = true;
+            }
+            i++;
+        }
+        if (available_slot == false)
+        {
+            // fill rid and slot info
+            // rid was passed by reference 
+            rid.slotNo = slotCnt;
+            // slotCnt is equivalent to currentSlot + 1
+            // slot info
+            // using slotId here is safe bc in the worst case we already created
+            // another slot previously
+            slot[slotCnt].offset = usedPtr - sizeof(slot_t) * slotCnt;
+            slot[slotCnt].length = recLen;
+            // increment the number of slots
+            slotCnt++;
+        }
+        usedPtr = usedPtr - recLen;
+        return OK;
 }
 
 // **********************************************************
