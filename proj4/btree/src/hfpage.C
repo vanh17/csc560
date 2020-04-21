@@ -153,7 +153,7 @@ Status HFPage::deleteRecord(const RID &rid) {
       slot_t *rid_next = &(this->slot[slot_arry[i + 1]]);
       cover_offset = temp + (current_length - rid_next->length);
     }
-    if ((slot_id-1) != 0) { // update the usedPtr for next call of the function
+    if ((slot_id != 1) { // update the usedPtr for next call of the function
       usedPtr = slot[slot_arry[slot_id - 1]].offset;
     } else {
       slot[slot_arry[slot_id - 1]].offset = slot[slot_arry[slot_id - 1]].offset + slot[rid.slotNo].length;
@@ -161,13 +161,13 @@ Status HFPage::deleteRecord(const RID &rid) {
     }
     int length_of_slot = slot[rid.slotNo].length;
     freeSpace = length_of_slot + freeSpace;
-
+    slot[rid.slotNo].length = -1;
   } else {  
       return DONE; cout << "Cannot delete this record" << endl;
   }
 
   
-  slot[rid.slotNo].length = -1;return OK; //fill in the body
+  return OK; //fill in the body
 }
 
 // **********************************************************
