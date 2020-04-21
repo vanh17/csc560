@@ -112,7 +112,6 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
 
   this->freeSpace = (this->freeSpace) - recLen - sizeof(slot_t); //reduce freespace
   return OK;
-
 }
 
 // **********************************************************
