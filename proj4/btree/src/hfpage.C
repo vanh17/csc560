@@ -104,7 +104,7 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
     slot_t *slot_record = new slot_t;
     slot_record->length = recLen;
     slot_record->offset = first_Insert_ptr;
-    slot_offset = (this->slotCnt - 2) * Slot_size;
+    slot_offset = (this->slotCnt - 2) * sizeof(slot_t);
     memcpy(&(this->data[slot_offset]), slot_record, sizeof(slot_t)); //put slot into memeory
                                                                      //  this->freeSpace=(this->freeSpace)-recLen-sizeof(slot_t);
                                                                      //  cout<<"insert  slotoffset"<<slot_record->offset<<"  length "<<slot_record->length<<endl;
