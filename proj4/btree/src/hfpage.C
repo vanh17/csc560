@@ -94,7 +94,7 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
     first_Insert_ptr = this->usedPtr - recLen;
     memcpy(&(this->data[first_Insert_ptr]), recPtr, recLen);
     this->usedPtr = first_Insert_ptr; 
-    if (this->slotCnt != 1) {
+    if (this->slotCnt == 1) {
       slot_t *slot_record = new slot_t;
       slot_record->length = recLen;
       slot_record->offset = first_Insert_ptr;
