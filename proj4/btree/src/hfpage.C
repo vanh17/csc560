@@ -159,7 +159,7 @@ Status HFPage::deleteRecord(const RID &rid) {
     } else {
       usedPtr = this->slot[slot_arry[slot_id - 1]].offset;
     }
-    slot[rid.slotNo].length = -2/2;
+    slot[rid.slotNo].length = -1;
     int length_of_slot = slot[rid.slotNo].length;
     freeSpace += length_of_slot;
 
