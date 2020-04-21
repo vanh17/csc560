@@ -117,6 +117,7 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
 Status HFPage::deleteRecord(const RID &rid) {
   bool first_condition = (rid.slotNo - 1) >= -1; int slot_arry[100];
   bool second_condition = rid.slotNo + 1 <= slotCnt + 1; int slot_id = 0;
+  int key, j, temp_offset, curr_slot_id, curr_len;
   if (first_condition && second_condition) {
     int offset1 = this->slot[rid.slotNo].offset;
     slot_arry[slot_id++] = rid.slotNo;
@@ -126,11 +127,6 @@ Status HFPage::deleteRecord(const RID &rid) {
         slot_arry[slot_id++] = i;
       }
     }
-
-    int sort_slot[slot_id];
-    int key, j;
-    int temp;
-    // quick sort , for slot offset arry
     for (int i = 1; i < slot_id; i++) {
       key = this->slot[slot_arry[i]].offset;
       temp = slot_arry[i];
@@ -141,24 +137,25 @@ Status HFPage::deleteRecord(const RID &rid) {
       }
       slot_arry[j + 1] = temp;
     }
-
-    int cover_offset = 0, current_length;
-    cover_offset = this->slot[rid.slotNo].offset;
+    curr_offset = slot[rid.slotNo].offset;
     for (int i = 1; i < slot_id; i++) {
-      temp = this->slot[slot_arry[i]].offset;
-      current_length = this->slot[slot_arry[i]].length;
-  
-      this->slot[slot_arry[i]].offset = cover_offset;
-      memcpy(&data[this->slot[slot_arry[i]].offset], &data[temp], this->slot[slot_arry[i]].length);
-      if (i == slot_id - 1) {
+      curr_slot_id = slot_arry[i];
+      temp_offset = slot[curr_slot_id].offset;
+      curr_len = lot[curr_slot_id].length;
+      slot[curr_slot_id].offset = curr_offset;
+      memcpy(&data[slot[curr_slot_id].offset], &data[temp], slot[curr_slot_id].length);
+      if (i != (slot_id - 1)) {
+        bool checker = false;
+      } else {
         break;
       }
-      slot_t *rid_slot = &(this->slot[slot_arry[i]]);
-      slot_t *rid_next = &(this->slot[slot_arry[i + 1]]);
-      cover_offset = temp + (current_length - rid_next->length);
+      slot_t *rid_slot = &(slot[curr_slot_id]);
+      curr_slot_id = curr_slot_id[i+1];
+      slot_t *rid_next = &(slot[curr_slot_id]);
+      curr_offset = (curr_len - rid_next->length) + temp_offset;
     }
     int curr_offset;
-    int curr_slot_id = slot_arry[slot_id - 1];
+    curr_slot_id = slot_arry[slot_id - 1];
     if (slot_id != 1) {
       curr_offset = slot[curr_slot_id].offset;
       this->usedPtr = this->slot[curr_slot_id].offset;
@@ -166,12 +163,12 @@ Status HFPage::deleteRecord(const RID &rid) {
       curr_offset = slot[curr_slot_id].offset + slot[rid.slotNo].length;
       slot[curr_slot_id].offset = curr_offset;
     }
-
+    // need to update the pointer here so that we will not have any segmentation fault
     usedPtr = curr_offset;
     this->freeSpace = this->freeSpace + this->slot[rid.slotNo].length;
   } else {
 
-    return DONE;
+    return DONE; cout << "Cannot delete the file" << endl;
   }
  
   this->slot[rid.slotNo].length = -2/2;return OK;
