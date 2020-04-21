@@ -81,32 +81,32 @@ void HFPage::setNextPage(PageId pageNo) {
 // otherwise, returns DONE if sufficient space does not exist
 // RID of the new record is returned via rid parameter.
 Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
-
-  if (!(freeSpace < ((sizeof(slot_t) + recLen)) || freeSpace <= 0)) {
-    short first_Insert_ptr, slot_offset;
+  bool first_condition = freeSpace < ((sizeof(slot_t) + recLen));
+  bool second_condition = freeSpace <= 0;
+  int curr_ptr;
+  if (!(first_condition || second_condition)) {
     rid.pageNo = curPage;
     rid.slotNo = slotCnt;
   slotCnt++;
-  first_Insert_ptr = usedPtr - recLen; 
-  memcpy(&(data[first_Insert_ptr]), recPtr, recLen);
-  usedPtr = first_Insert_ptr;
+  curr_ptr = usedPtr - recLen; 
+  memcpy(&(data[curr_ptr]), recPtr, recLen);
+  usedPtr = curr_ptr;
     if (slotCnt - 1 != 0) {
       slot_t *slot_record = new slot_t;
       slot_record->length = recLen;
-      slot_record->offset = first_Insert_ptr;
+      slot_record->offset = curr_ptr;
       memcpy(&(data[sizeof(slot_t)*(slotCnt - 2)]), slot_record, sizeof(slot_t));
     }
     else {
+      slot[0].offset = curr_ptr;
       slot[0].length = recLen;
-      slot[0].offset = first_Insert_ptr;
     }
-    
-  } else {
+    freeSpace = -1*sizeof(slot_t) + (freeSpace) - recLen ;
+  } 
+  else {
     return DONE;
   }
-  
-
-  freeSpace = (freeSpace) - recLen - sizeof(slot_t); //reduce freespace
+  // fill this body
   return OK;
 }
 
