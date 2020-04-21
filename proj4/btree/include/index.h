@@ -33,7 +33,7 @@ class IndexFileScan {
      virtual Status delete_current() = 0;
 
      virtual int keysize() = 0;
-     RID  first_index; 
+     // RID  first_index; 
    private:
      // IndexFile* fileptr;
 
