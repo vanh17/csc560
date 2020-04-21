@@ -87,13 +87,9 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
   rid.pageNo = this->curPage;
   rid.slotNo = this->slotCnt;
   this->slotCnt++;
-  Max_slot_no++;
-  //  Max_N=this->slotCnt;
-  first_Insert_ptr = this->usedPtr - recLen;               // get the offset of data
-                                                           // cout<<first_Insert_ptr<<endl; // test
-  memcpy(&(this->data[first_Insert_ptr]), recPtr, recLen); //put record into memory
-  this->usedPtr = first_Insert_ptr;                        //set usedPtr
-  //   cout<<this->slotCnt<<endl;
+  first_Insert_ptr = this->usedPtr - recLen; 
+  memcpy(&(this->data[first_Insert_ptr]), recPtr, recLen);
+  this->usedPtr = first_Insert_ptr;
   if (this->slotCnt == 1)
   {
     this->slot[0].length = recLen;
@@ -105,9 +101,7 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
     slot_record->length = recLen;
     slot_record->offset = first_Insert_ptr;
     slot_offset = (this->slotCnt - 2) * sizeof(slot_t);
-    memcpy(&(this->data[slot_offset]), slot_record, sizeof(slot_t)); //put slot into memeory
-                                                                     //  this->freeSpace=(this->freeSpace)-recLen-sizeof(slot_t);
-                                                                     //  cout<<"insert  slotoffset"<<slot_record->offset<<"  length "<<slot_record->length<<endl;
+    memcpy(&(this->data[slot_offset]), slot_record, sizeof(slot_t));
   }
 
   this->freeSpace = (this->freeSpace) - recLen - sizeof(slot_t); //reduce freespace
