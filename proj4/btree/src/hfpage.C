@@ -169,7 +169,7 @@ Status HFPage::deleteRecord(const RID &rid) {
   }
 
   
-  slot[rid.slotNo].length = -2/2;return OK; //fill in the body
+  slot[rid.slotNo].length = -1;return OK; //fill in the body
 }
 
 // **********************************************************
