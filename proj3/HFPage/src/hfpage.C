@@ -82,8 +82,7 @@ void HFPage::setNextPage(PageId pageNo) {
 // Add a new record to the page. Returns OK if everything went OK
 // otherwise, returns DONE if sufficient space does not exist
 // RID of the new record is returned via rid parameter.
-Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid)
-{
+Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
     // fill in the body
     // initiall set no slot to free, if later we can find a free slot this
     // set to true
@@ -136,8 +135,7 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid)
 // Delete a record from a page. Returns OK if everything went okay.
 // Compacts remaining records but leaves a hole in the slot array.
 // Use memmove() rather than memcpy() as space may overlap.
-Status HFPage::deleteRecord(const RID &rid)
-{
+Status HFPage::deleteRecord(const RID &rid) {
     /*
     testdata:
       slot0.offset 58
