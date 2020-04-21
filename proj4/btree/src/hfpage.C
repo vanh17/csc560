@@ -114,17 +114,19 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
 // Delete a record from a page. Returns OK if everything went okay.
 // Compacts remaining records but leaves a hole in the slot array.
 // Use memmove() rather than memcpy() as space may overlap.
+// Hoang
 Status HFPage::deleteRecord(const RID &rid) {
   bool first_condition = (rid.slotNo - 1) >= -1; int slot_array[200];
   bool second_condition = rid.slotNo + 1 <= slotCnt + 1; int slot_id = 0;
   int k, j, temp_offset, curr_slot_id, curr_len;
   int curr_offset;
   if (first_condition && second_condition) {
-    int offset1 = this->slot[rid.slotNo].offset;
     slot_array[slot_id++] = rid.slotNo;
+    int offset1 = this->slot[rid.slotNo].offset;
     for (int i = 0; i < slotCnt; i++) {
-      first_condition = slot[i].offset >= offset1;
       second_condition = this->slot[i].length == -1;
+      first_condition = slot[i].offset >= offset1;
+      // check if we have to change the slot or not
       if (first_condition || second_condition) {
         continue;
       } else {
@@ -133,10 +135,10 @@ Status HFPage::deleteRecord(const RID &rid) {
     }
     int i = 1;
     while (i < slot_id) {
-      k = this->slot[slot_array[i]].offset;
+      k = slot[slot_array[i]].offset;
       temp_offset = slot_array[i];
       j = i - 1;
-      while (j >= 0 && this->slot[slot_array[j]].offset < k) {
+      while (j >= 0 && slot[slot_array[j]].offset < k) {
         slot_array[j + 1] = slot_array[j];
         j--;
       }
@@ -163,20 +165,21 @@ Status HFPage::deleteRecord(const RID &rid) {
     curr_slot_id = slot_array[slot_id - 1];
     if (slot_id != 1) {
       curr_offset = slot[curr_slot_id].offset;
-      this->usedPtr = this->slot[curr_slot_id].offset;
+      usedPtr = slot[curr_slot_id].offset;
     } else {
       curr_offset = slot[curr_slot_id].offset + slot[rid.slotNo].length;
       slot[curr_slot_id].offset = curr_offset;
     }
     // need to update the pointer here so that we will not have any segmentation fault
     usedPtr = curr_offset;
-    this->freeSpace = this->freeSpace + this->slot[rid.slotNo].length;
+    freeSpace = freeSpace + slot[rid.slotNo].length;
   } else {
 
     return DONE; cout << "Cannot delete the file" << endl;
+    slot[rid.slotNo].length = -2/2;
   }
  
-  this->slot[rid.slotNo].length = -2/2;return OK;
+  slot[rid.slotNo].length = -2/2;return OK;
 }
 
 // **********************************************************
