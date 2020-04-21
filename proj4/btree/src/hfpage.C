@@ -85,12 +85,12 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
   bool second_condition = freeSpace <= 0;
   int curr_ptr;
   if (!(first_condition || second_condition)) {
-    rid.pageNo = curPage;
+    curr_ptr = usedPtr - recLen; 
     rid.slotNo = slotCnt;
-  slotCnt++;
-  curr_ptr = usedPtr - recLen; 
-  memcpy(&(data[curr_ptr]), recPtr, recLen);
-  usedPtr = curr_ptr;
+    rid.pageNo = curPage;
+    slotCnt++;
+    memcpy(&(data[curr_ptr]), recPtr, recLen);
+    usedPtr = curr_ptr;
     if (slotCnt - 1 != 0) {
       slot_t *slot_record = new slot_t;
       slot_record->length = recLen;
@@ -102,8 +102,8 @@ Status HFPage::insertRecord(char *recPtr, int recLen, RID &rid) {
       slot[0].length = recLen;
     }
     freeSpace = -1*sizeof(slot_t) + (freeSpace) - recLen ;
-  } 
-  else {
+  } else {
+
     return DONE;
   }
   // fill this body
