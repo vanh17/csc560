@@ -263,8 +263,9 @@ Status HFPage::nextRecord(RID curRid, RID &nextRid) {
 // **********************************************************
 // returns length and copies out record with RID rid
 // Hoang
-char slot_char[sizeof(slot_t)];
+
 Status HFPage::getRecord(RID rid, char *recPtr, int &recLen) {
+  char slot_char[sizeof(slot_t)];
   memcpy(slot_char, &data[(rid.slotNo - 1)*sizeof(slot_t)], sizeof(slot_t)); 
   int checker_for_slot;
   bool result_checker;
@@ -273,10 +274,10 @@ Status HFPage::getRecord(RID rid, char *recPtr, int &recLen) {
     memcpy(recPtr, &(this->data[slot_id->offset]), slot_id->length);
     recLen = slot_rid->length;
   } else if (result_checker) {
-    checker_for_slot ++;
+    checker_for_slot++;
   } else {
     recLen = slot[0].length;
-    memcpy(recPtr, &(data[recLen]), rid_slot->length);
+    memcpy(recPtr, &(data[recLen]), slot_id->length);
   }
 
   return OK; //fill this body
