@@ -10,6 +10,13 @@
 #define _BTREEFILESCAN_H
 
 #include "btfile.h"
+// include other header file here to declare global variable
+#include "minirel.h"
+#include "buf.h"
+#include "db.h"
+#include "new_error.h"
+#include "btfile.h"
+
 
 // errors from this class should be defined in btfile.h
 
@@ -28,6 +35,8 @@ public:
     bool flag_init;
 
     RID head_ptr, nxt_ptr; // set the pointer to track of the rid in the scan.
+
+    BTLeafPage *leaf_page = new BTLeafPage();
 
     // destructor
     ~BTreeFileScan();
