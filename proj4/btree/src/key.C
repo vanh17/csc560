@@ -121,34 +121,30 @@ void make_entry(KeyDataEntry *target,
  * Needs a) memory chunk holding the pair (*psource) and, b) the length
  * of the data chunk (to calculate data start of the <data> part).
  */
+// Hoang
 void *get_key_data(void *targetkey, Datatype *targetdata,
-                   KeyDataEntry *psource, int entry_len, nodetype ndtype)
-{
-
-    if (ndtype == INDEX)
-    {
+                   KeyDataEntry *psource, int entry_len, nodetype ndtype){
+    bool first_condition = ndtype == INDEX;
+    if (first_condition) {
 
         targetdata->pageNo = (*psource).data.pageNo;
     }
-    else
-    {
+    if (!first_condition) {
         (*targetdata).rid = (*psource).data.rid;
     }
-
-    if (entry_len == 4)
-    {
-        //    *all=((*psource).key.intkey);
-        return &((*psource).key.intkey);
+    if (entry_len - 2 == 2) {
+        return &((*psource).key.intkey); //return the interger because this is the entry size of int
+        
+        cout << "Successefully get the key data";
     }
-    else
-    {
+    else {
         targetkey = &((*psource).key.charkey);
-        return &((*psource).key.charkey);
+        return &((*psource).key.charkey); // get the key data now return the char value
+        cout << "Successefully get the key data";
     }
 
-    return NULL;
-    // put your code here
-    // return;
+    return NULL; // put your code here
+    cout << "Not thing to return here.";
 }
 
 /*
