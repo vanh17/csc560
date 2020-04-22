@@ -140,10 +140,19 @@ int SortedPage::numberOfRecords()
   return 0;
 }
 
-Status SortedPage::Big_key(AttrType key_type, void *key, int &keylen)
-{
-  // return biggest key of a page, normally , the biggest key slot lie in the end of slot arry
+Status SortedPage::get_large_key_value(AttrType key_type, void *key, int &keylen) {
+  Status result;
+  if (key_type == attrString) {
+    result = get_key_helper(key, key_type, keylen);
+  } else if (key_type == attrInteger) {
+    result = get_key_helper(key, key_type, keylen);
+  } else {
+    result = get_key_helper(key, key_type, keylen);
+  }
+  return result;
+}
 
+Status SortedPage::get_key_helper(void *key, AttrType key_type,int &keylen) {
   int i, reclen;
   RID Big_rid;
   char *recPtr_comp;

@@ -174,6 +174,7 @@ int get_key_length(const void *key, const AttrType key_type) {
 /*
  * get_key_data_length: return (key+data) length in given key_type
  */
+// Hoang
 int get_key_data_length(const void *key, const AttrType key_type,
                         const nodetype ndtype) {
     bool first_condition = ((key_type == attrInteger) && (key_type != attrString));

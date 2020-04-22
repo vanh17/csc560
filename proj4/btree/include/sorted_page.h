@@ -65,6 +65,14 @@ class SortedPage : public HFPage {
 // HFPage::deleteRecord()
    Status deleteRecord(const RID& rid);
 
+
+  // Additional method added by Hoang April 10 2020, needed to modify later
+  // to make sure that we can return the key from the hash table
+  Status  get_large_key_value(AttrType key_type,void *key,int &keylen);
+
+  // Additional method added by Hoang April 10 2020, needed to modify later
+  // to make sure that we can return the key from the hash table
+  Status  get_key_helper(void *key, AttrType key_type,int &keylen);
   // The remaining functions of HFPage are still visible.
   // return number of records
   int     numberOfRecords();
@@ -75,9 +83,7 @@ class SortedPage : public HFPage {
   // get node type
   short get_type()         { return type; }
 
-  // Additional method added by Hoang April 10 2020, needed to modify later
-  // to make sure that we can return the key from the hash table
-  Status  Big_key(AttrType key_type,void *key,int &keylen);
+  
 
 };
 
