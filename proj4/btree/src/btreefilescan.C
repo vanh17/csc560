@@ -75,38 +75,7 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 				}
 				head_ptr = nxt_ptr;
 			} else {
-				PageId nxt_page = leaf_page->getPrevPage();
-
-				if (nxt_page < 0) {
-					return DONE; // final page , return
-				}
-
-				MINIBASE_DB->read_page(nxt_page, currPage); // read the page from DB
-
-				leaf_page = (BTLeafPage *)currPage;
-				if (leaf_page->empty()) {
-					return DONE; // empty page . return DONE
-				}
-				leaf_page->firstRecord(head_ptr);
-				// reach final page and reach high key rid , stop
-				if (nxt_page == this->end && head_ptr.slotNo >= this->R_End.slotNo) {
-					return DONE;
-				}
-				leaf_page->HFPage::returnRecord(head_ptr, recChar, recordSize);
-				if (this->keytype == attrInteger) {
-					Key_Int *a = (Key_Int *)recChar;
-					memcpy(keyptr, &(a->intkey), sizeof(int));
-
-					rid = a->data.rid;
-				}
-				else if (this->keytype == attrString)
-				{
-					Key_string *a = (Key_string *)recChar;
-
-					memcpy(keyptr, a->charkey, sizeof(a->charkey));
-
-					rid = a->data.rid;
-				}
+				get_next_not_initial(keyptr, currPage);
 			}
 		}
 		delete currPage; //delete here to avoid overflow error.
@@ -118,6 +87,38 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 	return OK;
 }
 
+void BTreeFileScan::get_next_not_initial(void* keyptr, Page* currPage) {
+	PageId nxt_page = leaf_page->getPrevPage();
+	if (nxt_page < 0) {
+		return DONE; // final page , return
+	}
+
+	MINIBASE_DB->read_page(nxt_page, currPage); // read the page from DB
+
+	leaf_page = (BTLeafPage *)currPage;
+	if (leaf_page->empty()) {
+		return DONE; // empty page . return DONE
+	}
+	leaf_page->firstRecord(head_ptr);
+	// reach final page and reach high key rid , stop
+	if (nxt_page == this->end && head_ptr.slotNo >= this->R_End.slotNo) {
+		return DONE;
+	}
+	leaf_page->HFPage::returnRecord(head_ptr, recChar, recordSize);
+	if (this->keytype == attrInteger) {
+		Key_Int *a = (Key_Int *)recChar;
+		memcpy(keyptr, &(a->intkey), sizeof(int));
+
+		rid = a->data.rid;
+	}
+	else if (this->keytype == attrString) {
+		Key_string *a = (Key_string *)recChar;
+
+		memcpy(keyptr, a->charkey, sizeof(a->charkey));
+
+		rid = a->data.rid;
+	}
+}
 // Hoang
 Status BTreeFileScan::delete_current() {
 	Status delete_status = leaf_page->HFPage::deleteRecord(head_ptr);
