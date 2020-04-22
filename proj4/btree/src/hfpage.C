@@ -307,6 +307,7 @@ Status HFPage::returnRecord(RID rid, char *&recPtr, int &recLen) {
 
 // **********************************************************
 // Returns the amount of available space on the heap file page
+// Hoang
 int HFPage::available_space(void) {
   freeSpace = usedPtr - (slotCnt - 1) * (sizeof(slot_t));
     for (int i = 0; i < slotCnt; i++) {
@@ -321,13 +322,15 @@ int HFPage::available_space(void) {
 // **********************************************************
 // Returns 1 if the HFPage is empty, and 0 otherwise.
 // It scans the slot directory looking for a non-empty slot.
-bool HFPage::empty(void)
-{
-  short size = this->available_space();
-  short diff = 1000 - size;
-  if (diff == 0)
-    return true;
-  else
-    return false;
-  // fill in the body
+// Hoang
+bool HFPage::empty(void) {
+  int i = 0;
+    bool result = true;
+    while (i <= slotCnt - 1) {
+        if (slot[i].offset != -1) {
+            result = false;
+        }
+        i++;
+    }
+    return result;
 }
