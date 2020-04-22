@@ -272,7 +272,7 @@ Status HFPage::getRecord(RID rid, char *recPtr, int &recLen) {
   slot_t *slot_id = (slot_t *)(slot_char);  
   if (rid.slotNo >= 1) {
     memcpy(recPtr, &(this->data[slot_id->offset]), slot_id->length);
-    recLen = slot_rid->length;
+    recLen = slot_id->length;
   } else if (result_checker) {
     checker_for_slot++;
   } else {
