@@ -22,40 +22,33 @@
  *   - key1 == key2 : 0
  *   - key1  > key2 : positive
  */
-int keyCompare(const void *key1, const void *key2, AttrType t)
-{
-
-    if (t == attrInteger)
-    {
-        int *c = (int *)key1;
-        int *d = (int *)key2;
-        if (*c > *d)
-            return 1;
-        else if (*c < *d)
-            return -1;
-        else
-            return 0;
-        //  break;
+// Hoang
+int keyCompare(const void *key1, const void *key2, AttrType t) {
+    int result;
+    bool first_condition = ((t == attrInteger) && (t != attrString));
+    int * int1= (int *)key1; int *int2 = (int *)key2;
+    bool second_condition = ((t != attrInteger) && (t == attrString));
+    char *char2 = (char *)key1; char *char2 = (char *)key2;
+    if (first_condition) {  
+        if (*int1 < *int2) {
+            result =  -1;
+        }
+        if (*int1 < *int2) {
+            result =  1;
+        }
+        return result;
     }
-    else if (t == attrString)
-    {
-        char *a = (char *)key1;
-        char *b = (char *)key2;
-        if (strcmp(a, b) > 0)
-            return 1;
-        else if (strcmp(a, b) < 0)
-            return -1;
-        else
-            return 0;
-        //  break;
+    else if (second_condition) {
+        if (strcmp(char1, char2) > 0) {
+            result = 1;
+        }
+        else if (strcmp(char1, char2) < 0)
+            result = -1;
+        return result;
+    } else { // not string, or integer, just return a value to track the error
+        return -100;
     }
-    else
-
-        cout << "Error: AttrType dose not belong int or string" << endl;
-    //   break;
-
-    // put your code here
-    return -100;
+    return -2000;
 }
 
 /*
@@ -65,45 +58,53 @@ int keyCompare(const void *key1, const void *key2, AttrType t)
  * Ensures that <data> part begins at an offset which is an even 
  * multiple of sizeof(PageNo) for alignment purposes.
  */
+// Hoang
 void make_entry(KeyDataEntry *target,
                 AttrType key_type, const void *key,
                 nodetype ndtype, Datatype data,
-                int *pentry_len)
-{
-    if (key_type == attrInteger)
-    {
-        int *a = (int *)key;
-        (*target).key.intkey = *a;
-        if (ndtype == INDEX)
-        {
-
-            (*target).data.pageNo = data.pageNo;
-            *pentry_len = sizeof(int) + sizeof(PageId);
+                int *pentry_len) {
+    bool first_condition = ((key_type == attrInteger) && (key_type != attrString));
+    int *int1 = (int *)key; int checker_for_entry;
+    bool second_condition = ((key_type != attrInteger) && (key_type == attrString));
+    if (first_condition) {
+        (*target).key.intkey = *int1;
+        first_condition = ndtype != INDEX;
+        if (first_condition) {
+            *pentry_len = sizeof(int) + sizeof(RID); 
+                // update the rid in the target pointer
+                (*target).data.rid = data.rid;
         }
-        else
-        {
-            (*target).data.rid = data.rid;
-            *pentry_len = sizeof(int) + sizeof(RID);
+        else {
+            if (!checker_for_entry) {
+                int set_pentry_len = 4*sizeof(key) + 4*sizeof(RID);
+                *pentry_len = set_pentry_len/4;
+
+            (*target).data.pageNo = data.pageNo; //set new entry to the database
+            
+            }
+            
         }
     }
-    else if (key_type == attrString)
-    {
+    if (second_condition) {
 
         char *d = (char *)key;
         strcpy((*target).key.charkey, d);
-        if (ndtype == INDEX)
-        {
-            (*target).data.pageNo = data.pageNo;
-            *pentry_len = sizeof(key) + sizeof(PageId);
+        second_condition = ndtype == INDEX;
+        if (second_condition) {
+            int set_pentry_len = 4*sizeof(key) + 4*sizeof(RID);
+            *pentry_len = set_pentry_len/4;
+
+            (*target).data.pageNo = data.pageNo;     
         }
-        else
-        {
+        if (!second_condition) {
+            int set_pentry_len = 4*sizeof(key) + 4*sizeof(RID);
+
+            *pentry_len = set_pentry_len/4;
+
             (*target).data.rid = data.rid;
-            *pentry_len = sizeof(key) + sizeof(RID);
+            
         }
     }
-    else
-        std::cout << "Wrong key type " << endl;
     // put your code here
     return;
 }
