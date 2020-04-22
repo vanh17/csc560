@@ -10,6 +10,7 @@
  * Note: BTreeFileScan uses the same errors as BTREE since its code basically 
  * BTREE things (traversing trees).
  */
+// Hoang
 BTreeFileScan::~BTreeFileScan() {
 	// set head and tail to the same thing.
 	begin = 0; end = 0;
@@ -18,18 +19,15 @@ BTreeFileScan::~BTreeFileScan() {
 
 Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 	if (begin != -1) {
-		int rec_Len;
-		Status leaf_Read;
-		char *recPtr_comp;
-	
-		PageId pageNo;
-		Page *leaf_read = new Page();
 		RID curr;
+		char *recChar; //declare pointer to char of record
+		int recordSize; // initialize record size
+		PageId page_id = begin; Page *currPage = new Page(); //initialize the beginning and currPage to keep track of
+		// the current page
 		if (flag_init == false) {
 			// scan first element
-			pageNo = this->begin;
-			leaf_Read = MINIBASE_DB->read_page(pageNo, leaf_read);
-			memcpy(leaf_page, leaf_read, sizeof(Page));
+			MINIBASE_DB->read_page(page_id, currPage); // read from DB
+			memcpy(leaf_page, currPage, sizeof(Page));
 			// find the first record  of a leaf page
 			leaf_page->firstRecord(head_ptr);
 			while (head_ptr.slotNo < this->R_Start.slotNo) {
@@ -38,15 +36,15 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 			}
 
 			// get the first record of a leaf page
-			leaf_page->HFPage::returnRecord(head_ptr, recPtr_comp, rec_Len);
+			leaf_page->HFPage::returnRecord(head_ptr, recChar, recordSize);
 			if (this->keytype != attrString) {
-				Key_Int *a = (Key_Int *)recPtr_comp;
+				Key_Int *a = (Key_Int *)recChar;
 
 				memcpy(keyptr, &(a->intkey), sizeof(int));
 				rid = a->data.rid;
 			}
 			else if (this->keytype == attrString) {
-				Key_string *a = (Key_string *)recPtr_comp;
+				Key_string *a = (Key_string *)recChar;
 
 				memcpy(keyptr, a->charkey, sizeof(a->charkey));
 
@@ -59,17 +57,17 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 				// reach the end (the high key), stop
 				if (nxt_ptr.pageNo == this->end && nxt_ptr.slotNo > this->R_End.slotNo)
 					return DONE;
-				leaf_page->HFPage::returnRecord(nxt_ptr, recPtr_comp, rec_Len);
+				leaf_page->HFPage::returnRecord(nxt_ptr, recChar, recordSize);
 
 				if (this->keytype != attrString) {
-					Key_Int *a = (Key_Int *)recPtr_comp;
+					Key_Int *a = (Key_Int *)recChar;
 
 					memcpy(keyptr, &(a->intkey), sizeof(int));
 
 					rid = a->data.rid;
 				}
 				else if (this->keytype == attrString) {
-					Key_string *a = (Key_string *)recPtr_comp;
+					Key_string *a = (Key_string *)recChar;
 
 					memcpy(keyptr, a->charkey, sizeof(a->charkey));
 
@@ -79,28 +77,31 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 			} else {
 				PageId nxt_page = leaf_page->getPrevPage();
 
-				if (nxt_page < 0)
+				if (nxt_page < 0) {
 					return DONE; // final page , return
+				}
 
-				leaf_Read = MINIBASE_DB->read_page(nxt_page, leaf_read);
+				MINIBASE_DB->read_page(nxt_page, currPage); // read the page from DB
 
-				leaf_page = (BTLeafPage *)leaf_read;
-				if (leaf_page->empty())
+				leaf_page = (BTLeafPage *)currPage;
+				if (leaf_page->empty()) {
 					return DONE; // empty page . return DONE
+				}
 				leaf_page->firstRecord(head_ptr);
 				// reach final page and reach high key rid , stop
-				if (nxt_page == this->end && head_ptr.slotNo >= this->R_End.slotNo)
+				if (nxt_page == this->end && head_ptr.slotNo >= this->R_End.slotNo) {
 					return DONE;
-				leaf_page->HFPage::returnRecord(head_ptr, recPtr_comp, rec_Len);
+				}
+				leaf_page->HFPage::returnRecord(head_ptr, recChar, recordSize);
 				if (this->keytype == attrInteger) {
-					Key_Int *a = (Key_Int *)recPtr_comp;
+					Key_Int *a = (Key_Int *)recChar;
 					memcpy(keyptr, &(a->intkey), sizeof(int));
 
 					rid = a->data.rid;
 				}
 				else if (this->keytype == attrString)
 				{
-					Key_string *a = (Key_string *)recPtr_comp;
+					Key_string *a = (Key_string *)recChar;
 
 					memcpy(keyptr, a->charkey, sizeof(a->charkey));
 
@@ -108,7 +109,7 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 				}
 			}
 		}
-		delete leaf_read;
+		delete int recordSize; //delete here to avoid overflow error.
 		// put your code here
 		
 	} else { 
@@ -117,6 +118,7 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 	return OK;
 }
 
+// Hoang
 Status BTreeFileScan::delete_current() {
 	Status delete_status = leaf_page->HFPage::deleteRecord(head_ptr);
 	if (delete_status != OK) {
@@ -126,6 +128,7 @@ Status BTreeFileScan::delete_current() {
 	}
 }
 
+//Hoang
 int BTreeFileScan::keysize() {
 	bool first_condition = (keytype == attrString);
 	bool second_condition = keytype == attrInteger;
