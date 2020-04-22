@@ -296,7 +296,7 @@ Status HFPage::returnRecord(RID rid, char *&recPtr, int &recLen) {
     recLen = slot[0].length;
     recPtr = &data[slot[0].offset];
   } else if (rid.slotNo >= 1) {
-    recLen = slot_id->length; recPtr = &data[rid_slot->offset]; 
+    recLen = slot_id->length; recPtr = &data[slot_id->offset]; 
   } else {
     is_factor = true;
     cout << "Nothing works here"<<endl;
