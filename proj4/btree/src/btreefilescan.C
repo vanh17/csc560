@@ -34,6 +34,7 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 			while (first_condition) {
 				leaf_page->nextRecord(head_ptr, nxt_ptr);
 				head_ptr = nxt_ptr;
+				first_condition = head_ptr.slotNo < R_Start.slotNo;
 			}
 			leaf_page->HFPage::returnRecord(head_ptr, recChar, recordSize);
 			second_condition = keytype != attrString;
