@@ -24,7 +24,7 @@
  */
 // Hoang
 int keyCompare(const void *key1, const void *key2, AttrType t) {
-    int result;
+    int result = 0;
     bool first_condition = ((t == attrInteger) && (t != attrString));
     
     bool second_condition = ((t != attrInteger) && (t == attrString));
@@ -46,13 +46,14 @@ int keyCompare(const void *key1, const void *key2, AttrType t) {
         if (strcmp(char1, char2) > 0) {
             result = 1;
         }
-        else if (strcmp(char1, char2) < 0)
+        if (strcmp(char1, char2) < 0) {
             result = -1;
+        }
         return result;
     } else { // not string, or integer, just return a value to track the error
         return -100;
     }
-    return -2000;
+    return -100;
 }
 
 /*
@@ -68,7 +69,7 @@ void make_entry(KeyDataEntry *target,
                 nodetype ndtype, Datatype data,
                 int *pentry_len) {
     bool first_condition = ((key_type == attrInteger) && (key_type != attrString));
-     int checker_for_entry;
+    int checker_for_entry = 1;
     bool second_condition = ((key_type != attrInteger) && (key_type == attrString));
     if (first_condition) {
         int *int1 = (int *)key;
@@ -77,14 +78,14 @@ void make_entry(KeyDataEntry *target,
         if (first_condition) {
             *pentry_len = sizeof(int) + sizeof(RID); 
                 // update the rid in the target pointer
-                (*target).data.rid = data.rid;
+            (*target).data.rid = data.rid;
         }
         else {
-            if (!checker_for_entry) {
+            if (checker_for_entry) {
                 int set_pentry_len = 4*sizeof(key) + 4*sizeof(RID);
                 *pentry_len = set_pentry_len/4;
 
-            (*target).data.pageNo = data.pageNo; //set new entry to the database
+                (*target).data.pageNo = data.pageNo; //set new entry to the database
             
             }
             
