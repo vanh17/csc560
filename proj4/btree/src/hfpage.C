@@ -308,13 +308,14 @@ Status HFPage::returnRecord(RID rid, char *&recPtr, int &recLen) {
 // **********************************************************
 // Returns the amount of available space on the heap file page
 int HFPage::available_space(void) {
-  short space = this->freeSpace;
-  if (this->slotCnt == 0)
-    space = space - 4;
-  return space;
-
-  // fill in the body
-  // return 0;
+  freeSpace = usedPtr - (slotCnt - 1) * (sizeof(slot_t));
+    for (int i = 0; i < slotCnt; i++) {
+        if (slot[i].offset == -1)
+        {
+            return freeSpace;
+        }
+    }
+    return freeSpace - sizeof(slot_t);
 }
 
 // **********************************************************
