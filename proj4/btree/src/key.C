@@ -31,7 +31,7 @@ int keyCompare(const void *key1, const void *key2, AttrType t) {
     
     if (first_condition) {  
         int * int1= (int *)key1; int *int2 = (int *)key2;
-        
+
         if (*int1 < *int2) {
             result =  -1;
         }
@@ -41,7 +41,7 @@ int keyCompare(const void *key1, const void *key2, AttrType t) {
         return result;
     }
     else if (second_condition) {
-        char *char2 = (char *)key1; char *char2 = (char *)key2;
+        char *char1 = (char *)key1; char *char2 = (char *)key2;
 
         if (strcmp(char1, char2) > 0) {
             result = 1;
@@ -68,9 +68,10 @@ void make_entry(KeyDataEntry *target,
                 nodetype ndtype, Datatype data,
                 int *pentry_len) {
     bool first_condition = ((key_type == attrInteger) && (key_type != attrString));
-    int *int1 = (int *)key; int checker_for_entry;
+     int checker_for_entry;
     bool second_condition = ((key_type != attrInteger) && (key_type == attrString));
     if (first_condition) {
+        int *int1 = (int *)key;
         (*target).key.intkey = *int1;
         first_condition = ndtype != INDEX;
         if (first_condition) {
@@ -90,10 +91,11 @@ void make_entry(KeyDataEntry *target,
         }
     }
     if (second_condition) {
-
-        char *d = (char *)key;
-        strcpy((*target).key.charkey, d);
+        
         second_condition = ndtype == INDEX;
+        char *str1 = (char *)key;
+        strcpy((*target).key.charkey, str1);
+        
         if (second_condition) {
             int set_pentry_len = 4*sizeof(key) + 4*sizeof(RID);
             *pentry_len = set_pentry_len/4;
