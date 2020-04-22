@@ -263,7 +263,6 @@ Status HFPage::nextRecord(RID curRid, RID &nextRid) {
 // **********************************************************
 // returns length and copies out record with RID rid
 // Hoang
-
 Status HFPage::getRecord(RID rid, char *recPtr, int &recLen) {
   char slot_char[sizeof(slot_t)];
   memcpy(slot_char, &data[(rid.slotNo - 1)*sizeof(slot_t)], sizeof(slot_t)); 
@@ -290,25 +289,13 @@ Status HFPage::getRecord(RID rid, char *recPtr, int &recLen) {
 // in recPtr.
 Status HFPage::returnRecord(RID rid, char *&recPtr, int &recLen)
 {
-  short offset_rid = rid.slotNo;
-  short Begin_slot_address, record_offset;
-  char slot_char[sizeof(slot_t)];
-  Begin_slot_address = (offset_rid - 1) * sizeof(slot_t); //get offset of record
-  memcpy(slot_char, &data[Begin_slot_address], sizeof(slot_t));
-  slot_t *rid_slot = (slot_t *)(slot_char);
-  if (rid.slotNo >= 1)
-  {
-
-    recPtr = &this->data[rid_slot->offset]; //get first address of record
-    recLen = rid_slot->length;
-  }
-  else
-  {
-    recLen = this->slot[0].length;
-    recPtr = &this->data[slot[0].offset];
-  }
-
-  return OK;
+  if ((rid.slotNo > slotCnt) | (rid.slotNo < 0) | (rid.pageNo != curPage)) {
+        return FAIL;
+    }
+    recLen = slot[rid.slotNo].length;
+    // else just simply return the refernce to the update data slot for returning the Recods
+    recPtr = &data[slot[rid.slotNo].offset + sizeof(slot_t) * rid.slotNo - recLen];
+    return OK;
 }
 
 // **********************************************************
