@@ -22,10 +22,10 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 		RID curr;
 		char *recChar; //declare pointer to char of record
 		int recordSize; // initialize record size
-		PageId page_id = begin; Page *currPage = new Page(); //initialize the beginning and currPage to keep track of
+		PageId page_id; Page *currPage = new Page(); //initialize the beginning and currPage to keep track of
 		// the current page
 		if (flag_init == false) {
-			// scan first element
+			page_id = begin;
 			MINIBASE_DB->read_page(page_id, currPage); // read from DB
 			memcpy(leaf_page, currPage, sizeof(Page));
 			// find the first record  of a leaf page
