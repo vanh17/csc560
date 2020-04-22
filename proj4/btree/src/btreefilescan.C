@@ -54,9 +54,28 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 			flag_init = true;
 		} else {
 			if (leaf_page->nextRecord(head_ptr, nxt_ptr) == OK) {
-				// reach the end (the high key), stop
-				if (nxt_ptr.pageNo == this->end && nxt_ptr.slotNo > this->R_End.slotNo)
+				if (get_next_helper(rid, keyptr, recChar, recordSize)==2) {
 					return DONE;
+				}
+			} else {
+				if (get_next_not_initial(rid, keyptr, currPage, recChar, recordSize) == 2) {
+					return DONE;
+				}
+			}
+		}
+		delete currPage; //delete here to avoid overflow error.
+		// put your code here
+		
+	} else { 
+		return DONE; cout <<" Done here nothing else to do" << endl;
+	}
+	return OK;
+}
+
+/*************************** Hepers Implementation *********************************************************************/
+int BTreeFileScan::get_next_helper(RID &rid, void* keyptr, char* recChar, int recordSize) {
+	if (nxt_ptr.pageNo == this->end && nxt_ptr.slotNo > this->R_End.slotNo)
+					return 2;
 				leaf_page->HFPage::returnRecord(nxt_ptr, recChar, recordSize);
 
 				if (this->keytype != attrString) {
@@ -74,21 +93,8 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 					rid = a->data.rid;
 				}
 				head_ptr = nxt_ptr;
-			} else {
-				if (get_next_not_initial(rid, keyptr, currPage, recChar, recordSize) == 2) {
-					return DONE;
-				}
-			}
-		}
-		delete currPage; //delete here to avoid overflow error.
-		// put your code here
-		
-	} else { 
-		return DONE; cout <<" Done here nothing else to do" << endl;
-	}
-	return OK;
+				return 1;
 }
-
 int BTreeFileScan::get_next_not_initial(RID &rid, void* keyptr, Page* currPage, char* recChar, int recordSize) {
 	PageId nxt_page = leaf_page->getPrevPage();
 	if (nxt_page < 0) {

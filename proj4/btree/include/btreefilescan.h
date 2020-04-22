@@ -37,8 +37,9 @@ public:
     RID head_ptr, nxt_ptr; // set the pointer to track of the rid in the scan.
 
     BTLeafPage *leaf_page = new BTLeafPage();
-
+    // declaration of helper functions
     int get_next_not_initial(RID &rid, void* keyptr, Page* currPage, char* recChar, int recordSize);
+    int get_next_helper(RID &rid, void* keyptr, char* recChar, int recordSize);
 
     // destructor
     ~BTreeFileScan();
