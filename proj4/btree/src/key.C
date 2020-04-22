@@ -35,7 +35,7 @@ int keyCompare(const void *key1, const void *key2, AttrType t) {
         if (*int1 < *int2) {
             result =  -1;
         }
-        if (*int1 < *int2) {
+        if (*int1 > *int2) {
             result =  1;
         }
         return result;
