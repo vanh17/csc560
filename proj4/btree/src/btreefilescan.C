@@ -22,10 +22,11 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 		RID curr;
 		char *recChar; //declare pointer to char of record
 		int recordSize; // initialize record size
-		PageId page_id = begin; Page *currPage = new Page(); //initialize the beginning and currPage to keep track of
+		PageId page_id; Page *currPage = new Page(); //initialize the beginning and currPage to keep track of
 		bool checker_for_slot;
 		bool first_condition, second_condition, third_condition;
 		if (flag_init == false) {
+			page_id = begin;
 			MINIBASE_DB->read_page(page_id, currPage); // read from DB
 			memcpy(leaf_page, currPage, sizeof(Page));
 			leaf_page->firstRecord(head_ptr);
@@ -34,8 +35,8 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 				leaf_page->nextRecord(head_ptr, nxt_ptr);
 				head_ptr = nxt_ptr;
 			}
-			second_condition = keytype != attrString;
 			leaf_page->HFPage::returnRecord(head_ptr, recChar, recordSize);
+			second_condition = keytype != attrString;
 			if (second_condition) {
 				Key_Int *integer = (Key_Int *)recChar;
 				memcpy(keyptr, &(integer->intkey), sizeof(int));
