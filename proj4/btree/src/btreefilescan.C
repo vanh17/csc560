@@ -14,7 +14,7 @@
 BTreeFileScan::~BTreeFileScan() {
 	// set head and tail to the same thing.
 	begin = 0; end = 0;
-	flag_init = false;// put your code here
+	is_initialized = false;// put your code here
 }
 
 Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
@@ -25,7 +25,7 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 		PageId page_id; Page *currPage = new Page(); //initialize the beginning and currPage to keep track of
 		bool checker_for_slot;
 		bool first_condition, second_condition, third_condition;
-		if (flag_init == false) {
+		if (is_initialized == false) {
 			page_id = begin;
 			MINIBASE_DB->read_page(page_id, currPage); // read from DB
 			memcpy(leaf_page, currPage, sizeof(Page));
@@ -51,7 +51,7 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 				checker_for_slot = true;
 			}
 
-			flag_init = true;
+			is_initialized = true;
 		} else {
 			if (leaf_page->nextRecord(head_ptr, nxt_ptr) == OK) {
 				if (get_next_helper(rid, keyptr, recChar, recordSize)==2) {
@@ -73,61 +73,62 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 }
 
 /*************************** Hepers Implementation *********************************************************************/
+// Hoang
 int BTreeFileScan::get_next_helper(RID &rid, void* keyptr, char* recChar, int recordSize) {
-	if (nxt_ptr.pageNo == this->end && nxt_ptr.slotNo > this->R_End.slotNo)
-					return 2;
-				leaf_page->HFPage::returnRecord(nxt_ptr, recChar, recordSize);
-
-				if (this->keytype != attrString) {
-					Key_Int *a = (Key_Int *)recChar;
-
-					memcpy(keyptr, &(a->intkey), sizeof(int));
-
-					rid = a->data.rid;
-				}
-				else if (this->keytype == attrString) {
-					Key_string *a = (Key_string *)recChar;
-
-					memcpy(keyptr, a->charkey, sizeof(a->charkey));
-
-					rid = a->data.rid;
-				}
-				head_ptr = nxt_ptr;
-				return 1;
+	bool first_condition, second_condition, third_condition;
+	first_condition = nxt_ptr.pageNo == end;
+	second_condition = nxt_ptr.slotNo > R_End.slotNo
+	if (first_condition && second_condition) {
+		return 2;
+	}
+	leaf_page->HFPage::returnRecord(nxt_ptr, recChar, recordSize);
+	first_condition = keytype != attrString;
+	if (first_condition) {
+		Key_Int *integer = (Key_Int *)recChar;
+		memcpy(keyptr, &(integer->intkey), sizeof(int));
+		rid = integer->data.rid;
+	}
+	else if (!first_condition) {
+		Key_string *str = (Key_string *)recChar;
+		memcpy(keyptr, str->charkey, sizeof(str->charkey));
+		rid = str->data.rid;
+	}
+	head_ptr = nxt_ptr;return 1;
 }
+// Hoang
 int BTreeFileScan::get_next_not_initial(RID &rid, void* keyptr, Page* currPage, char* recChar, int recordSize) {
 	PageId nxt_page = leaf_page->getPrevPage();
-	if (nxt_page < 0) {
-		return 2; // final page , return
+	if (nxt_page <= -1) {
+		return 2;
 	}
-
-	MINIBASE_DB->read_page(nxt_page, currPage); // read the page from DB
-
+	MINIBASE_DB->read_page(nxt_page, currPage);
 	leaf_page = (BTLeafPage *)currPage;
-	if (leaf_page->empty()) {
-		return 2; // empty page . return DONE
-	}
-	leaf_page->firstRecord(head_ptr);
+	if (leaf_page->empty() == false) {
+		
+		leaf_page->firstRecord(head_ptr);
 	// reach final page and reach high key rid , stop
 	if (nxt_page == this->end && head_ptr.slotNo >= this->R_End.slotNo) {
 		return 2;
 	}
 	leaf_page->HFPage::returnRecord(head_ptr, recChar, recordSize);
 	if (this->keytype == attrInteger) {
-		Key_Int *a = (Key_Int *)recChar;
-		memcpy(keyptr, &(a->intkey), sizeof(int));
+		Key_Int *integer = (Key_Int *)recChar;
+		memcpy(keyptr, &(integer->intkey), sizeof(int));
 
-		rid = a->data.rid;
+		rid = integer->data.rid;
 	}
 	else if (this->keytype == attrString) {
-		Key_string *a = (Key_string *)recChar;
-
-		memcpy(keyptr, a->charkey, sizeof(a->charkey));
-
-		rid = a->data.rid;
+		Key_string *str = (Key_string *)recChar;
+		memcpy(keyptr, str->charkey, sizeof(str->charkey));
+		rid = str->data.rid;
 	}
+	} else {
+		return 2;
+	}
+	
 	return 1;
 }
+
 // Hoang
 Status BTreeFileScan::delete_current() {
 	Status delete_status = leaf_page->HFPage::deleteRecord(head_ptr);

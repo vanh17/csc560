@@ -32,7 +32,7 @@ public:
 
     int keysize(); // size of the key
 
-    bool flag_init;
+    bool is_initialized;
 
     RID head_ptr, nxt_ptr; // set the pointer to track of the rid in the scan.
 
