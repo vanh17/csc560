@@ -38,7 +38,7 @@ public:
 
     BTLeafPage *leaf_page = new BTLeafPage();
 
-    void get_next_not_initial(void* keyptr, Page* currPage);
+    int get_next_not_initial(RID &rid, void* keyptr, Page* currPage);
 
     // destructor
     ~BTreeFileScan();

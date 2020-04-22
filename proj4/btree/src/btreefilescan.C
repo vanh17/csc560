@@ -75,7 +75,9 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 				}
 				head_ptr = nxt_ptr;
 			} else {
-				get_next_not_initial(keyptr, currPage);
+				if (get_next_not_initial(rid, keyptr, currPage) == 2) {
+					return DONE;
+				}
 			}
 		}
 		delete currPage; //delete here to avoid overflow error.
@@ -87,22 +89,22 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 	return OK;
 }
 
-void BTreeFileScan::get_next_not_initial(void* keyptr, Page* currPage) {
+int BTreeFileScan::get_next_not_initial(RID &rid, void* keyptr, Page* currPage) {
 	PageId nxt_page = leaf_page->getPrevPage();
 	if (nxt_page < 0) {
-		return DONE; // final page , return
+		return 2; // final page , return
 	}
 
 	MINIBASE_DB->read_page(nxt_page, currPage); // read the page from DB
 
 	leaf_page = (BTLeafPage *)currPage;
 	if (leaf_page->empty()) {
-		return DONE; // empty page . return DONE
+		return 2; // empty page . return DONE
 	}
 	leaf_page->firstRecord(head_ptr);
 	// reach final page and reach high key rid , stop
 	if (nxt_page == this->end && head_ptr.slotNo >= this->R_End.slotNo) {
-		return DONE;
+		return 2;
 	}
 	leaf_page->HFPage::returnRecord(head_ptr, recChar, recordSize);
 	if (this->keytype == attrInteger) {
@@ -118,6 +120,7 @@ void BTreeFileScan::get_next_not_initial(void* keyptr, Page* currPage) {
 
 		rid = a->data.rid;
 	}
+	return 1;
 }
 // Hoang
 Status BTreeFileScan::delete_current() {
