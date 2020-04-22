@@ -36,7 +36,7 @@ public:
 
     RID head_ptr, nxt_ptr; // set the pointer to track of the rid in the scan.
 
-    BTLeafPage *leaf_page;
+    BTLeafPage *leaf_page = new BTLeafPage();
 
     // destructor
     ~BTreeFileScan();
