@@ -160,7 +160,8 @@ int get_key_length(const void *key, const AttrType key_type) {
         len =  sizeof(int);
     else if (second_condition){
         char *str = (char *)key;
-        len = str.size();
+        string str1 = str;
+        len = str1.size();
     }
     else {
         len =  0; //nothing a key value rigth
