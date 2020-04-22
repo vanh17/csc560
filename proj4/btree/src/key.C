@@ -26,10 +26,12 @@
 int keyCompare(const void *key1, const void *key2, AttrType t) {
     int result;
     bool first_condition = ((t == attrInteger) && (t != attrString));
-    int * int1= (int *)key1; int *int2 = (int *)key2;
+    
     bool second_condition = ((t != attrInteger) && (t == attrString));
-    char *char2 = (char *)key1; char *char2 = (char *)key2;
+    
     if (first_condition) {  
+        int * int1= (int *)key1; int *int2 = (int *)key2;
+        
         if (*int1 < *int2) {
             result =  -1;
         }
@@ -39,6 +41,8 @@ int keyCompare(const void *key1, const void *key2, AttrType t) {
         return result;
     }
     else if (second_condition) {
+        char *char2 = (char *)key1; char *char2 = (char *)key2;
+
         if (strcmp(char1, char2) > 0) {
             result = 1;
         }
