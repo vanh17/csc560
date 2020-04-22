@@ -109,7 +109,7 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 				}
 			}
 		}
-		delete int recordSize; //delete here to avoid overflow error.
+		delete leaf_page; //delete here to avoid overflow error.
 		// put your code here
 		
 	} else { 
