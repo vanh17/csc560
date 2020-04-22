@@ -77,7 +77,7 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 int BTreeFileScan::get_next_helper(RID &rid, void* keyptr, char* recChar, int recordSize) {
 	bool first_condition, second_condition, third_condition;
 	first_condition = nxt_ptr.pageNo == end;
-	second_condition = nxt_ptr.slotNo > R_End.slotNo
+	second_condition = nxt_ptr.slotNo > R_End.slotNo;
 	if (first_condition && second_condition) {
 		return 2;
 	}
