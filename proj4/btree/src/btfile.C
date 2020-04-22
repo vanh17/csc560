@@ -226,7 +226,7 @@ Status BTreeFile::insert(const void *key, const RID rid)
     {
       int keylen;
 
-      leaf->Big_key(key_type, key2, keylen);
+      leaf->get_large_key_value(key_type, key2, keylen);
 
       char temp[keylen];
       memcpy(temp, key2, keylen);
@@ -246,7 +246,7 @@ Status BTreeFile::insert(const void *key, const RID rid)
           index_insert = MINIBASE_DB->read_page(index_page_no, leaf_write);
           BTIndexPage *index3 = (BTIndexPage *)leaf_write;
           root_insert = index3->insertKey(key3, key_type, leav_rid.pageNo, root_rid); // find index page number and insert
-          index3->Big_key(key_type, key_insert, keylen);                              // get the biggest key of index page
+          index3->get_large_key_value(key_type, key_insert, keylen);                              // get the biggest key of index page
           if (keyCompare(key3, key_insert, key_type) <= 0)                            // key bigger than root node key, update key in root node
           {
             root->deleteKey(key3, key_type, rid1);
@@ -262,9 +262,9 @@ Status BTreeFile::insert(const void *key, const RID rid)
           index_insert = MINIBASE_DB->read_page(index_page_no, leaf_write); // go to right index page
           BTIndexPage *index3 = (BTIndexPage *)leaf_write;
           root_insert = index3->insertKey(key3, key_type, leav_rid.pageNo, root_rid); // insert key
-          index3->Big_key(key_type, key_insert, keylen);                              // get the biggest key of index page
+          index3->get_large_key_value(key_type, key_insert, keylen);                              // get the biggest key of index page
                                                                                       //update key in the root node (more bigger than before)
-          root->Big_key(key_type, key_insert, keylen);
+          root->get_large_key_value(key_type, key_insert, keylen);
           root->deleteKey(key_insert, key_type, rid1);
           root_insert = root->insertKey(key3, key_type, index_page_no, leav_rid);
           leaf_write = (Page *)index3;
@@ -458,7 +458,7 @@ Status BTreeFile::insert(const void *key, const RID rid)
         }
 
         int keylen;
-        leaf2->Big_key(key_type, key2, keylen); // get the biggest key of page
+        leaf2->get_large_key_value(key_type, key2, keylen); // get the biggest key of page
         char temp[keylen];
         memcpy(temp, key2, keylen);
         const void *key3 = temp;
@@ -478,7 +478,7 @@ Status BTreeFile::insert(const void *key, const RID rid)
             index_insert = MINIBASE_DB->read_page(index_page_no, leaf_write);
             BTIndexPage *index3 = (BTIndexPage *)leaf_write;
             root_insert = index3->insertKey(key3, key_type, leav_rid.pageNo, root_rid);
-            index3->Big_key(key_type, key_insert, keylen); // get the biggest key of page
+            index3->get_large_key_value(key_type, key_insert, keylen); // get the biggest key of page
             if (keyCompare(key3, key_insert, key_type) <= 0)
             {
               root->deleteKey(key3, key_type, rid1);
@@ -493,7 +493,7 @@ Status BTreeFile::insert(const void *key, const RID rid)
             index_insert = MINIBASE_DB->read_page(index_page_no, leaf_write);
             BTIndexPage *index3 = (BTIndexPage *)leaf_write;
             root_insert = index3->insertKey(key3, key_type, leav_rid.pageNo, root_rid);
-            index3->Big_key(key_type, key_insert, keylen); // get the biggest key of page
+            index3->get_large_key_value(key_type, key_insert, keylen); // get the biggest key of page
             root->deleteKey(key_insert, key_type, rid1);
             root_insert = root->insertKey(key3, key_type, index_page_no, leav_rid);
             leaf_write = (Page *)index3;
