@@ -140,7 +140,7 @@ int BTreeFileScan::keysize() {
 		return sizeof(int);
 		// return size of int for the size of key
 	} else {
-		return 0; // put your code here
+		return OK; // put your code here
 	}
 	return -1; // it is fine to return this to catch error
 }
