@@ -131,7 +131,7 @@ Status BTreeFileScan::delete_current() {
 
 	// cout<<"page number "<<first.pageNo<<" slot number "<<first.slotNo<<endl;
 
-	return scan_leaf->HFPage::deleteRecord(first);
+	return scan_leaf->HFPage::deleteRecord(head_ptr);
 
 	// put your code here
 	// return OK;
