@@ -24,17 +24,19 @@ public:
     Status delete_current();
 
     int keysize(); // size of the key
+    
+    bool flag_init;
 
     // destructor
     ~BTreeFileScan();
 private:
     // following added by Hoang april 10, needed to modify later
 	PageId begin;
-    PageId end;
-    AttrType keytype;
     RID  R_Start;
-    RID  R_End;
+    PageId end;
     RID  Curr_rid;
+    RID  R_End;
+    AttrType keytype;
 };
 
 #endif
