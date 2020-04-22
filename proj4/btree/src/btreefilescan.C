@@ -22,33 +22,31 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 		RID curr;
 		char *recChar; //declare pointer to char of record
 		int recordSize; // initialize record size
-		PageId page_id; Page *currPage = new Page(); //initialize the beginning and currPage to keep track of
-		// the current page
+		PageId page_id = begin; Page *currPage = new Page(); //initialize the beginning and currPage to keep track of
+		bool checker_for_slot;
+		bool first_condition, second_condition, third_condition;
 		if (flag_init == false) {
-			page_id = begin;
 			MINIBASE_DB->read_page(page_id, currPage); // read from DB
 			memcpy(leaf_page, currPage, sizeof(Page));
-			// find the first record  of a leaf page
 			leaf_page->firstRecord(head_ptr);
-			while (head_ptr.slotNo < this->R_Start.slotNo) {
+			first_condition = head_ptr.slotNo < R_Start.slotNo;
+			while (first_condition) {
 				leaf_page->nextRecord(head_ptr, nxt_ptr);
 				head_ptr = nxt_ptr;
 			}
-
-			// get the first record of a leaf page
+			second_condition = keytype != attrString;
 			leaf_page->HFPage::returnRecord(head_ptr, recChar, recordSize);
-			if (this->keytype != attrString) {
-				Key_Int *a = (Key_Int *)recChar;
-
-				memcpy(keyptr, &(a->intkey), sizeof(int));
-				rid = a->data.rid;
+			if (second_condition) {
+				Key_Int *integer = (Key_Int *)recChar;
+				memcpy(keyptr, &(integer->intkey), sizeof(int));
+				rid = integer->data.rid;
 			}
-			else if (this->keytype == attrString) {
-				Key_string *a = (Key_string *)recChar;
-
-				memcpy(keyptr, a->charkey, sizeof(a->charkey));
-
-				rid = a->data.rid;
+			else if (!second_condition) {
+				Key_string *str = (Key_string *)recChar;
+				memcpy(keyptr, str->charkey, sizeof(str->charkey));
+				rid = str->data.rid;
+			} else {
+				checker_for_slot = true;
 			}
 
 			flag_init = true;
