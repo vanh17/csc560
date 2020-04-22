@@ -175,26 +175,36 @@ int get_key_length(const void *key, const AttrType key_type) {
  * get_key_data_length: return (key+data) length in given key_type
  */
 int get_key_data_length(const void *key, const AttrType key_type,
-                        const nodetype ndtype)
-{
-
-    if (key_type == attrInteger)
-    {
+                        const nodetype ndtype) {
+    bool first_condition = ((key_type == attrInteger) && (key_type != attrString));
+    int checker_for_entry = 1;
+    bool second_condition = ((key_type != attrInteger) && (key_type == attrString));
+    if (first_condition) {
+        int total_len = sizeof(int);
         if (ndtype == INDEX)
-            return sizeof(int) + sizeof(PageId);
-        else
-            return sizeof(int) + sizeof(RID);
+            total_len += sizeof(PageId);
+        else {
+            total_len += sizeof(RID);
+        }
+        return total_len;
     }
-    else if (key_type == attrString)
-    {
-        char *a = (char *)key;
-        string len = a;
+    else if (second_condition) {
+        char *str = (char *)key;
+        string len = str;
+        int total_len = len.size() ;
         //    cout<<len.c_str()<<" key data length "<<len.size()<<endl;
-        if (ndtype == INDEX)
-            return len.size() + sizeof(PageId);
-        else
-            return len.size() + sizeof(RID);
+        if (ndtype == INDEX) {
+            total_len += sizeof(PageId);
+        }
+        else {
+            total_len += sizeof(RID);
+        }
+        return total_len;
     }
     // put your code here
-    return 0;
+    else {
+        return 0; //not a valid key so len = 0
+        cout << "Not a valid key";
+    }
+    return 0; // simply return zero here
 }
