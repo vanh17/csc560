@@ -52,15 +52,18 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 			}
 
 			is_initialized = true;
-		} else {
-			if (leaf_page->nextRecord(head_ptr, nxt_ptr) == OK) {
+		} else { // failing the condition because the next pointer exist
+			first_condition = leaf_page->nextRecord(head_ptr, nxt_ptr) == OK;
+			if (first_condition) {
 				if (get_next_helper(rid, keyptr, recChar, recordSize)==2) {
 					return DONE;
 				}
-			} else {
+			} else if (!first_condition) {
 				if (get_next_not_initial(rid, keyptr, currPage, recChar, recordSize) == 2) {
 					return DONE;
 				}
+			} else {
+				checker_for_slot = false;
 			}
 		}
 		delete currPage; //delete here to avoid overflow error.
