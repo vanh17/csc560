@@ -24,8 +24,10 @@ public:
     Status delete_current();
 
     int keysize(); // size of the key
-    
+
     bool flag_init;
+
+    RID head_ptr, nxt_ptr; // set the pointer to track of the rid in the scan.
 
     // destructor
     ~BTreeFileScan();

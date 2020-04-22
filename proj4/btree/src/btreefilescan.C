@@ -17,7 +17,6 @@
  * BTREE things (traversing trees).
  */
 BTLeafPage *scan_leaf = new BTLeafPage();
-RID first, next;
 BTreeFileScan::~BTreeFileScan() {
 	// set head and tail to the same thing.
 	begin = 0; end = 0;
@@ -39,15 +38,14 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 			leaf_Read = MINIBASE_DB->read_page(pageNo, leaf_read);
 			memcpy(scan_leaf, leaf_read, sizeof(Page));
 			// find the first record  of a leaf page
-			scan_leaf->firstRecord(first);
-			while (first.slotNo < this->R_Start.slotNo)
-			{
-				scan_leaf->nextRecord(first, next);
-				first = next;
+			scan_leaf->firstRecord(head_ptr);
+			while (head_ptr.slotNo < this->R_Start.slotNo) {
+				scan_leaf->nextRecord(head_ptr, nxt_ptr);
+				head_ptr = nxt_ptr;
 			}
 
 			// get the first record of a leaf page
-			scan_leaf->HFPage::returnRecord(first, recPtr_comp, rec_Len);
+			scan_leaf->HFPage::returnRecord(head_ptr, recPtr_comp, rec_Len);
 			if (this->keytype != attrString)
 			{
 				Key_Int *a = (Key_Int *)recPtr_comp;
@@ -66,11 +64,11 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 
 			flag_init = true;
 		} else {
-			if (scan_leaf->nextRecord(first, next) == OK) {
+			if (scan_leaf->nextRecord(head_ptr, nxt_ptr) == OK) {
 				// reach the end (the high key), stop
-				if (next.pageNo == this->end && next.slotNo > this->R_End.slotNo)
+				if (nxt_ptr.pageNo == this->end && nxt_ptr.slotNo > this->R_End.slotNo)
 					return DONE;
-				scan_leaf->HFPage::returnRecord(next, recPtr_comp, rec_Len);
+				scan_leaf->HFPage::returnRecord(nxt_ptr, recPtr_comp, rec_Len);
 
 				if (this->keytype != attrString) {
 					Key_Int *a = (Key_Int *)recPtr_comp;
@@ -87,25 +85,24 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 
 					rid = a->data.rid;
 				}
-				first = next;
+				head_ptr = nxt_ptr;
 			} else {
-				PageId next_page = scan_leaf->getPrevPage();
+				PageId nxt_page = scan_leaf->getPrevPage();
 
-				if (next_page < 0)
+				if (nxt_page < 0)
 					return DONE; // final page , return
 
-				leaf_Read = MINIBASE_DB->read_page(next_page, leaf_read);
+				leaf_Read = MINIBASE_DB->read_page(nxt_page, leaf_read);
 
 				scan_leaf = (BTLeafPage *)leaf_read;
 				if (scan_leaf->empty())
 					return DONE; // empty page . return DONE
-				scan_leaf->firstRecord(first);
+				scan_leaf->firstRecord(head_ptr);
 				// reach final page and reach high key rid , stop
-				if (next_page == this->end && first.slotNo >= this->R_End.slotNo)
+				if (nxt_page == this->end && head_ptr.slotNo >= this->R_End.slotNo)
 					return DONE;
-				scan_leaf->HFPage::returnRecord(first, recPtr_comp, rec_Len);
-				if (this->keytype == attrInteger)
-				{
+				scan_leaf->HFPage::returnRecord(head_ptr, recPtr_comp, rec_Len);
+				if (this->keytype == attrInteger) {
 					Key_Int *a = (Key_Int *)recPtr_comp;
 					memcpy(keyptr, &(a->intkey), sizeof(int));
 
@@ -130,8 +127,7 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 	return OK;
 }
 
-Status BTreeFileScan::delete_current()
-{
+Status BTreeFileScan::delete_current() {
 
 	// cout<<"page number "<<first.pageNo<<" slot number "<<first.slotNo<<endl;
 
