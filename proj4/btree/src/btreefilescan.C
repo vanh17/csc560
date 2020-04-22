@@ -15,6 +15,7 @@ BTreeFileScan::~BTreeFileScan() {
 	// set head and tail to the same thing.
 	begin = 0; end = 0;
 	flag_init = false;// put your code here
+	leaf_page = new BTLeafPage();
 }
 
 Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
