@@ -75,7 +75,7 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 				}
 				head_ptr = nxt_ptr;
 			} else {
-				if (get_next_not_initial(rid, keyptr, currPage) == 2) {
+				if (get_next_not_initial(rid, keyptr, currPage, recChar, recordSize) == 2) {
 					return DONE;
 				}
 			}
@@ -89,7 +89,7 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 	return OK;
 }
 
-int BTreeFileScan::get_next_not_initial(RID &rid, void* keyptr, Page* currPage) {
+int BTreeFileScan::get_next_not_initial(RID &rid, void* keyptr, Page* currPage, char* recChar, int recordSize) {
 	PageId nxt_page = leaf_page->getPrevPage();
 	if (nxt_page < 0) {
 		return 2; // final page , return
