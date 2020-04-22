@@ -127,11 +127,13 @@ Status BTreeFileScan::delete_current() {
 }
 
 int BTreeFileScan::keysize() {
-	if (keytype == attrString)t {
+	bool first_condition = (keytype == attrString);
+	bool second_condition = keytype == attrInteger;
+	if (first_condition) {
 		return 220;
 		
 	}
-	else if (his->keytype == attrInteger) {
+	else if (second_condition) {
 		return sizeof(int);
 		// return size of int for the size of key
 	} else {
