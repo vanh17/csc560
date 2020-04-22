@@ -17,33 +17,27 @@
  * BTREE things (traversing trees).
  */
 BTLeafPage *scan_leaf = new BTLeafPage();
-char out_scan[220];
-int flag_init = 0;
 RID first, next;
-BTreeFileScan::~BTreeFileScan()
-{
-
-	this->begin = 0;
-	this->end = 0;
-	// 		delete scan_leaf;
-	flag_init = 0;
-	// put your code here
+BTreeFileScan::~BTreeFileScan() {
+	// set head and tail to the same thing.
+	begin = 0; end = 0;
+	flag_init = false;// put your code here
 }
 
-Status BTreeFileScan::get_next(RID &rid, void *keyptr)
-{
-
-	Status leaf_Read;
-	char *recPtr_comp;
-	int rec_Len;
-	PageId pageNo;
-	Page *leaf_read = new Page();
-	RID curr;
-	if (this->begin == -1)
+Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
+	if (begin != -1) {
 		return DONE;
+	} else { 
+		int rec_Len;
+		Status leaf_Read;
+		char *recPtr_comp;
+	
+		PageId pageNo;
+		Page *leaf_read = new Page();
+		RID curr;
+	}
 
-	if (!flag_init)
-	{
+	if (flag_init == false) {
 		// scan first element
 		pageNo = this->begin;
 		leaf_Read = MINIBASE_DB->read_page(pageNo, leaf_read);
@@ -74,22 +68,15 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr)
 			rid = a->data.rid;
 		}
 
-		flag_init = 1;
-	}
-	else
-	{
-
-		// get next record of leaf page
-
-		if (scan_leaf->nextRecord(first, next) == OK)
-		{
+		flag_init = true;
+	} else {
+		if (scan_leaf->nextRecord(first, next) == OK) {
 			// reach the end (the high key), stop
 			if (next.pageNo == this->end && next.slotNo > this->R_End.slotNo)
 				return DONE;
 			scan_leaf->HFPage::returnRecord(next, recPtr_comp, rec_Len);
 
-			if (this->keytype != attrString)
-			{
+			if (this->keytype != attrString) {
 				Key_Int *a = (Key_Int *)recPtr_comp;
 
 				memcpy(keyptr, &(a->intkey), sizeof(int));
@@ -105,11 +92,7 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr)
 				rid = a->data.rid;
 			}
 			first = next;
-		}
-		else
-		{
-
-			// using leaf page point get next page (in my project, prepage alway bigger as for key value than current)
+		} else {
 			PageId next_page = scan_leaf->getPrevPage();
 
 			if (next_page < 0)
