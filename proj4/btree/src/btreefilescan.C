@@ -26,8 +26,6 @@ BTreeFileScan::~BTreeFileScan() {
 
 Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 	if (begin != -1) {
-		return DONE;
-	} else { 
 		int rec_Len;
 		Status leaf_Read;
 		char *recPtr_comp;
@@ -125,6 +123,9 @@ Status BTreeFileScan::get_next(RID &rid, void *keyptr) {
 		}
 		delete leaf_read;
 		// put your code here
+		
+	} else { 
+		return DONE; cout <<" Done here nothing else to do" << endl;
 	}
 	return OK;
 }
