@@ -287,6 +287,7 @@ Status HFPage::getRecord(RID rid, char *recPtr, int &recLen) {
 // between this and getRecord is that getRecord copies out the record
 // into recPtr, while this function returns a pointer to the record
 // in recPtr.
+// Hoang
 Status HFPage::returnRecord(RID rid, char *&recPtr, int &recLen) {
   bool is_factor; char slot_char[sizeof(slot_t)];
   memcpy(slot_char, &data[sizeof(slot_t)*(rid.slotNo-1)], sizeof(slot_t));
@@ -298,7 +299,7 @@ Status HFPage::returnRecord(RID rid, char *&recPtr, int &recLen) {
     recLen = slot_id->length; recPtr = &data[rid_slot->offset]; 
   } else {
     is_factor = true;
-    cout << "Nothing works here"<endl;
+    cout << "Nothing works here"<<endl;
   }
 
   return OK; //fill this body
