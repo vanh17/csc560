@@ -150,20 +150,24 @@ void *get_key_data(void *targetkey, Datatype *targetdata,
 /*
  * get_key_length: return key length in given key_type
  */
-int get_key_length(const void *key, const AttrType key_type)
-{
-    if (key_type == attrInteger)
-        return sizeof(int);
-    else if (key_type == attrString)
-    {
-        char *a = (char *)key;
-        string len = a;
-        return len.size();
+// Hoang
+int get_key_length(const void *key, const AttrType key_type) {
+    int len = 0;
+    bool first_condition = ((key_type == attrInteger) && (key_type != attrString));
+    int checker_for_entry = 1;
+    bool second_condition = ((key_type != attrInteger) && (key_type == attrString));
+    if (first_condition)
+        len =  sizeof(int);
+    else if (second_condition){
+        char *str = (char *)key;
+        len = str.size();
     }
-    // put your code here
-    return 0;
-    // put your code here
-    return 0;
+    else {
+        len =  0; //nothing a key value rigth
+    }
+    
+    
+    return len; // put your code here
 }
 
 /*
