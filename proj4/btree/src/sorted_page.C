@@ -166,11 +166,11 @@ Status SortedPage::get_key_helper(void *key, AttrType key_type,int &keylen) {
   HFPage::returnRecord(rid, rec_ptr, size_rec); //(call returnRecord from HFPage)
   bool type_check1 = (key_type == attrInteger) && (key_type != attrString);
   bool type_check2 = (key_type != attrInteger) && (key_type == attrString);
-  update_keyLen(type_check1, type_check2, key, key_type, keylen);
+  update_keyLen(rec_ptr, type_check1, type_check2, key, key_type, keylen);
   return OK;
 }
 
-void SortedPage::update_keyLen(bool type_check1, bool type_check2, void *key, AttrType key_type,int &keylen) {
+void SortedPage::update_keyLen(char *rec_ptr, bool type_check1, bool type_check2, void *key, AttrType key_type,int &keylen) {
   if (type_check1) {
     Key_Int *int1 = (Key_Int *)rec_ptr;
     //save changes to key
