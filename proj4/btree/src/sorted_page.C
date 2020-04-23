@@ -124,22 +124,13 @@ Status SortedPage::insertRecord(AttrType key_type,
  * Deletes a record from a sorted record page. It just calls
  * HFPage::deleteRecord().
  */
-
-char big_key[220];
-
-Status SortedPage::deleteRecord(const RID &rid)
-{
+// Called HFPage deleterecord function to remove the page from this page.
+// Hoang
+Status SortedPage::deleteRecord(const RID &rid) {
   return HFPage::deleteRecord(rid);
-  // put your code here
-  // return OK;
 }
 
-int SortedPage::numberOfRecords()
-{
-  // put your code here
-  return 0;
-}
-
+// Hoang
 Status SortedPage::get_large_key_value(AttrType key_type, void *key, int &keylen) {
   Status result;
   if (key_type == attrString) {
@@ -152,6 +143,7 @@ Status SortedPage::get_large_key_value(AttrType key_type, void *key, int &keylen
   return result;
 }
 
+// Start
 Status SortedPage::get_key_helper(void *key, AttrType key_type,int &keylen) {
   int i, reclen;
   RID Big_rid;

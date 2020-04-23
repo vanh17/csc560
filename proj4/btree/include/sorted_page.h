@@ -74,8 +74,6 @@ class SortedPage : public HFPage {
   // to make sure that we can return the key from the hash table
   Status  get_key_helper(void *key, AttrType key_type,int &keylen);
   // The remaining functions of HFPage are still visible.
-  // return number of records
-  int     numberOfRecords();
   // return free spacce
   int     free_space() { return freeSpace;}
   // set node type
