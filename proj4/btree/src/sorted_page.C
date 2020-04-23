@@ -150,9 +150,9 @@ Status SortedPage::get_key_helper(void *key, AttrType key_type,int &keylen) {
   itr = HFPage::slotCnt - 1;
   while (itr >= 0) {
     bool first_condition = (HFPage::slot[itr].length <= 0);
-    bool second_condition = HFPage::slot[itr].length > 0 
+    bool second_condition = (HFPage::slot[itr].length > 0); 
     if (HFPage::slot[i].length <= 0) {
-      itr--
+      itr--;
       continue; // keep the loop and going to next it
     } else if (second_condition) {
       break;
@@ -163,11 +163,13 @@ Status SortedPage::get_key_helper(void *key, AttrType key_type,int &keylen) {
   //we find the slot with length less then zero, then get the key therer
   rid.pageNo = HFPage::curPage; // update rid page_no to keep track of the currPage
   rid.slotNo = itr; // update slot number with where the zero are
-  HFPage::returnRecord(rid, rec_ptr, size_rec); //(call returnRecord from HFPage)
+  // check condition for type to make sure we will update to the right type
   bool type_check1 = (key_type == attrInteger) && (key_type != attrString);
   bool type_check2 = (key_type != attrInteger) && (key_type == attrString);
+  // end type checking
+  HFPage::returnRecord(rid, rec_ptr, size_rec); //(call returnRecord from HFPage)
   update_keyLen(rec_ptr, type_check1, type_check2, key, key_type, keylen);
-  return OK;
+  return OK; //put your code here
 }
 
 void SortedPage::update_keyLen(char *rec_ptr, bool type_check1, bool type_check2, void *key, AttrType key_type,int &keylen) {
