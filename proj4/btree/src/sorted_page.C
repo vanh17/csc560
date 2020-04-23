@@ -151,7 +151,7 @@ Status SortedPage::get_key_helper(void *key, AttrType key_type,int &keylen) {
   while (itr >= 0) {
     bool first_condition = (HFPage::slot[itr].length <= 0);
     bool second_condition = (HFPage::slot[itr].length > 0); 
-    if (HFPage::slot[i].length <= 0) {
+    if (first_condition) {
       itr--;
       continue; // keep the loop and going to next it
     } else if (second_condition) {
