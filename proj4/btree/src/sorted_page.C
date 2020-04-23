@@ -35,8 +35,7 @@ const char *SortedPage::Errors[SortedPage::NR_ERRORS] = {
 Status SortedPage::insertRecord(AttrType key_type,
                                 char *recPtr,
                                 int recLen,
-                                RID &rid)
-{
+                                RID &rid) {
   // insert record to a page
   Status Sort_insert = HFPage::insertRecord(recPtr, recLen, rid);
   if (Sort_insert != OK)
@@ -145,29 +144,34 @@ Status SortedPage::get_large_key_value(AttrType key_type, void *key, int &keylen
 
 // Start
 Status SortedPage::get_key_helper(void *key, AttrType key_type,int &keylen) {
-  int i, reclen;
-  RID Big_rid;
-  char *recPtr_comp;
-  for (i = HFPage::slotCnt - 1; i >= 0; i--)
-  {
-    if (HFPage::slot[i].length > 0)
+  int itr, size_rec;
+  RID rid;
+  char *rec_ptr;
+  itr = HFPage::slotCnt - 1;
+  while (itr >= 0) {
+    bool first_condition = (HFPage::slot[itr].length <= 0);
+    bool second_condition = HFPage::slot[itr].length > 0 
+    if (HFPage::slot[i].length <= 0) {
+      itr--
+      continue; // keep the loop and going to next it
+    } else if (second_condition) {
       break;
+    } else {
+      itr++;
+    }
   }
-  Big_rid.pageNo = HFPage::curPage;
-  Big_rid.slotNo = i;
-  Status leav_insert = HFPage::returnRecord(Big_rid, recPtr_comp, reclen);
-
-  if (leav_insert != OK)
-    cout << "Error: can not get bigger key record from page " << HFPage::curPage << endl;
-  if (key_type == attrInteger)
-  {
-
+  //we find the slot with length less then zero, then get the key therer
+  rid.pageNo = HFPage::curPage; // update rid page_no to keep track of the currPage
+  rid.slotNo = itr; // update slot number with where the zero are
+  HFPage::returnRecord(rid, rec_ptr, size_rec); //(call returnRecord from HFPage)
+  bool type_check1 = (key_type == attrInteger) && (key_type != attrString);
+  bool type_check2 = (key_type != attrInteger) && (key_type == attrString);
+  if (type_check1) {
     Key_Int *a = (Key_Int *)recPtr_comp;
     memcpy(key, &a->intkey, sizeof(int));
     keylen = sizeof(int);
   }
-  else if (key_type == attrString)
-  {
+  else if (type_check2) {
 
     Key_string *a = (Key_string *)recPtr_comp;
     memcpy(key, a->charkey, sizeof(a->charkey));
