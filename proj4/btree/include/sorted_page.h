@@ -80,6 +80,9 @@ class SortedPage : public HFPage {
   void  set_type(short t) { type = t; }
   // get node type
   short get_type()         { return type; }
+  // helper for get_large_key_value
+  void update_keyLen(bool type_check1, bool type_check2, void *key, AttrType key_type,int &keylen) {
+
 
   
 
