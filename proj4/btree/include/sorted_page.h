@@ -81,7 +81,7 @@ class SortedPage : public HFPage {
   // get node type
   short get_type()         { return type; }
   // helper for get_large_key_value
-  void update_keyLen(char *rec_ptr, bool type_check1, bool type_check2, void *key, AttrType key_type,int &keylen) {
+  void update_keyLen(char *rec_ptr, bool type_check1, bool type_check2, void *key, AttrType key_type,int &keylen);
 
 
   
