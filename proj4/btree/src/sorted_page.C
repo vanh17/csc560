@@ -31,36 +31,27 @@ const char *SortedPage::Errors[SortedPage::NR_ERRORS] = {
  *    o recLen is the length of the record to be inserted.
  *    o rid is the record id of the record inserted.
  */
-
+//Start
 Status SortedPage::insertRecord(AttrType key_type,
                                 char *recPtr,
                                 int recLen,
                                 RID &rid) {
-  // insert record to a page
-  Status Sort_insert = HFPage::insertRecord(recPtr, recLen, rid);
-  if (Sort_insert != OK)
-    return DONE; // full
-                 //  if(HFPage::available_space()<16) return DONE;
-  int high = HFPage::slotCnt - 2;
-  if (high < 0)
-    return OK;
-  RID first, rid_high;
-  HFPage::firstRecord(first);
-  int low = first.slotNo;
-  int media = (low + high) / 2 - 1; // move forward one slot to avoid un-used slot
-  RID curRId, nextRid;
-  curRId.pageNo = HFPage::curPage;
-  curRId.slotNo = media;
-  Status Med = HFPage::nextRecord(curRId, nextRid);
-  if (Med != OK)
-    media = 0;
-  else
-    media = nextRid.slotNo;
+  if (HFPage::insertRecord(recPtr, recLen, rid) != OK) { // if we can sucessfully insert here nothingelse to do
+    return DONE; cout << "Successfully insert record to DB" << endl;
+  }
+  if (HFPage::slotCnt < 2) {
+    return OK; cout << "This is fine because slotCNT is less then 2" << endl;
+  }
+  RID first_rec;
+  HFPage::firstRecord(first_rec);
+  RID curr_rec, nxt_rec;
+  curr_rec.pageNo = HFPage::curPage;
+  curr_rec.slotNo = 2*(first_rec.slotNo + HFPage::slotCnt - 2)/4 - 1;
+  HFPage::nextRecord(curr_rec, nxt_rec); // cout <<"Getting next record" << endl;
   slot_t last = HFPage::slot[rid.slotNo]; // find position for newest insert slot
   int entry_len, rec_Len;
   void *key1, *key2;
-  if (key_type == attrInteger)
-  {
+  if (key_type == attrInteger) {
     entry_len = 4;
     Key_Int *a = (Key_Int *)recPtr;
     key1 = (void *)(&a->intkey);
@@ -74,11 +65,10 @@ Status SortedPage::insertRecord(AttrType key_type,
   }
   // scan whole , find a place to insert
   char *recPtr_comp;
-  int i = low;
-  while (i <= high)
-  {
-    nextRid.slotNo = i;
-    HFPage::returnRecord(nextRid, recPtr_comp, rec_Len);
+  int i = first_rec.slotNo;
+  while (i <= HFPage::slotCnt - 2) {
+    nxt_rec.slotNo = i;
+    HFPage::returnRecord(nxt_rec, recPtr_comp, rec_Len);
     if (key_type == attrInteger)
     {
       entry_len = 4;
@@ -107,9 +97,9 @@ Status SortedPage::insertRecord(AttrType key_type,
     }
     else
     {
-      curRId.slotNo = i;
-      HFPage::nextRecord(curRId, nextRid);
-      i = nextRid.slotNo;
+      curr_rec.slotNo = i;
+      HFPage::nextRecord(curr_rec, nxt_rec);
+      i = nxt_rec.slotNo;
     }
   }
 
@@ -142,7 +132,7 @@ Status SortedPage::get_large_key_value(AttrType key_type, void *key, int &keylen
   return result;
 }
 
-// Start
+// Hoang
 Status SortedPage::get_key_helper(void *key, AttrType key_type,int &keylen) {
   int itr, size_rec;
   RID rid;
@@ -172,6 +162,7 @@ Status SortedPage::get_key_helper(void *key, AttrType key_type,int &keylen) {
   return OK; //put your code here
 }
 
+// Hoang
 void SortedPage::update_keyLen(char *rec_ptr, bool type_check1, bool type_check2, void *key, AttrType key_type,int &keylen) {
   if (type_check1) {
     Key_Int *int1 = (Key_Int *)rec_ptr;

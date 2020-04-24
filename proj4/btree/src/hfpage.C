@@ -307,7 +307,7 @@ Status HFPage::returnRecord(RID rid, char *&recPtr, int &recLen) {
 
 // **********************************************************
 // Returns the amount of available space on the heap file page
-// Hoang
+// Hoang if the test case fail need to use original here
 int HFPage::available_space(void) {
   freeSpace = usedPtr - (slotCnt - 1) * (sizeof(slot_t));
     for (int i = 0; i < slotCnt; i++) {
@@ -322,7 +322,7 @@ int HFPage::available_space(void) {
 // **********************************************************
 // Returns 1 if the HFPage is empty, and 0 otherwise.
 // It scans the slot directory looking for a non-empty slot.
-// Hoang
+// Hoang if the test code fail have to use the original here
 bool HFPage::empty(void) {
   int i = 0;
     bool result = true;
