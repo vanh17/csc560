@@ -62,7 +62,7 @@ Status SortedPage::insertRecord(AttrType key_type,
   }
   RID first_rec;
   HFPage::firstRecord(first_rec);
-  bottom = first.slotNo;
+  bottom = first_rec.slotNo;
   RID curr_rec, nxt_rec;
   curr_rec.pageNo = HFPage::curPage;
   curr_rec.slotNo = 2*(bottom + top)/4 - 1;
