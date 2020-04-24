@@ -22,12 +22,12 @@ void value_assigner_by_type(AttrType key_type,
   bool second_condition = key_type == attrString;
   if (first_condition) {
     Key_Int *int1 = (Key_Int *)recPtr;
-    key1 = (void *)(&int1->intkey);
+    key = (void *)(&int1->intkey);
   }
   if (second_condition) {
     Key_string *str1 = (Key_string *)recPtr;
     //  key1=(void *)a->charkey.c_str();
-    key1 = (void *)str1->charkey;
+    key = (void *)str1->charkey;
   }
 }
 /*
@@ -66,7 +66,7 @@ Status SortedPage::insertRecord(AttrType key_type,
   curr_rec.slotNo = 2*(first_rec.slotNo + HFPage::slotCnt - 2)/4 - 1;
   HFPage::nextRecord(curr_rec, nxt_rec); // cout <<"Getting next record" << endl;
   slot_t new_slot = HFPage::slot[rid.slotNo]; //initialize the slot to insert into
-  value_assigner_by_type(key_type, recPtr, key1)
+  value_assigner_by_type(key_type, recPtr, key1);
   int i = first_rec.slotNo;
   char *rec_ptr;
   while (i <= HFPage::slotCnt - 2) { //find new place to insert into the code
