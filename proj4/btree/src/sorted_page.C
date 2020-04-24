@@ -77,7 +77,6 @@ Status SortedPage::insertRecord(AttrType key_type,
   }
   if (second_condition) {
     Key_string *str1 = (Key_string *)recPtr;
-    //  key1=(void *)a->charkey.c_str();
     key1 = (void *)str1->charkey;
   }
   int i = bottom;
@@ -90,15 +89,19 @@ Status SortedPage::insertRecord(AttrType key_type,
     second_condition = key_type == attrString;
     if (first_condition) {
       Key_Int *int1 = (Key_Int *)rec_ptr;
-      key2 = (void *)(&int1->intkey);
+
+      key2 = (void *)(&int1->intkey); //update to int for comparison
     }
     if (second_condition) {
       Key_string *str1 = (Key_string *)rec_ptr;
-      key2 = (void *)str1->charkey;
+
+      key2 = (void *)str1->charkey; //update key2 for comparison to string
     }
     if (keyCompare(key1, key2, key_type) >= 0) {
+
       curr_rec.slotNo = i;
       HFPage::nextRecord(curr_rec, nxt_rec);
+      // update i for next iteration
       i = nxt_rec.slotNo;
     }
     else {
@@ -107,7 +110,7 @@ Status SortedPage::insertRecord(AttrType key_type,
         HFPage::slot[j + 1] = HFPage::slot[j]; j--;//move up by one
       }
       HFPage::slot[i] = new_slot; rid.slotNo = i;// new current last slot and new_slot earlier declared
-      break;     
+      break; cout << "Break here" << endl;
     }
   }
   return OK; // put your code here
