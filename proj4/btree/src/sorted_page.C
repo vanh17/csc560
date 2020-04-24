@@ -74,19 +74,7 @@ Status SortedPage::insertRecord(AttrType key_type,
   slot_t last = HFPage::slot[rid.slotNo]; // find position for newest insert slot
   int entry_len, rec_Len;
   void *key1, *key2;
-  if (key_type == attrInteger)
-  {
-    entry_len = 4;
-    Key_Int *a = (Key_Int *)recPtr;
-    key1 = (void *)(&a->intkey);
-  }
-  else if (key_type == attrString)
-  {
-    entry_len = 8;
-    Key_string *a = (Key_string *)recPtr;
-    //  key1=(void *)a->charkey.c_str();
-    key1 = (void *)a->charkey;
-  }
+  value_assigner_by_type(key_type, recPtr, key1);
   // scan whole , find a place to insert
   char *recPtr_comp;
   int i = low;
@@ -94,19 +82,7 @@ Status SortedPage::insertRecord(AttrType key_type,
   {
     nextRid.slotNo = i;
     HFPage::returnRecord(nextRid, recPtr_comp, rec_Len);
-    if (key_type == attrInteger)
-    {
-      entry_len = 4;
-      Key_Int *a = (Key_Int *)recPtr_comp;
-      key2 = (void *)(&a->intkey);
-    }
-    else if (key_type == attrString)
-    {
-      entry_len = 8;
-      Key_string *a = (Key_string *)recPtr_comp;
-      //  key2=(void *)a->charkey.c_str();
-      key2 = (void *)a->charkey;
-    }
+    value_assigner_by_type(key_type, recPtr, key2);
     if (keyCompare(key1, key2, key_type) < 0)
     {
       // find the place , and insert.
