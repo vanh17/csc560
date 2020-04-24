@@ -68,14 +68,31 @@ Status SortedPage::insertRecord(AttrType key_type,
   curr_rec.slotNo = 2*(bottom + top)/4 - 1;
   HFPage::nextRecord(curr_rec, nxt_rec); // cout <<"Getting next record" << endl;
   slot_t new_slot = HFPage::slot[rid.slotNo]; //initialize the slot to insert into
-  value_assigner_by_type(key_type, recPtr, key1);
+  bool first_condition = key_type == attrInteger;
+  bool second_condition = key_type == attrString;
+  if (first_condition) {
+    Key_Int *int1 = (Key_Int *)recPtr;
+    key1 = (void *)(&int1->intkey);
+  }
+  if (second_condition) {
+    Key_string *str1 = (Key_string *)recPtr;
+    //  key1=(void *)a->charkey.c_str();
+    key1 = (void *)str1->charkey;
+  }
   int i = bottom;
   char *rec_ptr;
   while (i <= top) { //find new place to insert into the code
     nxt_rec.slotNo = i;
     HFPage::returnRecord(nxt_rec, rec_ptr, recSize);
-    value_assigner_by_type(key_type, recPtr, key2);
-    if (keyCompare(key1, key2, key_type) >= 0) {
+    if (first_condition) {
+    Key_Int *int1 = (Key_Int *)recPtr;
+    key2 = (void *)(&int1->intkey);
+  }
+  if (second_condition) {
+    Key_string *str1 = (Key_string *)recPtr;
+    //  key1=(void *)a->charkey.c_str();
+    key2 = (void *)str1->charkey;
+  }if (keyCompare(key1, key2, key_type) >= 0) {
       curr_rec.slotNo = i;
       HFPage::nextRecord(curr_rec, nxt_rec);
       i = nxt_rec.slotNo;
