@@ -52,61 +52,84 @@ Status SortedPage::insertRecord(AttrType key_type,
                                 char *recPtr,
                                 int recLen,
                                 RID &rid) {
-  int  recSize; void *key1, *key2; int top, bottom;
-  if (HFPage::insertRecord(recPtr, recLen, rid) != OK) { // if we can sucessfully insert here nothingelse to do
-    return DONE; cout << "Successfully insert record to DB" << endl;
+  Status Sort_insert = HFPage::insertRecord(recPtr, recLen, rid);
+  if (Sort_insert != OK)
+    return DONE; // full
+                 //  if(HFPage::available_space()<16) return DONE;
+  int high = HFPage::slotCnt - 2;
+  if (high < 0)
+    return OK;
+  RID first, rid_high;
+  HFPage::firstRecord(first);
+  int low = first.slotNo;
+  int media = (low + high) / 2 - 1; // move forward one slot to avoid un-used slot
+  RID curRId, nextRid;
+  curRId.pageNo = HFPage::curPage;
+  curRId.slotNo = media;
+  Status Med = HFPage::nextRecord(curRId, nextRid);
+  if (Med != OK)
+    media = 0;
+  else
+    media = nextRid.slotNo;
+  slot_t last = HFPage::slot[rid.slotNo]; // find position for newest insert slot
+  int entry_len, rec_Len;
+  void *key1, *key2;
+  if (key_type == attrInteger)
+  {
+    entry_len = 4;
+    Key_Int *a = (Key_Int *)recPtr;
+    key1 = (void *)(&a->intkey);
   }
-  top = HFPage::slotCnt - 2; 
-  if (top + 2 < 2) {
-    return OK; cout << "This is fine because slotCNT is less then 2" << endl;
-  }
-  RID first_rec;
-  HFPage::firstRecord(first_rec);
-  bottom = first_rec.slotNo;
-  RID curr_rec, nxt_rec;
-  curr_rec.pageNo = HFPage::curPage;
-  curr_rec.slotNo = 2*(bottom + top)/4 - 1;
-  HFPage::nextRecord(curr_rec, nxt_rec); // cout <<"Getting next record" << endl;
-  slot_t new_slot = HFPage::slot[rid.slotNo]; //initialize the slot to insert into
-  bool first_condition = key_type == attrInteger;
-  bool second_condition = key_type == attrString;
-  if (first_condition) {
-    Key_Int *int1 = (Key_Int *)recPtr;
-    key1 = (void *)(&int1->intkey);
-  }
-  if (second_condition) {
-    Key_string *str1 = (Key_string *)recPtr;
+  else if (key_type == attrString)
+  {
+    entry_len = 8;
+    Key_string *a = (Key_string *)recPtr;
     //  key1=(void *)a->charkey.c_str();
-    key1 = (void *)str1->charkey;
+    key1 = (void *)a->charkey;
   }
-  int i = bottom;
-  char *rec_ptr;
-  while (i <= top) { //find new place to insert into the code
-    nxt_rec.slotNo = i;
-    HFPage::returnRecord(nxt_rec, rec_ptr, recSize);
-    if (first_condition) {
-    Key_Int *int1 = (Key_Int *)recPtr;
-    key2 = (void *)(&int1->intkey);
-  }
-  if (second_condition) {
-    Key_string *str1 = (Key_string *)recPtr;
-    //  key1=(void *)a->charkey.c_str();
-    key2 = (void *)str1->charkey;
-  }if (keyCompare(key1, key2, key_type) >= 0) {
-      curr_rec.slotNo = i;
-      HFPage::nextRecord(curr_rec, nxt_rec);
-      i = nxt_rec.slotNo;
+  // scan whole , find a place to insert
+  char *recPtr_comp;
+  int i = low;
+  while (i <= high)
+  {
+    nextRid.slotNo = i;
+    HFPage::returnRecord(nextRid, recPtr_comp, rec_Len);
+    if (key_type == attrInteger)
+    {
+      entry_len = 4;
+      Key_Int *a = (Key_Int *)recPtr_comp;
+      key2 = (void *)(&a->intkey);
     }
-    else {
-      int j = HFPage::slotCnt - 2;
-      while (j > i - 1) {
-        HFPage::slot[j + 1] = HFPage::slot[j]; j--;//move up by one
+    else if (key_type == attrString)
+    {
+      entry_len = 8;
+      Key_string *a = (Key_string *)recPtr_comp;
+      //  key2=(void *)a->charkey.c_str();
+      key2 = (void *)a->charkey;
+    }
+    if (keyCompare(key1, key2, key_type) < 0)
+    {
+      // find the place , and insert.
+      for (int j = HFPage::slotCnt - 2; j > i - 1; j--)
+      {
+        //all slot position after j move back 1
+        HFPage::slot[j + 1] = HFPage::slot[j];
       }
-      HFPage::slot[i] = new_slot; rid.slotNo = i;// new current last slot and new_slot earlier declared
-      break;     
+      // insert
+      HFPage::slot[i] = last;
+      rid.slotNo = i;
+      break;
+    }
+    else
+    {
+      curRId.slotNo = i;
+      HFPage::nextRecord(curRId, nextRid);
+      i = nextRid.slotNo;
     }
   }
-  return OK; // put your code here
+
+  // put your code here
+  return OK;
 }
 
 /*
