@@ -14,6 +14,22 @@ const char *SortedPage::Errors[SortedPage::NR_ERRORS] = {
     //Delete Record Failed (SortedPage::deleteRecord,
 };
 
+// Hoang 
+// assiging right value to a type
+void value_assigner_by_type(AttrType key_type,
+                                char *recPtr, void* key) {
+  bool first_condition = key_type == attrInteger;
+  bool second_condition = key_type == attrString;
+  if (first_condition) {
+    Key_Int *int1 = (Key_Int *)recPtr;
+    key1 = (void *)(&int1->intkey);
+  }
+  if (second_condition) {
+    Key_string *str1 = (Key_string *)recPtr;
+    //  key1=(void *)a->charkey.c_str();
+    key1 = (void *)str1->charkey;
+  }
+}
 /*
  *  Status SortedPage::insertRecord(AttrType key_type, 
  *                                  char *recPtr,
@@ -36,6 +52,7 @@ Status SortedPage::insertRecord(AttrType key_type,
                                 char *recPtr,
                                 int recLen,
                                 RID &rid) {
+  int  recSize; void *key1, *key2;
   if (HFPage::insertRecord(recPtr, recLen, rid) != OK) { // if we can sucessfully insert here nothingelse to do
     return DONE; cout << "Successfully insert record to DB" << endl;
   }
@@ -48,63 +65,29 @@ Status SortedPage::insertRecord(AttrType key_type,
   curr_rec.pageNo = HFPage::curPage;
   curr_rec.slotNo = 2*(first_rec.slotNo + HFPage::slotCnt - 2)/4 - 1;
   HFPage::nextRecord(curr_rec, nxt_rec); // cout <<"Getting next record" << endl;
-  slot_t last = HFPage::slot[rid.slotNo]; // find position for newest insert slot
-  int entry_len, rec_Len;
-  void *key1, *key2;
-  if (key_type == attrInteger) {
-    entry_len = 4;
-    Key_Int *a = (Key_Int *)recPtr;
-    key1 = (void *)(&a->intkey);
-  }
-  else if (key_type == attrString)
-  {
-    entry_len = 8;
-    Key_string *a = (Key_string *)recPtr;
-    //  key1=(void *)a->charkey.c_str();
-    key1 = (void *)a->charkey;
-  }
-  // scan whole , find a place to insert
-  char *recPtr_comp;
+  slot_t new_slot = HFPage::slot[rid.slotNo]; //initialize the slot to insert into
+  value_assigner_by_type(key_type, recPtr, key1)
   int i = first_rec.slotNo;
-  while (i <= HFPage::slotCnt - 2) {
+  char *rec_ptr;
+  while (i <= HFPage::slotCnt - 2) { //find new place to insert into the code
     nxt_rec.slotNo = i;
-    HFPage::returnRecord(nxt_rec, recPtr_comp, rec_Len);
-    if (key_type == attrInteger)
-    {
-      entry_len = 4;
-      Key_Int *a = (Key_Int *)recPtr_comp;
-      key2 = (void *)(&a->intkey);
-    }
-    else if (key_type == attrString)
-    {
-      entry_len = 8;
-      Key_string *a = (Key_string *)recPtr_comp;
-      //  key2=(void *)a->charkey.c_str();
-      key2 = (void *)a->charkey;
-    }
-    if (keyCompare(key1, key2, key_type) < 0)
-    {
-      // find the place , and insert.
-      for (int j = HFPage::slotCnt - 2; j > i - 1; j--)
-      {
-        //all slot position after j move back 1
-        HFPage::slot[j + 1] = HFPage::slot[j];
-      }
-      // insert
-      HFPage::slot[i] = last;
-      rid.slotNo = i;
-      break;
-    }
-    else
-    {
+    HFPage::returnRecord(nxt_rec, rec_ptr, recSize);
+    value_assigner_by_type(key_type, recPtr, key2);
+    if (keyCompare(key1, key2, key_type) >= 0) {
       curr_rec.slotNo = i;
       HFPage::nextRecord(curr_rec, nxt_rec);
       i = nxt_rec.slotNo;
     }
+    else {
+      int j = HFPage::slotCnt - 2;
+      while (j > i - 1) {
+        HFPage::slot[j + 1] = HFPage::slot[j]; j--;//move up by one
+      }
+      HFPage::slot[i] = new_slot; rid.slotNo = i;// new current last slot and new_slot earlier declared
+      break;     
+    }
   }
-
-  // put your code here
-  return OK;
+  return OK; // put your code here
 }
 
 /*
