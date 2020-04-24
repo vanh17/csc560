@@ -52,24 +52,26 @@ Status SortedPage::insertRecord(AttrType key_type,
                                 char *recPtr,
                                 int recLen,
                                 RID &rid) {
-  int  recSize; void *key1, *key2;
+  int  recSize; void *key1, *key2; int top, bottom;
   if (HFPage::insertRecord(recPtr, recLen, rid) != OK) { // if we can sucessfully insert here nothingelse to do
     return DONE; cout << "Successfully insert record to DB" << endl;
   }
-  if (HFPage::slotCnt < 2) {
+  top = HFPage::slotCnt - 2; 
+  if (top + 2 < 2) {
     return OK; cout << "This is fine because slotCNT is less then 2" << endl;
   }
   RID first_rec;
   HFPage::firstRecord(first_rec);
+  bottom = first.slotNo;
   RID curr_rec, nxt_rec;
   curr_rec.pageNo = HFPage::curPage;
-  curr_rec.slotNo = 2*(first_rec.slotNo + HFPage::slotCnt - 2)/4 - 1;
+  curr_rec.slotNo = 2*(bottom + top)/4 - 1;
   HFPage::nextRecord(curr_rec, nxt_rec); // cout <<"Getting next record" << endl;
   slot_t new_slot = HFPage::slot[rid.slotNo]; //initialize the slot to insert into
   value_assigner_by_type(key_type, recPtr, key1);
-  int i = first_rec.slotNo;
+  int i = bottom;
   char *rec_ptr;
-  while (i <= HFPage::slotCnt - 2) { //find new place to insert into the code
+  while (i <= top) { //find new place to insert into the code
     nxt_rec.slotNo = i;
     HFPage::returnRecord(nxt_rec, rec_ptr, recSize);
     value_assigner_by_type(key_type, recPtr, key2);
