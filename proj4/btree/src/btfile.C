@@ -39,6 +39,18 @@ const char *BtreeErrorMsgs[] = {
     // CANT_SPLIT_INDEX_PAGE
 };
 
+// Define global class here for reusability
+class HeadPage{ // added this class by Hoang April 10, need to modify later
+public:
+        PageId  root;
+        AttrType keytype;
+        int keyLength;
+        PageId  index[Max_index];
+        int index_page_number;
+        short spilt_flag;
+        string  filename;
+};
+
 #define MAX_Page 500
 BTLeafPage *leaf = new BTLeafPage();
 BTIndexPage *index1 = new BTIndexPage();

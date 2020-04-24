@@ -17,21 +17,9 @@
 #define Max_index 50
 // Define your error code for B+ tree here
 // enum btErrCodes  {...}
-class HeadPage{ // added this class by Hoang April 10, need to modify later
-
-public:
-        PageId  root;
-        AttrType keytype;
-        int keyLength;
-        PageId  index[Max_index];
-        int index_page_number;
-        short spilt_flag;
-        string  filename;
-};
 
 
-class BTreeFile: public IndexFile
-{
+class BTreeFile: public IndexFile {
   public:
     BTreeFile(Status& status, const char *filename);
     // an index with given filename should already exist,
