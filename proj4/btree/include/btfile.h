@@ -14,7 +14,6 @@
 #include "btreefilescan.h"
 #include "bt.h"
 
-#define Max_index 50
 // Define your error code for B+ tree here
 // enum btErrCodes  {...}
 
@@ -61,10 +60,10 @@ class BTreeFile: public IndexFile {
   private:
     // following added by Hoang april 10, need to modify later
     PageId  header;
-    short index_number;
+    short index;
     PageId  current_index;
     PageId  current_leaf;
-    AttrType  keytype;
+    AttrType  k_type;
 };
 
 #endif

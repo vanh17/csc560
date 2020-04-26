@@ -43,9 +43,9 @@ const char *BtreeErrorMsgs[] = {
 class HeadPage{ // added this class by Hoang April 10, need to modify later
 public:
         PageId  root;
-        AttrType keytype;
+        AttrType k_type;
         int keyLength;
-        PageId  index[Max_index];
+        PageId  index[50];
         int index_page_number;
         short spilt_flag;
         string  filename;
@@ -74,8 +74,7 @@ BTreeFile::BTreeFile(Status &returnStatus, const char *filename)
     }
     HeadPage *head = new HeadPage();
     head = (HeadPage *)head_pag;
-    this->keytype = head->keytype;
-    //     cout<<"enter into Btree file "<<endl;
+    this->k_type = head->k_type;
   }
   else
     cout << "Fata ERROR: can not find the file entry in the DB" << endl;
@@ -92,8 +91,8 @@ BTreeFile::BTreeFile(Status &returnStatus, const char *filename,
   {
     // get tree infor including key type
     this->header = head_start;
-    this->index_number = 0;
-    this->keytype = keytype;
+    this->index = 0;
+    this->k_type = keytype;
   }
   else
   {
@@ -113,14 +112,13 @@ BTreeFile::BTreeFile(Status &returnStatus, const char *filename,
     // init head page
     HeadPage *head = new HeadPage();
     head->root = start_pg;
-    head->keytype = keytype;
+    head->k_type = keytype;
     head->keyLength = keysize;
     head->index_page_number = 0;
     head->filename = filename;
     //  store key B+ tree data type
     this->header = head_start;
-    this->index_number = 0;
-    this->keytype = keytype;
+    this->k_type = keytype;
     memcpy(head_pag, head, sizeof(HeadPage));
     flag_tree_insert = 0;
     //  strcpy((char *)head_pag,(char *)head);
@@ -146,7 +144,7 @@ Status BTreeFile::destroyFile()
   RID rid;
   // init key
   void *key;
-  if (this->keytype == attrInteger)
+  if (this->k_type == attrInteger)
   {
     int a;
     key = (void *)&a;
@@ -194,7 +192,7 @@ Status BTreeFile::insert(const void *key, const RID rid)
     //   returnStatus=FAIL;
   }
   head = (HeadPage *)head_pag;
-  AttrType key_type = this->keytype;
+  AttrType key_type = this->k_type;
   RID leav_rid, index_rid, root_rid;
   Status leav_insert, index_insert, alloc_page, root_insert, page_write, leaf_pin;
   int leaf_alloc, index_alloc, reclen;
@@ -214,7 +212,7 @@ Status BTreeFile::insert(const void *key, const RID rid)
   int pageNo;
 
   // check key whether in the leaf node, guarteen key unique
-  root_insert = root->get_page_no(key, this->keytype, pageNo);
+  root_insert = root->get_page_no(key, this->k_type, pageNo);
   if (root_insert == OK)
   {
     Page *leaf_read = new Page();
@@ -223,7 +221,7 @@ Status BTreeFile::insert(const void *key, const RID rid)
     if (page_write != OK)
       cout << "Cann not read the leaf page  check key " << pageNo << endl;
     BTLeafPage *leaf1 = (BTLeafPage *)leaf_read;
-    if (page_write == OK && leaf1->get_data_rid(key, this->keytype, dataRid) == OK) // find key, abadon duplicate
+    if (page_write == OK && leaf1->get_data_rid(key, this->k_type, dataRid) == OK) // find key, abadon duplicate
       return OK;
 
     delete leaf_read;
@@ -252,7 +250,7 @@ Status BTreeFile::insert(const void *key, const RID rid)
         int index_page_no;
         RID rid1;
         void *key_insert = new char[220];
-        if (root->get_index_Page_no(key3, this->keytype, index_page_no) == OK) // get index page number
+        if (root->get_index_Page_no(key3, this->k_type, index_page_no) == OK) // get index page number
         {
 
           index_insert = MINIBASE_DB->read_page(index_page_no, leaf_write);
@@ -452,7 +450,7 @@ Status BTreeFile::insert(const void *key, const RID rid)
           key_insert = stringkey;
         }
         // split a page into two page
-        leaf1->keytype = key_type;
+        leaf1->k_type = key_type;
         leaf1->get_first(rid1, key_insert, dataRid);
         leav_insert = leaf2->insertRec(key_insert, key_type, dataRid, leav_rid);
         leaf1->HFPage::deleteRecord(rid1);
@@ -484,7 +482,7 @@ Status BTreeFile::insert(const void *key, const RID rid)
           int index_page_no;
           RID rid1;
           void *key_insert = new char[220];
-          if (root->get_index_Page_no(key3, this->keytype, index_page_no) == OK)
+          if (root->get_index_Page_no(key3, this->k_type, index_page_no) == OK)
           {
 
             index_insert = MINIBASE_DB->read_page(index_page_no, leaf_write);
@@ -624,7 +622,7 @@ Status BTreeFile::Delete(const void *key, const RID rid)
   PageId pageNo;
   Page *leaf_read = new Page();
   // get leaf page number
-  root_search = root->get_page_no(key, this->keytype, pageNo);
+  root_search = root->get_page_no(key, this->k_type, pageNo);
   if (root_search != OK)
   {
     leaf_Read = MINIBASE_DB->read_page(pageNo, leaf_read);
@@ -640,7 +638,7 @@ Status BTreeFile::Delete(const void *key, const RID rid)
     cout << "Cann not read the leaf page  " << pageNo << endl;
   BTLeafPage *leaf1 = (BTLeafPage *)leaf_read;
 
-  if (leaf1->get_data_rid(key, this->keytype, dataRid) == OK)
+  if (leaf1->get_data_rid(key, this->k_type, dataRid) == OK)
   {
     // find key , delete
     leaf1->HFPage::deleteRecord(dataRid);
@@ -669,7 +667,7 @@ IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key)
   RID rid, dataRid;
   Status leaf_page, root_search, leaf_Read, root_search1;
   void *key;
-  if (this->keytype == attrInteger)
+  if (this->k_type == attrInteger)
   {
     int a;
     key = (void *)&a;
@@ -681,8 +679,8 @@ IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key)
   Page *leaf_read = new Page();
 
   PageId pageNo, PageNo_begin;
-  root->keytype = this->keytype;
-  scan->keytype = this->keytype;
+  root->k_type = this->k_type;
+  scan->k_type = this->k_type;
   if (lo_key == NULL && hi_key == NULL)
   {
     // whole scan
@@ -695,7 +693,7 @@ IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key)
       RID rid1;
       void *key_insert = new char[220];
       root->get_first(rid, key, pageNo);
-      if (root->get_index_Page_no(key, this->keytype, index_page_no) == OK) // find index page number
+      if (root->get_index_Page_no(key, this->k_type, index_page_no) == OK) // find index page number
       {
 
         MINIBASE_DB->read_page(index_page_no, leaf_read);
@@ -727,7 +725,7 @@ IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key)
       RID rid1;
       void *key_insert = new char[220];
       root->get_first(rid, key, PageNo_begin);
-      if (root->get_index_Page_no(key, this->keytype, index_page_no) == OK) // find index page number
+      if (root->get_index_Page_no(key, this->k_type, index_page_no) == OK) // find index page number
       {
 
         MINIBASE_DB->read_page(index_page_no, leaf_read);
@@ -739,7 +737,7 @@ IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key)
         cout << "Can not get leaf page number from index page " << endl;
     }
 
-    root_search = root->get_page_no(hi_key, this->keytype, pageNo);
+    root_search = root->get_page_no(hi_key, this->k_type, pageNo);
     if (root_search != OK)
     {
       cout << "can not find the key in the index page " << endl;
@@ -748,7 +746,7 @@ IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key)
     if (leaf_Read != OK)
       cout << "Cann not read the leaf page  " << pageNo << endl;
     BTLeafPage *leaf1 = (BTLeafPage *)leaf_read;
-    root_search = leaf1->get_data_rid(hi_key, this->keytype, dataRid);
+    root_search = leaf1->get_data_rid(hi_key, this->k_type, dataRid);
     if (root_search == OK || root_search == DONE)
     {
       // find key in the leaf page
@@ -776,7 +774,7 @@ IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key)
   else if (lo_key != NULL && hi_key == NULL)
   {
     // range scan , get low leaf page number
-    root_search = root->get_page_no(lo_key, this->keytype, pageNo);
+    root_search = root->get_page_no(lo_key, this->k_type, pageNo);
     if (root_search != OK)
     {
       cout << "can not find the key in the index page " << endl;
@@ -785,7 +783,7 @@ IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key)
     if (leaf_Read != OK)
       cout << "Cann not read the leaf page  " << pageNo << endl;
     BTLeafPage *leaf1 = (BTLeafPage *)leaf_read;
-    root_search = leaf1->get_data_rid(lo_key, this->keytype, dataRid);
+    root_search = leaf1->get_data_rid(lo_key, this->k_type, dataRid);
     if (root_search == OK || root_search == DONE)
     {
       // find key in the leaf page
@@ -809,7 +807,7 @@ IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key)
 
     Status root_search2;
 
-    if (keyCompare(lo_key, hi_key, this->keytype) > 0)
+    if (keyCompare(lo_key, hi_key, this->k_type) > 0)
     {
       // high key must bigger than low key
       scan->begin = -1;
@@ -818,7 +816,7 @@ IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key)
     PageId low_key, higkey;
     RID rid1, rid2;
     // find low and high key leaf page number
-    root_search = root->get_page_no(lo_key, this->keytype, low_key);
+    root_search = root->get_page_no(lo_key, this->k_type, low_key);
     if (root_search == OK)
     {
 
@@ -827,11 +825,11 @@ IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key)
         cout << "Cann not read the leaf page  " << low_key << endl;
       BTLeafPage *leaf1 = (BTLeafPage *)leaf_read;
       // get key  rid
-      root_search1 = leaf1->get_data_rid(lo_key, this->keytype, rid1);
+      root_search1 = leaf1->get_data_rid(lo_key, this->k_type, rid1);
     }
     else
       root_search = FAIL;
-    root_search = root->get_page_no(hi_key, this->keytype, higkey);
+    root_search = root->get_page_no(hi_key, this->k_type, higkey);
     if (root_search == OK)
     {
 
@@ -840,7 +838,7 @@ IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key)
         cout << "Cann not read the leaf page  " << higkey << endl;
       BTLeafPage *leaf2 = (BTLeafPage *)leaf_read;
       // get key  rid
-      root_search2 = leaf2->get_data_rid(hi_key, this->keytype, rid2);
+      root_search2 = leaf2->get_data_rid(hi_key, this->k_type, rid2);
     }
     else
       root_search = FAIL;
