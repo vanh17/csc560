@@ -40,11 +40,10 @@ const char *BtreeErrorMsgs[] = {
 };
 
 // Define global class here for reusability
-class HeadPage{ // added this class by Hoang April 10, need to modify later
+class TopPage{ // added this class by Hoang April 10, need to modify later
 public:
-        PageId  root;
+        PageId  root_id;
         AttrType k_type;
-        int keyLength;
         PageId  index[50];
         int index_page_number;
         PageId curr_id;
@@ -111,9 +110,8 @@ BTreeFile::BTreeFile(Status &returnStatus, const char *filename,
     }
     // init head page
     HeadPage *head = new HeadPage();
-    head->root = start_pg;
+    head->root_id = start_pg;
     head->k_type = keytype;
-    head->keyLength = keysize;
     head->index_page_number = 0;
     head->filename = filename;
     //  store key B+ tree data type
@@ -169,7 +167,7 @@ Status BTreeFile::destroyFile()
   Status head_pin = MINIBASE_BM->pinPage(head_start, head_pag, 1);
   HeadPage *head = new HeadPage();
   head = (HeadPage *)head_pag;
-  destory_page = MINIBASE_DB->deallocate_page(head->root); // dellocate root page
+  destory_page = MINIBASE_DB->deallocate_page(head->root_id); // dellocate root page
 
   Status Head = MINIBASE_DB->delete_file_entry(head->filename.c_str()); // delete B + entry
 
