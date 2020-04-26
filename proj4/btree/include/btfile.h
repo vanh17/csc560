@@ -54,8 +54,6 @@ class BTreeFile: public IndexFile {
     //              exact match ( might not unique)
     //      (5) lo_key!= NULL, hi_key!= NULL, lo_key < hi_key
     //              range scan from lo_key to hi_key
-
-    int keysize();
     
   private:
     // following added by Hoang april 10, need to modify later

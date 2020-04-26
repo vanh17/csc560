@@ -43,12 +43,11 @@ const char *BtreeErrorMsgs[] = {
 class TopPage{ // added this class by Hoang April 10, need to modify later
 public:
         PageId  root_id;
-        AttrType k_type;
         PageId  index[50];
         int index_page_number;
         PageId curr_id;
-        short spilt_flag;
         PageId curr_lf;
+        AttrType k_type;
         string  filename;
 };
 
@@ -183,8 +182,7 @@ Status BTreeFile::insert(const void *key, const RID rid) {
   Page *head_pag;
   TopPage *head = new TopPage();
   Status head_pin = MINIBASE_BM->pinPage(this->head_id, head_pag, 1);
-  if (head_pin != OK)
-  {
+  if (head_pin != OK) {
     cout << "Error: can not pin the head page  " << this->head_id << endl;
     //   returnStatus=FAIL;
   }
@@ -278,82 +276,6 @@ Status BTreeFile::insert(const void *key, const RID rid) {
           MINIBASE_DB->write_page(index_page_no, leaf_write); // update index page
         }
       }
-      if (root_insert != OK && root_insert == FILEEOF)
-      {
-#if 0
-        // index level +1, split root node into 2 index page
-        root->level++;
-        int insert_prob = 0;
-        RID rid1;
-        void *key_insert = new char[220];
-        //allocate a new page
-        alloc_page = MINIBASE_DB->allocate_page(leaf_alloc);
-        if (alloc_page != OK)
-          cout << "Error: can not allocate a page for  index " << endl;
-        index_insert = MINIBASE_DB->read_page(leaf_alloc, leaf_write);
-        BTIndexPage *index1 = (BTIndexPage *)leaf_write;
-        index1->init(leaf_alloc);
-        // split root page
-        root->keytype = key_type;
-        root->get_first(rid1, key_insert, pageNo);
-        index_insert = index1->insertKey(key_insert, key_type, pageNo, leav_rid);
-        root->deleteKey(key_insert, key_type, rid1);
-        while (index_insert != DONE) // put formal half of root record into left index page
-        {
-
-          root->get_next(rid1, key_insert, pageNo);
-          index_insert = index1->insertKey(key_insert, key_type, pageNo, leav_rid);
-          root->deleteKey(key_insert, key_type, rid1);
-          if (!insert_prob && root->insertKey(key3, key_type, pageNo, leav_rid) != DONE)
-          {
-            insert_prob = 1;
-          }
-        }
-
-        index1->Big_key(key_type, key_insert, keylen); // get the biggest key of page
-        index1->level = 1;
-
-        char temp[keylen];
-        memcpy(temp, key_insert, keylen);
-        const void *key3 = temp;
-        // write index page into disk
-        leaf_write = (Page *)index1;
-        page_write = MINIBASE_DB->write_page(leaf_alloc, leaf_write);
-        if (page_write != OK)
-          cout << "Error: can not write a root page to the disk  page number " << leav_rid.pageNo << endl;
-        // write index page number into root page
-        dataRid.pageNo = leaf_alloc;
-        int leaf_alloc2;
-        alloc_page = MINIBASE_DB->allocate_page(leaf_alloc2);
-        if (alloc_page != OK)
-          cout << "Error: can not allocate a page for  index " << endl;
-
-        index_insert = MINIBASE_DB->read_page(leaf_alloc2, leaf_write);
-        BTIndexPage *index2 = (BTIndexPage *)leaf_write;
-        index2->init(leaf_alloc);
-        Status end_root = OK;
-        index_insert = OK;
-        end_root = root->get_next(rid1, key_insert, pageNo);
-        while (index_insert != DONE && end_root != DONE) // put remain half root record into right index page
-        {
-
-          index_insert = index2->insertKey(key_insert, key_type, pageNo, leav_rid);
-          root->deleteKey(key_insert, key_type, rid1);
-          end_root = root->get_next(rid1, key_insert, pageNo);
-        }
-        index2->Big_key(key_type, key_insert, keylen); // get the biggest key of page
-        index2->level = 1;
-        leaf_write = (Page *)index2;
-        page_write = MINIBASE_DB->write_page(leaf_alloc2, leaf_write);
-        if (page_write != OK)
-          cout << "Error: can not write a root page to the disk  page number " << leav_rid.pageNo << endl;
-        // write index page number into root page
-        dataRid.pageNo = leaf_alloc2;
-        leav_insert = root->insertKey(key_insert, key_type, leaf_alloc2, leav_rid); // insert record of left index page with biggest key  into root node
-        leav_insert = root->insertKey(key3, key_type, leaf_alloc, leav_rid);        // insert record of  right page with biggest key into root node
-#endif
-      }
-
       Page *leaf_write1 = new Page();
       int leaf_page1 = leaf->page_no();
       // allocate a new page for next time insert
@@ -507,85 +429,6 @@ Status BTreeFile::insert(const void *key, const RID rid) {
             MINIBASE_DB->write_page(index_page_no, leaf_write);
           }
         }
-
-        if (root_insert != OK && root_insert == FILEEOF) // in this project, just 2 level is enough, so the following spit root node do not excute
-        {
-
-#if 0
-          // index level +1, split root node into 2 index page
-          root->level++;
-          int insert_prob = 0;
-          RID rid1;
-          void *key_insert = new char[220];
-          //allocate a new page
-          alloc_page = MINIBASE_DB->allocate_page(leaf_alloc);
-          if (alloc_page != OK)
-            cout << "Error: can not allocate a page for  index " << endl;
-          index_insert = MINIBASE_DB->read_page(leaf_alloc, leaf_write);
-          BTIndexPage *index1 = (BTIndexPage *)leaf_write;
-          index1->init(leaf_alloc);
-          // split root page
-          root->keytype = key_type;
-          root->get_first(rid1, key_insert, pageNo);
-          index_insert = index1->insertKey(key_insert, key_type, pageNo, leav_rid);
-          root->deleteKey(key_insert, key_type, rid1);
-          while (index_insert != DONE) // put formal half of root record into left index page
-          {
-
-            root->get_next(rid1, key_insert, pageNo);
-            index_insert = index1->insertKey(key_insert, key_type, pageNo, leav_rid);
-            root->deleteKey(key_insert, key_type, rid1);
-            if (!insert_prob && root->insertKey(key3, key_type, pageNo, leav_rid) != DONE)
-            {
-              insert_prob = 1;
-            }
-          }
-
-          index1->Big_key(key_type, key_insert, keylen); // get the biggest key of page
-          index1->level = 1;
-
-          char temp[keylen];
-          memcpy(temp, key2, keylen);
-          const void *key3 = temp;
-          // write index page into disk
-          leaf_write = (Page *)index1;
-          page_write = MINIBASE_DB->write_page(leaf_alloc, leaf_write);
-          if (page_write != OK)
-            cout << "Error: can not write a root page to the disk  page number " << leav_rid.pageNo << endl;
-          // write index page number into root page
-          dataRid.pageNo = leaf_alloc;
-
-          int leaf_alloc2;
-          alloc_page = MINIBASE_DB->allocate_page(leaf_alloc2);
-          if (alloc_page != OK)
-            cout << "Error: can not allocate a page for  index " << endl;
-          index_insert = MINIBASE_DB->read_page(leaf_alloc2, leaf_write);
-          BTIndexPage *index2 = (BTIndexPage *)leaf_write;
-          index2->init(leaf_alloc);
-          Status end_root = OK;
-          index_insert = OK;
-          end_root = root->get_next(rid1, key_insert, pageNo);
-          while (index_insert != DONE && end_root != DONE) // put remain half root record into right index page
-          {
-
-            index_insert = index2->insertKey(key_insert, key_type, pageNo, leav_rid);
-            root->deleteKey(key_insert, key_type, rid1);
-            end_root = root->get_next(rid1, key_insert, pageNo);
-          }
-          index2->Big_key(key_type, key_insert, keylen); // get the biggest key of page
-          index2->level = 1;
-          leaf_write = (Page *)index2;
-          page_write = MINIBASE_DB->write_page(leaf_alloc2, leaf_write);
-          if (page_write != OK)
-            cout << "Error: can not write a root page to the disk  page number " << leav_rid.pageNo << endl;
-          // write index page number into root page
-          dataRid.pageNo = leaf_alloc2;
-          leav_insert = root->insertKey(key_insert, key_type, leaf_alloc2, leav_rid); // insert record of left index page with biggest key  into root node
-          leav_insert = root->insertKey(key3, key_type, leaf_alloc, leav_rid);        // insert record of  right page with biggest key into root node
-
-#endif
-        }
-
         // write both leaf page to disk
         leaf_Read = MINIBASE_DB->write_page(pageNo, leaf_write);
         if (leaf_Read != OK)
@@ -879,13 +722,4 @@ IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key)
   // put your code here
 
   //    return NULL;
-}
-
-int keysize()
-{
-
-  // let it blank
-
-  // put your code here
-  return 0;
 }
