@@ -47,7 +47,9 @@ public:
         int keyLength;
         PageId  index[50];
         int index_page_number;
+        PageId curr_id;
         short spilt_flag;
+        PageId curr_lf;
         string  filename;
 };
 
@@ -58,14 +60,12 @@ BTIndexPage *root = new BTIndexPage();
 int flag_tree_insert = 0;
 static error_string_table btree_table(BTREE, BtreeErrorMsgs);
 
-BTreeFile::BTreeFile(Status &returnStatus, const char *filename)
-{
+BTreeFile::BTreeFile(Status &returnStatus, const char *filename) {
   int head_start;
-  if (MINIBASE_DB->get_file_entry(filename, head_start) == OK)
-  {
+  if (MINIBASE_DB->get_file_entry(filename, head_start) == OK) {
     // get tree infor including key type
     Page *head_pag;
-    this->header = head_start;
+    this->head_id = head_start;
     Status head_pin = MINIBASE_BM->pinPage(head_start, head_pag, 1);
     if (head_pin != OK)
     {
@@ -90,7 +90,7 @@ BTreeFile::BTreeFile(Status &returnStatus, const char *filename,
   if (MINIBASE_DB->get_file_entry(filename, head_start) == OK)
   {
     // get tree infor including key type
-    this->header = head_start;
+    this->head_id = head_start;
     this->index = 0;
     this->k_type = keytype;
   }
@@ -117,7 +117,7 @@ BTreeFile::BTreeFile(Status &returnStatus, const char *filename,
     head->index_page_number = 0;
     head->filename = filename;
     //  store key B+ tree data type
-    this->header = head_start;
+    this->head_id = head_start;
     this->k_type = keytype;
     memcpy(head_pag, head, sizeof(HeadPage));
     flag_tree_insert = 0;
@@ -165,7 +165,7 @@ Status BTreeFile::destroyFile()
   }
 
   destory_page = MINIBASE_DB->deallocate_page(5);
-  int head_start = this->header;
+  int head_start = this->head_id;
   Status head_pin = MINIBASE_BM->pinPage(head_start, head_pag, 1);
   HeadPage *head = new HeadPage();
   head = (HeadPage *)head_pag;
@@ -185,10 +185,10 @@ Status BTreeFile::insert(const void *key, const RID rid)
   // get tree infro  from head page
   Page *head_pag;
   HeadPage *head = new HeadPage();
-  Status head_pin = MINIBASE_BM->pinPage(this->header, head_pag, 1);
+  Status head_pin = MINIBASE_BM->pinPage(this->head_id, head_pag, 1);
   if (head_pin != OK)
   {
-    cout << "Error: can not pin the head page  " << this->header << endl;
+    cout << "Error: can not pin the head page  " << this->head_id << endl;
     //   returnStatus=FAIL;
   }
   head = (HeadPage *)head_pag;

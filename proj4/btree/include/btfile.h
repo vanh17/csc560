@@ -59,10 +59,10 @@ class BTreeFile: public IndexFile {
     
   private:
     // following added by Hoang april 10, need to modify later
-    PageId  header;
+    PageId  curr_lf;
+    PageId  head_id;
     short index;
-    PageId  current_index;
-    PageId  current_leaf;
+    PageId  curr_id;
     AttrType  k_type;
 };
 
