@@ -21,8 +21,6 @@ class BTLeafPage : public SortedPage {
    // No private variables should be declared.
 
  public:
- 	// add public variable here Hoang April 10, need to modify later
- 	AttrType  keytype;
 // In addition to initializing the  slot directory and internal structure
 // of the HFPage, this function sets up the type of the record page.
 
@@ -51,6 +49,8 @@ class BTLeafPage : public SortedPage {
    
    Status insertRec(const void *key, AttrType key_type, RID dataRid, RID& rid);
 
+// add public variable here Hoang April 10, need to modify later
+   AttrType  k_type;
 // ------------------- Iterators ------------------------
 // The two functions get_first and get_next provide an
 // iterator interface to the records on a BTLeafPage.

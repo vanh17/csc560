@@ -195,7 +195,7 @@ Status BTLeafPage::get_first (RID& rid,
       int rec_Len;
        if(SortedPage::firstRecord(first_leaf)!=OK) cout<<"can not find first record in the first leaf page "<<endl;
        if(HFPage::returnRecord(first_leaf,recPtr_comp,rec_Len)!=OK)  cout<<"can not get record from the first leaf page "<<endl;
-       if(this->keytype==attrInteger)
+       if(this->k_type==attrInteger)
            {
             
                   Key_Int *a=(Key_Int *) recPtr_comp;
@@ -203,7 +203,7 @@ Status BTLeafPage::get_first (RID& rid,
                     dataRid=a->data.rid;
            
           }
-          else  if(this->keytype==attrString)
+          else  if(this->k_type==attrString)
           {
                  Key_string *a=(Key_string *) recPtr_comp;       
                  memcpy(key,&a->charkey,sizeof(a->charkey));
@@ -230,14 +230,14 @@ Status BTLeafPage::get_next (RID& rid,
         {
             first_leaf=next;
            if(HFPage::returnRecord(first_leaf,recPtr_comp,rec_Len)!=OK)  cout<<"can not get record from the first leaf page "<<endl;
-            if(this->keytype==attrInteger)
+            if(this->k_type==attrInteger)
            {
             
                   Key_Int *a=(Key_Int *) recPtr_comp;
                     memcpy(key,&(a->intkey),sizeof(int));
                    dataRid=a->data.rid;
           }
-          else  if(this->keytype==attrString)
+          else  if(this->k_type==attrString)
           {
                  Key_string *a=(Key_string *) recPtr_comp;    
                   memcpy(key,&a->charkey,sizeof(a->charkey));
