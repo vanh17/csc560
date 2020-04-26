@@ -71,8 +71,8 @@ BTreeFile::BTreeFile(Status &returnStatus, const char *filename) {
       cout << "Error: can not pin the head page  " << head_pag << endl;
       returnStatus = FAIL;
     }
-    HeadPage *head = new HeadPage();
-    head = (HeadPage *)head_pag;
+    TopPage *head = new TopPage();
+    head = (TopPage *)head_pag;
     this->k_type = head->k_type;
   }
   else
@@ -109,7 +109,7 @@ BTreeFile::BTreeFile(Status &returnStatus, const char *filename,
       returnStatus = FAIL;
     }
     // init head page
-    HeadPage *head = new HeadPage();
+    TopPage *head = new TopPage();
     head->root_id = start_pg;
     head->k_type = keytype;
     head->index_page_number = 0;
@@ -117,7 +117,7 @@ BTreeFile::BTreeFile(Status &returnStatus, const char *filename,
     //  store key B+ tree data type
     this->head_id = head_start;
     this->k_type = keytype;
-    memcpy(head_pag, head, sizeof(HeadPage));
+    memcpy(head_pag, head, sizeof(TopPage));
     flag_tree_insert = 0;
     //  strcpy((char *)head_pag,(char *)head);
     root->init(start_pg); // init root page
@@ -165,8 +165,8 @@ Status BTreeFile::destroyFile()
   destory_page = MINIBASE_DB->deallocate_page(5);
   int head_start = this->head_id;
   Status head_pin = MINIBASE_BM->pinPage(head_start, head_pag, 1);
-  HeadPage *head = new HeadPage();
-  head = (HeadPage *)head_pag;
+  TopPage *head = new TopPage();
+  head = (TopPage *)head_pag;
   destory_page = MINIBASE_DB->deallocate_page(head->root_id); // dellocate root page
 
   Status Head = MINIBASE_DB->delete_file_entry(head->filename.c_str()); // delete B + entry
@@ -177,19 +177,18 @@ Status BTreeFile::destroyFile()
   return OK;
 }
 
-Status BTreeFile::insert(const void *key, const RID rid)
-{
+Status BTreeFile::insert(const void *key, const RID rid) {
 
   // get tree infro  from head page
   Page *head_pag;
-  HeadPage *head = new HeadPage();
+  TopPage *head = new TopPage();
   Status head_pin = MINIBASE_BM->pinPage(this->head_id, head_pag, 1);
   if (head_pin != OK)
   {
     cout << "Error: can not pin the head page  " << this->head_id << endl;
     //   returnStatus=FAIL;
   }
-  head = (HeadPage *)head_pag;
+  head = (TopPage *)head_pag;
   AttrType key_type = this->k_type;
   RID leav_rid, index_rid, root_rid;
   Status leav_insert, index_insert, alloc_page, root_insert, page_write, leaf_pin;
