@@ -679,8 +679,8 @@ IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key)
   Page *leaf_read = new Page();
 
   PageId pageNo, PageNo_begin;
-  root->k_type = this->k_type;
-  scan->k_type = this->k_type;
+  root->keytype = this->k_type;
+  scan->keytype = this->k_type;
   if (lo_key == NULL && hi_key == NULL)
   {
     // whole scan
