@@ -17,7 +17,6 @@ const int EMPTY_SLOT   =  -1;
 // care of non-aligned attributes.
 
 class HFPage {
-
   protected:
     struct slot_t {
         short   offset;  
@@ -47,9 +46,10 @@ class HFPage {
 
     char      data[MAX_SPACE - DPFIXED]; 
 
+    void dumpPage();            // dump contents of a page
+
   public:
     void init(PageId pageNo);   // initialize a new page
-    void dumpPage();            // dump contents of a page
 
     PageId getNextPage();       // returns value of nextPage
     PageId getPrevPage();       // returns value of prevPage
@@ -87,5 +87,4 @@ class HFPage {
     bool empty(void);
 
 };
-
 #endif // _HFPAGE_H

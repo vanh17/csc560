@@ -1,5 +1,5 @@
 //*****************************************
-//  Driver program for heapfiles
+//  Driver program for HFPage
 //****************************************
 
 using namespace std;
@@ -26,7 +26,6 @@ struct Rec
     float fval;
     char name[namelen];
 };
-
 static const int reclen = sizeof(Rec);
 
 
@@ -84,7 +83,7 @@ int HfpDriver::test1()
         status = FAIL;
     } else 
         cout << "Page Empty as expected.\n";
-    hfp.dumpPage();
+
     return (status == OK);
 }
 
@@ -107,7 +106,7 @@ int HfpDriver::test2()
 
     cout << "\n  Test 2: Insert and traversal of records\n";
     for (i=0; i <Limit; i++)
-    { status = hfp.insertRecord ((char*) &i, sizeof(int), Rid);
+    { status = hfp.insertRecord ((char*) &i, sizeof(int), Rid); 
       if (status != OK) { 
         cout << "ERROR: Insertion Failed!" << endl;
     	cout <<"    Current Page No.: " <<hfp.page_no() <<", "
@@ -382,8 +381,108 @@ struct td {
 };
 
 int HfpDriver::test6()
-{   
+{ 
+    HFPage hfp;
     Status status = OK;
-    return (status == OK);
+
+    RID  curRid;
+    PageId tmpPID = 10;
+    char LongStr[2001];
+
+    hfp.init(tmpPID);
+
+    cout << " -------------- Start of test 6 ---------------" << endl;
+
+    // get initial space
+    int initialSpace;
+    initialSpace = hfp.available_space();
+    cout << "Initial space is " << initialSpace << endl;
+
+    // try to allocate a tuple of maximum size
+    status = hfp.insertRecord(LongStr, initialSpace, curRid);
+    if (status != OK) {
+        cout << "ERROR: could not insert maximum size tuple" << endl;
+    } else {
+        status = hfp.deleteRecord(curRid);
+        if (status != OK) 
+            cout << "ERROR: could not delete max size tuple" << endl;
+    }
+
+    int secondarySpace = hfp.available_space();
+    cout << "Secondary space is " << secondarySpace << endl;
+    if (secondarySpace != initialSpace)
+       cout << "ERROR: space has changed" << endl;
+
+    // insert as many records of random size as will fit
+    td records[400];
+    char garbage[1024];
+    double *dp = (double*) garbage;
+    int nrRecords = 0;
+    while (1) {
+      records[nrRecords].value = nrRecords;
+      records[nrRecords].length = sizeof(double) + ( rand() % 10);
+      *dp = records[nrRecords].value;
+      status = hfp.insertRecord(garbage, records[nrRecords].length,
+                                records[nrRecords].rid);
+      if (status == OK) {
+         //cout << "inserted record " << nrRecords << " length " 
+         //     << records[nrRecords].length << endl;
+         records[nrRecords].active = true;
+         nrRecords++;
+      } else {
+         break;
+      }
+    } // end while
+
+    cout << "Inserted " << nrRecords << " records" << endl;
+    cout << "Start of deletion" << endl;
+    for (int i = 0; i < nrRecords; i++) {
+        int curRec;
+        do {
+           curRec = rand() % nrRecords;
+        } while (records[curRec].active == false);
+
+        char *where;
+        double *whered;
+        int ret_len;
+        status = hfp.returnRecord(records[curRec].rid, where, ret_len);
+        if (status != OK) {
+           cout << "ERROR: could not retrive record " << curRec << endl;
+        } else {
+            whered = (double *)where;
+            if (ret_len != records[curRec].length) {
+               cout << "ERROR: record " << curRec 
+                    << " has length " << ret_len 
+                    << " should be " << records[curRec].length
+                    << endl;
+            }
+
+            if ( *whered != records[curRec].value) {
+               cout << "ERROR: record " << curRec 
+                    << "has value" << *whered
+                    << "should have value " << records[curRec].value
+                    << endl; 
+            }
+        }
+
+        status = hfp.deleteRecord(records[curRec].rid);
+        if (status != OK) {
+           cout << "ERROR: failed to delete record " 
+                << curRec << endl;
+        }
+
+        records[curRec].active = false;
+    } // end for
+
+    cout << "End of deletion" << endl;
+
+    int finalSpace = hfp.available_space();
+    cout << "Final space is " << finalSpace << endl;
+    if ( finalSpace != initialSpace) {
+        cout << "ERROR: initial space does not match final space" 
+             << endl;
+    }
+    cout << " -------------- End of test 6 ---------------" << endl;	  
+    return (status == OK);    
 }
 

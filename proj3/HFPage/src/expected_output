@@ -4,9 +4,6 @@ Running HFPage Tests tests...
   Test 1: Page Initialization Checks
 Current Page No.: 7, Next Page No.: 8, Prev Page No.: -1, Available Space: 1000
 Page Empty as expected.
-dumpPage, this: 0xbffff4e8
-curPage= 7, nextPage=8
-usedPtr=1000,  freeSpace=1004, slotCnt=0
 
   Test 2: Insert and traversal of records
 Inserted record, RID 7, 0
@@ -149,6 +146,14 @@ FirstRecord in an empty page is handled correctly.
 Overflow handled correctly.
 
 Current Page No.: 7, Next Page No.: -1, Prev Page No.: -1, Available Space: 1000
+ -------------- Start of test 6 ---------------
+Initial space is 1000
+Secondary space is 1000
+Inserted 61 records
+Start of deletion
+End of deletion
+Final space is 1000
+ -------------- End of test 6 ---------------
 
 ...HFPage Tests tests completed successfully.
 

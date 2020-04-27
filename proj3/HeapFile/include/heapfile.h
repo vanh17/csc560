@@ -75,7 +75,7 @@ class HeapFile {
     // updates the specified record in the heapfile.
     Status updateRecord(const RID& rid, char *recPtr, int reclen);
 
-    // read record from file, returning pointer and length
+    // read record from file, returning pointer and length as well as the actaul data
     Status getRecord(const RID& rid, char *recPtr, int& recLen); 
 
     // initiate a sequential scan
