@@ -12,184 +12,244 @@
 #include "buf.h"
 #include "db.h"
 
+PageId First_DataPage;
+int Final_page = 0;
+Page *P_pin = new Page();
+HFPage *Page_data = new HFPage();
 // *******************************************
 // The constructor pins the first page in the file
 // and initializes its private data members from the private data members from hf
-Scan::Scan(HeapFile *hf, Status &status) {
-   status = init(hf);
+Scan::Scan(HeapFile *hf, Status &status)
+{
+
+  First_DataPage = this->dataPageId = hf->firstDirPageId + 8;
+  this->dirPageId = hf->firstDirPageId;
+  this->_hf = hf;
+  Status get_status = MINIBASE_BM->pinPage(First_DataPage, P_pin, 1, _hf->fileName);
+  if (get_status != OK)
+    cout << "Error: pin a first data pageID " << First_DataPage << endl;
+  init(hf);
+  status = OK;
 }
 
 // *******************************************
 // The deconstructor unpin all pages.
-Scan::~Scan() {
-   // put your code here
-   Status curr_state;
+Scan::~Scan()
+{
+
+  // MINIBASE_BM->flushAllPages();
+#if 0
+    FrameDesc *del_pin=MINIBASE_BM->frameTable();
+    int pin_number=MINIBASE_BM->getNumUnpinnedBuffers();
+    int pin_un=MINIBASE_BM->getNumBuffers();
+    Replacer *A;
+    for(int i=0;i<=pin_number;i++)  {}
+
+    //  A->info();
+     pin_number=MINIBASE_BM->getNumUnpinnedBuffers();
+     cout<<"number of frame pin ="<<pin_number<<"  number of unpin ="<<pin_un<<endl;
+  //  delete P_pin;
+ //   delete Page_data;
+#endif
+  // put your code here
 }
 
 // *******************************************
 // Retrieve the next record in a sequential scan.
 // Also returns the RID of the retrieved record.
-Status Scan::getNext(RID &rid, char *recPtr, int &recLen) {
-   // Declare the curr_state variable to keep track
-   // of the current states
-   Status curr_state;
-   userRid.pageNo = dataPageId;
-   char *temp_ptr;
-  
-   // first check if the users are not at the top of the stack
-   // of Recods, if not then we can move to nextRecord
-   if (userRid.slotNo != -1) {
-      curr_state = dataPage->nextRecord(userRid, userRid);
-   }
-   // else we are at the first Record
-   else {
-      curr_state = dataPage->firstRecord(userRid);      
-   }
-   
-   // if we are DONE with this data page, go on to next page
-   if (curr_state == DONE) { 
-      curr_state = nextDataPage();
-      // check if there is no more data page in this curr_Directory
-      if (curr_state == DONE) {
-         // move to next Dir to scan there
-         curr_state = nextDirPage();
-         if (curr_state != DONE) {
-            firstDataPage();
-         }
-         else {
-            // if it goes here, we are DONE with scan as a whole, unpin the page
-            // so it wont fail test case number 5
-            curr_state = MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
-            return DONE;
-         }
+Status Scan::getNext(RID &rid, char *recPtr, int &recLen)
+{
+
+  RID next = (this->userRid);
+  RID nextRid;
+  RID rid_fisrt_datePage;
+  PageId next_page;
+  //    cout<<"page number"<<next.pageNo<<"slot number ="<<next.slotNo<<endl;
+  Status get_status = (this->dataPage)->getRecord(next, recPtr, recLen); // get record
+  if (get_status != OK)
+    cout << "Error: can not get recpter for pageid= " << next.pageNo << "slot numner=" << next.slotNo << endl;
+  rid = next;
+  get_status = (this->dataPage)->nextRecord(next, nextRid); // get next rid
+  if (get_status == OK)
+    this->userRid = nextRid;
+  else if (get_status == DONE)
+  {
+    get_status = MINIBASE_BM->unpinPage(this->dataPageId, FALSE, _hf->fileName); // unpin current page
+    if (get_status != OK)
+      cout << "Warning: cannot  unpin page =" << this->dataPageId << endl;
+    get_status = nextDataPage(); // get next page
+    if (get_status == DONE)
+    {
+
+      get_status = MINIBASE_BM->pinPage(this->dataPageId, P_pin, 1, _hf->fileName); // pin the fina data page
+      if (get_status != OK)
+        cout << "Warning: cannot pin page =" << this->dataPageId << endl;
+      Final_page++;        // if Final_page=1 mean final recod ,so cannot return done. only wait it >=2 can do return done
+      if (Final_page >= 2) // final record read by function getRecod
+      {
+        get_status = MINIBASE_BM->unpinPage(this->dataPageId, FALSE, _hf->fileName); // unpin final page
+        if (get_status != OK)
+          cout << "Warning: cannot unpin page =" << this->dataPageId << endl;
+        Final_page = 0;
+        return DONE;
       }
-      // return normal value if we are still have things to scan
-      userRid.pageNo = dataPageId;
-      curr_state = dataPage->firstRecord(userRid);
-   }
-   // store the returned Record and then return good to go
-   curr_state = dataPage->returnRecord(userRid, temp_ptr, recLen);
-   memcpy(recPtr, temp_ptr, recLen);
-   rid = userRid;
-   // store the returned Record and then return good to go
-   return OK;
+    }
+  }
+  else
+    return FAIL;
+  // put your code here
+  return OK;
 }
 
 // *******************************************
 // Do all the constructor work.
-Status Scan::init(HeapFile *hf) {
-   // initialized all neccessary variables
-   Page *temp_;
-   // created new variable to hold initial hf value
-   // because we will change the value later 
-   _hf = hf;
-   // set dirPageID to the first page in hf
-   dirPageId = hf->firstDirPageId;
-   // pin the state and set curr_state to return value from pinPage function
-   Status curr_state = MINIBASE_BM->pinPage(dirPageId, temp_, 0, hf->fileName);
-   dirPage = reinterpret_cast<HFPage *>(temp_);
+Status Scan::init(HeapFile *hf)
+{
 
-   // update other private variable as we finised pinning the page
-   dataPage = NULL;
-   dataPageRid.pageNo = -1;
-   dataPageId = -1;
-   dataPageRid.slotNo = -1;
-   // set everything to firstDataPage
-   curr_state = firstDataPage();
-   // just init nothing to scan yet.
-   nxtUserStatus = -1;
-   userRid.slotNo = -1;
-   userRid.pageNo = -1;
-   // init so scan just started set this to false
-   scanIsDone = -1;
-   // just return OK because nothing go wrong in the init
-   return OK;
+  // data page init
+  RID rid_fisrt_datePage;
+  Status P_page = MINIBASE_DB->read_page(First_DataPage, P_pin);
+  if (P_page != OK)
+  {
+    cout << "Error: cann not read page " << this->dataPageId << "into the memory" << endl;
+    return FAIL;
+  }
+  memcpy(Page_data, P_pin, sizeof(Page));
+  this->dataPage = Page_data;
+  Page_data->firstRecord(rid_fisrt_datePage);
+  this->userRid = rid_fisrt_datePage;
+
+#if 1
+  // Dir page init
+  Page *P_dir = new Page();
+  HFPage *Page_data_dir = new HFPage();
+  Status get_status = MINIBASE_BM->pinPage(this->dirPageId, P_pin, 1, _hf->fileName);
+  if (get_status != OK)
+    cout << "Warning: cannot pin a first directory pageID " << this->dirPageId << endl;
+  P_page = MINIBASE_DB->read_page(this->dirPageId, P_dir);
+  if (P_page != OK)
+  {
+    cout << "Error: cann not read page " << this->dirPageId << "into the memory" << endl;
+    return FAIL;
+  }
+  memcpy(Page_data_dir, P_dir, sizeof(Page));
+  this->dirPage = Page_data_dir;
+  Page_data_dir->firstRecord(rid_fisrt_datePage);
+  this->dataPageRid = rid_fisrt_datePage;
+  // upin first dir page
+  get_status = MINIBASE_BM->unpinPage(this->dirPageId, FALSE, _hf->fileName);
+  if (get_status != OK)
+    cout << "Warning: unpin page =" << this->dirPageId << endl;
+
+  delete P_dir;
+  delete Page_data_dir;
+#endif
+  // put your code here
+  return OK;
 }
 
 // *******************************************
 // Reset everything and unpin all pages.
-Status Scan::reset() {
+Status Scan::reset()
+{
+
+  // put your code here
   return OK;
 }
 
 // *******************************************
 // Copy data about first page in the file.
-Status Scan::firstDataPage() {
-   // pin the first page if we can find it
-   int len;
-   struct DataPageInfo *temp_;
-   char *temp_ptr;
-   Page *temp_page;
-   // set page number to the dir page id
-   dataPageRid.pageNo = dirPageId;
-   // get the first record of the DataPage.
-   Status curr_state = dirPage->firstRecord(dataPageRid);
+Status Scan::firstDataPage()
+{
 
-   // check if there is no more to get
-   if (curr_state != DONE) {
-      curr_state = dirPage->returnRecord(dataPageRid, temp_ptr, len);
-      temp_ = reinterpret_cast<struct DataPageInfo *>(temp_ptr);
- 
-      dataPageId = temp_->pageId;
-      MINIBASE_BM->pinPage(dataPageId, temp_page, 0, _hf->fileName);
- 
-      dataPage = reinterpret_cast<HFPage *>(temp_page);
-      // unpin page so that it will pass test case 5
-      curr_state = MINIBASE_BM->unpinPage(dataPageId, FALSE, _hf->fileName);
-      return OK;
-   }
-   // unpin the page so it won't fail test 5
-   // print("curr_state is Done")
-   curr_state = MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
-   // exit the function
-   return DONE;
+  RID rid_fisrt_datePage;
+  Status get_status = MINIBASE_BM->pinPage(First_DataPage, P_pin, 1, _hf->fileName);
+  if (get_status != OK)
+    cout << "Warning:cannot pin page =" << First_DataPage << endl;
+  Status P_page = MINIBASE_DB->read_page(First_DataPage, P_pin);
+  if (P_page != OK)
+  {
+    cout << "Error: cann not read page " << First_DataPage << "into the memory" << endl;
+    return FAIL;
+  }
+  memcpy(Page_data, P_pin, sizeof(Page));
+  Page_data->firstRecord(rid_fisrt_datePage);
+  this->dataPage = Page_data;
+  this->userRid = rid_fisrt_datePage;
+  this->dataPageId = Page_data->page_no();
+  // put your code here
+  return OK;
 }
 
 // *******************************************
 // Retrieve the next data page.
-Status Scan::nextDataPage() {
-   // put your code here
-   struct DataPageInfo *temp_;
-   char *temp_ptr;
-   Page *temp_page;
-   int len;
+Status Scan::nextDataPage()
+{
 
-   Status curr_state = dirPage->nextRecord(dataPageRid, dataPageRid);
-   if (curr_state == DONE) {
-      return DONE;      
-   }
-   dirPage->returnRecord(dataPageRid, temp_ptr, len);
-   temp_ = reinterpret_cast<struct DataPageInfo *>(temp_ptr);
-  
-   dataPageId = temp_->pageId;
-   curr_state = MINIBASE_BM->pinPage(dataPageId, temp_page, 0, _hf->fileName);
-  
-   dataPage = reinterpret_cast<HFPage *>(temp_page);
-   curr_state = MINIBASE_BM->unpinPage(dataPageId, FALSE, _hf->fileName);
-  
-   return OK;
+  RID rid_next_datePage;
+  PageId next_data_page;
+  next_data_page = (this->dataPage)->getNextPage(); // get next pageid
+  if (next_data_page < 0)
+  {
+    //  cout<<"Error: unpin page ="<<next_data_page<<endl;
+    //  cout<<"current page "<<(this->dataPage)->page_no()<<endl;
+    //  cout<<"next page "<<(this->dataPage)->getNextPage()<<endl;
+    return DONE;
+  }
+
+  Status get_status = MINIBASE_BM->pinPage(next_data_page, P_pin, 1, _hf->fileName);
+  if (get_status != OK)
+    cout << "Warning:cannot pin page =" << next_data_page << endl;
+
+  Status P_page = MINIBASE_DB->read_page(next_data_page, P_pin);
+  if (P_page != OK)
+  {
+    cout << "Error: cann not read page " << next_data_page << "into the memory" << endl;
+    return FAIL;
+  }
+  memcpy(Page_data, P_pin, sizeof(Page));
+  Page_data->firstRecord(rid_next_datePage); // get first rid
+  this->dataPage = Page_data;                // get hfpage address
+  this->userRid = rid_next_datePage;         // get current rid
+  this->dataPageId = Page_data->page_no();   // get pageid
+                                             //   Page_data->dumpPage();
+                                             //   delete  P_pin;
+                                             //  delete  Page_data;
+  return OK;
 }
 
 // *******************************************
 // Retrieve the next directory page.
-Status Scan::nextDirPage() { 
-   Page *temp_page;
-   // setting next_id to next Dir page
-   PageId curr_dir = dirPage->getNextPage();
-  
-   // if there is no next dir we are done
-   if (curr_dir == -1) {
-      return DONE;
-   }
-   // now we are at the next Dir Page 
-   // unpin the old Dir Page
-   Status curr_state = MINIBASE_BM->unpinPage(dirPageId, FALSE, _hf->fileName);
-   curr_state = MINIBASE_BM->pinPage(curr_dir, temp_page, 0, _hf->fileName);
- 
-   // change dirPage to new page, and set dirID to current dir
-   dirPageId = curr_dir;
-   dirPage = reinterpret_cast<HFPage *>(temp_page);
-   return OK;
-}
+Status Scan::nextDirPage()
+{
 
-// **************** End scan.C *****************
+  Page *P_dir = new Page();
+  HFPage *Page_data_dir = new HFPage();
+  RID rid_next_DirPage;
+  PageId next_dir_page;
+  next_dir_page = (this->dirPage)->getNextPage();
+  if (next_dir_page < 0)
+  {
+    cout << "Error: no directory page any more" << endl;
+    return DONE;
+  }
+  Status get_status = MINIBASE_BM->pinPage(next_dir_page, P_dir, 1, _hf->fileName);
+  if (get_status != OK)
+    cout << "Warning: cannot pin page =" << next_dir_page << endl;
+  Status P_page = MINIBASE_DB->read_page(next_dir_page, P_pin);
+  if (P_page != OK)
+  {
+    cout << "Error: cann not read page " << next_dir_page << "into the memory" << endl;
+    return FAIL;
+  }
+  memcpy(Page_data_dir, P_dir, sizeof(Page));
+  Page_data_dir->firstRecord(rid_next_DirPage);
+  this->dirPage = Page_data_dir;
+  this->dataPageRid = rid_next_DirPage;
+  this->dirPageId = Page_data_dir->page_no();
+
+  delete P_dir;
+  delete Page_data_dir;
+  // put your code here
+  return OK;
+}
