@@ -24,7 +24,6 @@
 
 #define NUMBUF 20   
 // Default number of frames, artifically small number for ease of debugging.
-#define HTSIZE 7
 // Hash Table size
 
 /****** Global Type ********************************/

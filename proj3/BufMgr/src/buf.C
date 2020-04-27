@@ -30,7 +30,7 @@ static error_string_table bufTable(BUFMGR, bufErrMsgs);
 
 /************Defined global variables here ***********************************/
 //Modified April 17, 2020
-int next_id = 0, depth = 2, flg_partion = 1, hash_max_size = HTSIZE + 1; // declare next_id, depth, flg_partition for tracking
+int next_id = 0, depth = 2, flg_partion = 1, hash_max_size = 7 + 1; // declare next_id, depth, flg_partition for tracking
 vector<PageId> dsk_storage;
 bool is_buf_full; // track whether buffer is full or not
 vector<int> copy_stack; // create this so we can update loved, hated queue
@@ -207,7 +207,7 @@ void delete_table() {
   // reset all variable keep track of status of the hash table to default value 
   flg_partion = 1;
   depth = 2;
-  hash_max_size = HTSIZE + flg_partion ;
+  hash_max_size = 7 + flg_partion ;
   depth = 2;
   next_id = 0;
 }
